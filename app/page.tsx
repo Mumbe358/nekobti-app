@@ -1,4 +1,10 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Home() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 md:px-10">
@@ -21,14 +27,16 @@ export default function Home() {
             <p className="mb-8 max-w-xl text-base leading-8 text-[#5f5f5f] md:text-lg">
               性格を人間に当てはめるのではなく、
               猫らしさのまま読み解く新しい診断。
-              まずは見た目だけのトップページから公開して、
-              ここから診断体験を育てていく。
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
-              <button className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90">
+              <button
+                onClick={() => setIsOpen(true)}
+                className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
+              >
                 診断をはじめる
               </button>
+
               <button className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]">
                 タイプ一覧を見る
               </button>
@@ -80,10 +88,8 @@ export default function Home() {
                     </div>
 
                     <p className="text-sm leading-7 text-[#6c625b]">
-                      堂々としていて、
-                      自分のペースを崩さない。
-                      空気を読むより、
-                      空間を支配するタイプ。
+                      堂々としていて、自分のペースを崩さない。
+                      空気を読むより、空間を支配するタイプ。
                     </p>
                   </div>
                 </div>
@@ -103,6 +109,59 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-300 ${
+          isOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setIsOpen(false)}
+      >
+        <div
+          className={`w-full max-w-xl rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-8 shadow-2xl transition-all duration-300 ${
+            isOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                DIAGNOSIS START
+              </p>
+              <h2 className="text-3xl font-bold">まずは1問目</h2>
+            </div>
+
+            <button
+              onClick={() => setIsOpen(false)}
+              className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm"
+            >
+              閉じる
+            </button>
+          </div>
+
+          <div className="rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
+            <p className="mb-4 text-lg font-semibold">
+              あなたの猫は、知らない人が来たときどうする？
+            </p>
+
+            <div className="grid gap-3">
+              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
+                すぐ隠れる
+              </button>
+              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
+                少し様子を見る
+              </button>
+              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
+                普通に近づく
+              </button>
+              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
+                むしろ主役みたいに出てくる
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
