@@ -84,13 +84,16 @@ const resultMeta: Record<
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<CatType[]>([]);
+  const [answers, setAnswers] = useState<(CatType | null)[]>(
+    Array(questions.length).fill(null)
+  );
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
 
   const totalSteps = questions.length;
+  const answeredCount = answers.filter(Boolean).length;
 
   const result = useMemo(() => {
-    if (answers.length !== totalSteps) return null;
+    if (answeredCount !== totalSteps) return null;
 
     const counts: Record<CatType, number> = {
       しずかねこ: 0,
@@ -100,7 +103,7 @@ export default function Home() {
     };
 
     answers.forEach((answer) => {
-      counts[answer] += 1;
+      if (answer) counts[answer] += 1;
     });
 
     const ordered: CatType[] = ["ボスねこ", "きれものねこ", "わくわくねこ", "しずかねこ"];
@@ -108,12 +111,12 @@ export default function Home() {
     return ordered.reduce((best, current) => {
       return counts[current] > counts[best] ? current : best;
     }, ordered[0]);
-  }, [answers, totalSteps]);
+  }, [answers, answeredCount, totalSteps]);
 
   const openDiagnosis = () => {
     setIsOpen(true);
     setStep(0);
-    setAnswers([]);
+    setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
   };
 
@@ -128,19 +131,33 @@ export default function Home() {
     setSelectedLabel(label);
 
     window.setTimeout(() => {
-      const nextAnswers = [...answers, type];
-      setAnswers(nextAnswers);
+      setAnswers((prev) => {
+        const next = [...prev];
+        next[step] = type;
+        return next;
+      });
+
       setSelectedLabel(null);
 
       if (step < totalSteps - 1) {
         setStep((prev) => prev + 1);
       }
-    }, 140);
+    }, 180);
+  };
+
+  const handlePrev = () => {
+    if (step === 0 || selectedLabel) return;
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[step] = null;
+      return next;
+    });
+    setStep((prev) => prev - 1);
   };
 
   const restartDiagnosis = () => {
     setStep(0);
-    setAnswers([]);
+    setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
   };
 
@@ -300,30 +317,31 @@ export default function Home() {
                 </div>
 
                 <div
-                  className="flex transition-transform duration-500 ease-in-out"
+                  className="flex w-full transition-transform duration-500 ease-in-out"
                   style={{ transform: `translateX(-${step * 100}%)` }}
                 >
                   {questions.map((question, questionIndex) => (
-                    <div key={question.id} className="w-full shrink-0">
+                    <div key={question.id} className="min-w-full flex-none">
                       <p className="mb-6 text-lg font-semibold">{question.text}</p>
 
                       <div className="grid gap-3">
                         {question.options.map((option) => {
                           const isActiveQuestion = questionIndex === step;
                           const isSelected = selectedLabel === option.label;
+                          const isAnsweredThisStep = answers[step] !== null;
 
                           return (
                             <button
                               key={option.label}
                               onClick={() => {
-                                if (isActiveQuestion) {
+                                if (isActiveQuestion && !isAnsweredThisStep) {
                                   handleAnswer(option.type, option.label);
                                 }
                               }}
                               disabled={!isActiveQuestion || selectedLabel !== null}
                               className={`rounded-2xl border px-5 py-4 text-left transition ${
                                 isSelected
-                                  ? "border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                                  ? "border-[#c28f71] bg-[#fff0e4] shadow-sm scale-[0.99]"
                                   : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
                               } ${!isActiveQuestion ? "pointer-events-none" : ""}`}
                             >
@@ -334,6 +352,22 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
+                </div>
+
+                <div className="mt-6 flex items-center justify-between">
+                  <button
+                    onClick={handlePrev}
+                    disabled={step === 0 || selectedLabel !== null}
+                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                      step === 0 || selectedLabel !== null
+                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                    }`}
+                  >
+                    戻る
+                  </button>
+
+                  <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
                 </div>
               </div>
             </>
