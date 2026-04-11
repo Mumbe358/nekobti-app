@@ -27,6 +27,7 @@ export default function Home() {
             <p className="mb-8 max-w-xl text-base leading-8 text-[#5f5f5f] md:text-lg">
               性格を人間に当てはめるのではなく、
               猫らしさのまま読み解く新しい診断。
+              まずは見た目から、やわらかく触れたくなる体験へ。
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
@@ -111,7 +112,7 @@ export default function Home() {
       </section>
 
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-300 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-500 ${
           isOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
@@ -119,8 +120,8 @@ export default function Home() {
         onClick={() => setIsOpen(false)}
       >
         <div
-          className={`w-full max-w-xl rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-8 shadow-2xl transition-all duration-300 ${
-            isOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
+          className={`w-full max-w-xl rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-8 shadow-2xl transition-all duration-500 ${
+            isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -134,7 +135,7 @@ export default function Home() {
 
             <button
               onClick={() => setIsOpen(false)}
-              className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm"
+              className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
             >
               閉じる
             </button>
@@ -144,6 +145,14 @@ export default function Home() {
             <p className="mb-4 text-lg font-semibold">
               あなたの猫は、知らない人が来たときどうする？
             </p>
+
+            <div className="mb-3 flex items-center gap-2">
+              <div className="h-2 flex-1 rounded-full bg-[#b07d62]" />
+              <div className="h-2 flex-1 rounded-full bg-[#eadfd6]" />
+              <div className="h-2 flex-1 rounded-full bg-[#eadfd6]" />
+            </div>
+
+            <p className="mb-6 text-sm text-[#9a7d69]">1 / 3 questions</p>
 
             <div className="grid gap-3">
               <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
