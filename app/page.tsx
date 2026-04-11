@@ -96,6 +96,8 @@ export default function Home() {
     Array(questions.length).fill(null)
   );
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+  const [direction, setDirection] = useState<"next" | "prev">("next");
+  const [animating, setAnimating] = useState(false);
 
   const totalSteps = questions.length;
   const answeredCount = answers.filter(Boolean).length;
@@ -126,11 +128,14 @@ export default function Home() {
     setStep(0);
     setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
+    setAnimating(false);
+    setDirection("next");
   };
 
   const closeDiagnosis = () => {
     setIsOpen(false);
     setSelectedLabel(null);
+    setAnimating(false);
   };
 
   const openTypeList = () => {
@@ -142,9 +147,11 @@ export default function Home() {
   };
 
   const handleAnswer = (type: CatType, label: string) => {
-    if (selectedLabel) return;
+    if (selectedLabel || animating) return;
 
     setSelectedLabel(label);
+    setDirection("next");
+    setAnimating(true);
 
     window.setTimeout(() => {
       setAnswers((prev) => {
@@ -157,24 +164,40 @@ export default function Home() {
 
       if (step < totalSteps - 1) {
         setStep((prev) => prev + 1);
+        window.setTimeout(() => {
+          setAnimating(false);
+        }, 320);
+      } else {
+        setAnimating(false);
       }
     }, 180);
   };
 
   const handlePrev = () => {
-    if (step === 0 || selectedLabel) return;
+    if (step === 0 || selectedLabel || animating) return;
+
+    setDirection("prev");
+    setAnimating(true);
+
     setAnswers((prev) => {
       const next = [...prev];
       next[step] = null;
       return next;
     });
+
     setStep((prev) => prev - 1);
+
+    window.setTimeout(() => {
+      setAnimating(false);
+    }, 320);
   };
 
   const restartDiagnosis = () => {
     setStep(0);
     setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
+    setAnimating(false);
+    setDirection("next");
   };
 
   return (
@@ -318,82 +341,78 @@ export default function Home() {
               </div>
 
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
+                <div className="mb-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    {questions.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
+                          index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-[#9a7d69]">
+                    {step + 1} / {totalSteps} questions
+                  </p>
+                </div>
+
                 <div
-                  className="flex w-full transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translate3d(-${step * 100}%, 0, 0)` }}
+                  key={step}
+                  className={`transition-all duration-300 ${
+                    direction === "next"
+                      ? "animate-[slideInRight_.28s_ease-out]"
+                      : "animate-[slideInLeft_.28s_ease-out]"
+                  }`}
                 >
-                  {questions.map((question, questionIndex) => {
-                    const isActiveQuestion = questionIndex === step;
-                    const isAnsweredThisStep = answers[step] !== null;
+                  <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                    {questions[step].text}
+                  </p>
 
-                    return (
-                      <div key={question.id} className="min-w-full flex-none overflow-hidden">
-                        <div className="mb-4">
-                          <div className="mb-3 flex items-center gap-2">
-                            {questions.map((_, index) => (
-                              <div
-                                key={index}
-                                className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
-                                  index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
-                                }`}
-                              />
-                            ))}
-                          </div>
+                  <div className="grid gap-3">
+                    {questions[step].options.map((option) => {
+                      const isSelected = selectedLabel === option.label;
+                      const isAnsweredThisStep = answers[step] !== null;
 
-                          <p className="text-sm text-[#9a7d69]">
-                            {step + 1} / {totalSteps} questions
-                          </p>
-                        </div>
+                      return (
+                        <button
+                          key={option.label}
+                          onClick={() => {
+                            if (!isAnsweredThisStep) {
+                              handleAnswer(option.type, option.label);
+                            }
+                          }}
+                          disabled={selectedLabel !== null || animating}
+                          className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                            isSelected
+                              ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                              : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                          }`}
+                        >
+                          <span className="block break-words leading-8">
+                            {option.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                        <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                          {question.text}
-                        </p>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <button
+                      onClick={handlePrev}
+                      disabled={step === 0 || selectedLabel !== null || animating}
+                      className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                        step === 0 || selectedLabel !== null || animating
+                          ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                          : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                      }`}
+                    >
+                      戻る
+                    </button>
 
-                        <div className="grid gap-3">
-                          {question.options.map((option) => {
-                            const isSelected = selectedLabel === option.label;
-
-                            return (
-                              <button
-                                key={option.label}
-                                onClick={() => {
-                                  if (isActiveQuestion && !isAnsweredThisStep) {
-                                    handleAnswer(option.type, option.label);
-                                  }
-                                }}
-                                disabled={!isActiveQuestion || selectedLabel !== null}
-                                className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
-                                  isSelected
-                                    ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                                    : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
-                                } ${!isActiveQuestion ? "pointer-events-none" : ""}`}
-                              >
-                                <span className="block break-words leading-8">
-                                  {option.label}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          <button
-                            onClick={handlePrev}
-                            disabled={step === 0 || selectedLabel !== null}
-                            className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
-                              step === 0 || selectedLabel !== null
-                                ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                                : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
-                            }`}
-                          >
-                            戻る
-                          </button>
-
-                          <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                    <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                  </div>
                 </div>
               </div>
             </>
