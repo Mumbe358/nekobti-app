@@ -85,6 +85,7 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<CatType[]>([]);
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
 
   const totalSteps = questions.length;
 
@@ -113,27 +114,35 @@ export default function Home() {
     setIsOpen(true);
     setStep(0);
     setAnswers([]);
+    setSelectedLabel(null);
   };
 
   const closeDiagnosis = () => {
     setIsOpen(false);
+    setSelectedLabel(null);
   };
 
-  const handleAnswer = (type: CatType) => {
-    const nextAnswers = [...answers, type];
-    setAnswers(nextAnswers);
+  const handleAnswer = (type: CatType, label: string) => {
+    if (selectedLabel) return;
 
-    if (step < totalSteps - 1) {
-      setStep(step + 1);
-    }
+    setSelectedLabel(label);
+
+    window.setTimeout(() => {
+      const nextAnswers = [...answers, type];
+      setAnswers(nextAnswers);
+      setSelectedLabel(null);
+
+      if (step < totalSteps - 1) {
+        setStep((prev) => prev + 1);
+      }
+    }, 140);
   };
 
   const restartDiagnosis = () => {
     setStep(0);
     setAnswers([]);
+    setSelectedLabel(null);
   };
-
-  const currentQuestion = questions[step];
 
   return (
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
@@ -272,33 +281,58 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
-                <p className="mb-4 text-lg font-semibold">{currentQuestion.text}</p>
+              <div className="overflow-hidden rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
+                <div className="mb-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    {questions.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
+                          index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
+                        }`}
+                      />
+                    ))}
+                  </div>
 
-                <div className="mb-3 flex items-center gap-2">
-                  {questions.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`h-2 flex-1 rounded-full ${
-                        index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
-                      }`}
-                    />
-                  ))}
+                  <p className="text-sm text-[#9a7d69]">
+                    {step + 1} / {totalSteps} questions
+                  </p>
                 </div>
 
-                <p className="mb-6 text-sm text-[#9a7d69]">
-                  {step + 1} / {totalSteps} questions
-                </p>
+                <div
+                  className="flex transition-transform duration-500 ease-in-out"
+                  style={{ transform: `translateX(-${step * 100}%)` }}
+                >
+                  {questions.map((question, questionIndex) => (
+                    <div key={question.id} className="w-full shrink-0">
+                      <p className="mb-6 text-lg font-semibold">{question.text}</p>
 
-                <div className="grid gap-3">
-                  {currentQuestion.options.map((option) => (
-                    <button
-                      key={option.label}
-                      onClick={() => handleAnswer(option.type)}
-                      className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]"
-                    >
-                      {option.label}
-                    </button>
+                      <div className="grid gap-3">
+                        {question.options.map((option) => {
+                          const isActiveQuestion = questionIndex === step;
+                          const isSelected = selectedLabel === option.label;
+
+                          return (
+                            <button
+                              key={option.label}
+                              onClick={() => {
+                                if (isActiveQuestion) {
+                                  handleAnswer(option.type, option.label);
+                                }
+                              }}
+                              disabled={!isActiveQuestion || selectedLabel !== null}
+                              className={`rounded-2xl border px-5 py-4 text-left transition ${
+                                isSelected
+                                  ? "border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                              } ${!isActiveQuestion ? "pointer-events-none" : ""}`}
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
