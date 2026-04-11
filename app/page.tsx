@@ -1,9 +1,139 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+type CatType = "しずかねこ" | "きれものねこ" | "ボスねこ" | "わくわくねこ";
+
+type Question = {
+  id: number;
+  text: string;
+  options: {
+    label: string;
+    type: CatType;
+  }[];
+};
+
+const questions: Question[] = [
+  {
+    id: 1,
+    text: "あなたの猫は、知らない人が来たときどうする？",
+    options: [
+      { label: "すぐ隠れる", type: "しずかねこ" },
+      { label: "少し様子を見る", type: "きれものねこ" },
+      { label: "普通に近づく", type: "わくわくねこ" },
+      { label: "むしろ主役みたいに出てくる", type: "ボスねこ" },
+    ],
+  },
+  {
+    id: 2,
+    text: "普段いちばん近い行動は？",
+    options: [
+      { label: "静かな場所でのんびりしている", type: "しずかねこ" },
+      { label: "周囲をよく観察して動く", type: "きれものねこ" },
+      { label: "高いところや中心を陣取る", type: "ボスねこ" },
+      { label: "おもちゃや人にすぐ反応する", type: "わくわくねこ" },
+    ],
+  },
+  {
+    id: 3,
+    text: "甘え方として近いのは？",
+    options: [
+      { label: "気が向いたときだけそっと来る", type: "しずかねこ" },
+      { label: "距離感を見ながら賢く寄ってくる", type: "きれものねこ" },
+      { label: "当然のように特等席を使う", type: "ボスねこ" },
+      { label: "全身で『かまって！』が伝わる", type: "わくわくねこ" },
+    ],
+  },
+];
+
+const resultMeta: Record<
+  CatType,
+  {
+    emoji: string;
+    desc: string;
+    traits: string;
+    match: string;
+  }
+> = {
+  しずかねこ: {
+    emoji: "🌙",
+    desc: "警戒心と繊細さを持ちながら、安心した相手にはやさしく心を開くタイプ。",
+    traits: "静けさ / 繊細 / 落ち着き",
+    match: "ボスねこ / きれものねこ",
+  },
+  きれものねこ: {
+    emoji: "🧠",
+    desc: "状況を見る力が高く、空気や距離感を読みながら上手に立ち回るタイプ。",
+    traits: "観察 / 判断 / スマート",
+    match: "しずかねこ / わくわくねこ",
+  },
+  ボスねこ: {
+    emoji: "👑",
+    desc: "自分のペースを崩さず、自然と存在感を放つ。空間の主役になりやすいタイプ。",
+    traits: "主導権 / 余裕 / 圧",
+    match: "しずかねこ / クールねこ",
+  },
+  わくわくねこ: {
+    emoji: "✨",
+    desc: "反応が素直で好奇心いっぱい。楽しいことに全身で向かっていくタイプ。",
+    traits: "好奇心 / 素直 / 元気",
+    match: "きれものねこ / しずかねこ",
+  },
+};
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<CatType[]>([]);
+
+  const totalSteps = questions.length;
+
+  const result = useMemo(() => {
+    if (answers.length !== totalSteps) return null;
+
+    const counts: Record<CatType, number> = {
+      しずかねこ: 0,
+      きれものねこ: 0,
+      ボスねこ: 0,
+      わくわくねこ: 0,
+    };
+
+    answers.forEach((answer) => {
+      counts[answer] += 1;
+    });
+
+    const ordered: CatType[] = ["ボスねこ", "きれものねこ", "わくわくねこ", "しずかねこ"];
+
+    return ordered.reduce((best, current) => {
+      return counts[current] > counts[best] ? current : best;
+    }, ordered[0]);
+  }, [answers, totalSteps]);
+
+  const openDiagnosis = () => {
+    setIsOpen(true);
+    setStep(0);
+    setAnswers([]);
+  };
+
+  const closeDiagnosis = () => {
+    setIsOpen(false);
+  };
+
+  const handleAnswer = (type: CatType) => {
+    const nextAnswers = [...answers, type];
+    setAnswers(nextAnswers);
+
+    if (step < totalSteps - 1) {
+      setStep(step + 1);
+    }
+  };
+
+  const restartDiagnosis = () => {
+    setStep(0);
+    setAnswers([]);
+  };
+
+  const currentQuestion = questions[step];
 
   return (
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
@@ -27,12 +157,13 @@ export default function Home() {
             <p className="mb-8 max-w-xl text-base leading-8 text-[#5f5f5f] md:text-lg">
               性格を人間に当てはめるのではなく、
               猫らしさのまま読み解く新しい診断。
-              まずは見た目から、やわらかく触れたくなる体験へ。
+              やわらかく触れたくなる体験から、
+              うちの子らしさを言葉にしていく。
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
               <button
-                onClick={() => setIsOpen(true)}
+                onClick={openDiagnosis}
                 className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
               >
                 診断をはじめる
@@ -113,11 +244,9 @@ export default function Home() {
 
       <div
         className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-500 ${
-          isOpen
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0"
+          isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
-        onClick={() => setIsOpen(false)}
+        onClick={closeDiagnosis}
       >
         <div
           className={`w-full max-w-xl rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-8 shadow-2xl transition-all duration-500 ${
@@ -125,50 +254,113 @@ export default function Home() {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="mb-6 flex items-start justify-between">
-            <div>
-              <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
-                DIAGNOSIS START
-              </p>
-              <h2 className="text-3xl font-bold">まずは1問目</h2>
-            </div>
+          {!result ? (
+            <>
+              <div className="mb-6 flex items-start justify-between">
+                <div>
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                    DIAGNOSIS START
+                  </p>
+                  <h2 className="text-3xl font-bold">まずは{step + 1}問目</h2>
+                </div>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
-            >
-              閉じる
-            </button>
-          </div>
+                <button
+                  onClick={closeDiagnosis}
+                  className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                >
+                  閉じる
+                </button>
+              </div>
 
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
-            <p className="mb-4 text-lg font-semibold">
-              あなたの猫は、知らない人が来たときどうする？
-            </p>
+              <div className="rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
+                <p className="mb-4 text-lg font-semibold">{currentQuestion.text}</p>
 
-            <div className="mb-3 flex items-center gap-2">
-              <div className="h-2 flex-1 rounded-full bg-[#b07d62]" />
-              <div className="h-2 flex-1 rounded-full bg-[#eadfd6]" />
-              <div className="h-2 flex-1 rounded-full bg-[#eadfd6]" />
-            </div>
+                <div className="mb-3 flex items-center gap-2">
+                  {questions.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 flex-1 rounded-full ${
+                        index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
+                      }`}
+                    />
+                  ))}
+                </div>
 
-            <p className="mb-6 text-sm text-[#9a7d69]">1 / 3 questions</p>
+                <p className="mb-6 text-sm text-[#9a7d69]">
+                  {step + 1} / {totalSteps} questions
+                </p>
 
-            <div className="grid gap-3">
-              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
-                すぐ隠れる
-              </button>
-              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
-                少し様子を見る
-              </button>
-              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
-                普通に近づく
-              </button>
-              <button className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]">
-                むしろ主役みたいに出てくる
-              </button>
-            </div>
-          </div>
+                <div className="grid gap-3">
+                  {currentQuestion.options.map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => handleAnswer(option.type)}
+                      className="rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-5 py-4 text-left transition hover:bg-[#fff3ea]"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-6 flex items-start justify-between">
+                <div>
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                    RESULT
+                  </p>
+                  <h2 className="text-3xl font-bold">診断結果</h2>
+                </div>
+
+                <button
+                  onClick={closeDiagnosis}
+                  className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                >
+                  閉じる
+                </button>
+              </div>
+
+              <div className="rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
+                <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
+                  <p className="mb-3 text-sm tracking-[0.2em] text-[#b07d62]">
+                    CAT MBTI STYLE
+                  </p>
+                  <div className="mb-4 text-6xl">{resultMeta[result].emoji}</div>
+                  <h3 className="mb-3 text-3xl font-bold">{result}</h3>
+                  <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b]">
+                    {resultMeta[result].desc}
+                  </p>
+                </div>
+
+                <div className="mb-6 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
+                    <p className="font-semibold">{resultMeta[result].traits}</p>
+                  </div>
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
+                    <p className="font-semibold">{resultMeta[result].match}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    onClick={restartDiagnosis}
+                    className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
+                  >
+                    もう一度診断する
+                  </button>
+                  <button
+                    onClick={closeDiagnosis}
+                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                  >
+                    閉じる
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </main>
