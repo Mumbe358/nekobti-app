@@ -50,6 +50,7 @@ const resultMeta: Record<
   CatType,
   {
     emoji: string;
+    sub: string;
     desc: string;
     traits: string;
     match: string;
@@ -57,32 +58,39 @@ const resultMeta: Record<
 > = {
   しずかねこ: {
     emoji: "🌙",
+    sub: "SILENT CAT",
     desc: "警戒心と繊細さを持ちながら、安心した相手にはやさしく心を開くタイプ。",
     traits: "静けさ / 繊細 / 落ち着き",
     match: "ボスねこ / きれものねこ",
   },
   きれものねこ: {
     emoji: "🧠",
+    sub: "SMART CAT",
     desc: "状況を見る力が高く、空気や距離感を読みながら上手に立ち回るタイプ。",
     traits: "観察 / 判断 / スマート",
     match: "しずかねこ / わくわくねこ",
   },
   ボスねこ: {
     emoji: "👑",
+    sub: "BOSS CAT",
     desc: "自分のペースを崩さず、自然と存在感を放つ。空間の主役になりやすいタイプ。",
     traits: "主導権 / 余裕 / 圧",
     match: "しずかねこ / クールねこ",
   },
   わくわくねこ: {
     emoji: "✨",
+    sub: "ACTIVE CAT",
     desc: "反応が素直で好奇心いっぱい。楽しいことに全身で向かっていくタイプ。",
     traits: "好奇心 / 素直 / 元気",
     match: "きれものねこ / しずかねこ",
   },
 };
 
+const typeList: CatType[] = ["ボスねこ", "きれものねこ", "しずかねこ", "わくわくねこ"];
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isTypeListOpen, setIsTypeListOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(CatType | null)[]>(
     Array(questions.length).fill(null)
@@ -123,6 +131,14 @@ export default function Home() {
   const closeDiagnosis = () => {
     setIsOpen(false);
     setSelectedLabel(null);
+  };
+
+  const openTypeList = () => {
+    setIsTypeListOpen(true);
+  };
+
+  const closeTypeList = () => {
+    setIsTypeListOpen(false);
   };
 
   const handleAnswer = (type: CatType, label: string) => {
@@ -195,7 +211,10 @@ export default function Home() {
                 診断をはじめる
               </button>
 
-              <button className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]">
+              <button
+                onClick={openTypeList}
+                className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+              >
                 タイプ一覧を見る
               </button>
             </div>
@@ -275,15 +294,15 @@ export default function Home() {
         onClick={closeDiagnosis}
       >
         <div
-          className={`w-full max-w-xl rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-8 shadow-2xl transition-all duration-500 ${
+          className={`w-[min(92vw,680px)] max-w-[680px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:p-8 ${
             isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
           {!result ? (
             <>
-              <div className="mb-6 flex items-start justify-between">
-                <div>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="min-w-0">
                   <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
                     DIAGNOSIS START
                   </p>
@@ -292,111 +311,116 @@ export default function Home() {
 
                 <button
                   onClick={closeDiagnosis}
-                  className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                  className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
                 >
                   閉じる
                 </button>
               </div>
 
-              <div className="overflow-hidden rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
-                <div className="mb-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    {questions.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
-                          index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  <p className="text-sm text-[#9a7d69]">
-                    {step + 1} / {totalSteps} questions
-                  </p>
-                </div>
-
+              <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   className="flex w-full transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translateX(-${step * 100}%)` }}
+                  style={{ transform: `translate3d(-${step * 100}%, 0, 0)` }}
                 >
-                  {questions.map((question, questionIndex) => (
-                    <div key={question.id} className="min-w-full flex-none">
-                      <p className="mb-6 text-lg font-semibold">{question.text}</p>
+                  {questions.map((question, questionIndex) => {
+                    const isActiveQuestion = questionIndex === step;
+                    const isAnsweredThisStep = answers[step] !== null;
 
-                      <div className="grid gap-3">
-                        {question.options.map((option) => {
-                          const isActiveQuestion = questionIndex === step;
-                          const isSelected = selectedLabel === option.label;
-                          const isAnsweredThisStep = answers[step] !== null;
+                    return (
+                      <div key={question.id} className="min-w-full flex-none overflow-hidden">
+                        <div className="mb-4">
+                          <div className="mb-3 flex items-center gap-2">
+                            {questions.map((_, index) => (
+                              <div
+                                key={index}
+                                className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
+                                  index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
+                                }`}
+                              />
+                            ))}
+                          </div>
 
-                          return (
-                            <button
-                              key={option.label}
-                              onClick={() => {
-                                if (isActiveQuestion && !isAnsweredThisStep) {
-                                  handleAnswer(option.type, option.label);
-                                }
-                              }}
-                              disabled={!isActiveQuestion || selectedLabel !== null}
-                              className={`rounded-2xl border px-5 py-4 text-left transition ${
-                                isSelected
-                                  ? "border-[#c28f71] bg-[#fff0e4] shadow-sm scale-[0.99]"
-                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
-                              } ${!isActiveQuestion ? "pointer-events-none" : ""}`}
-                            >
-                              {option.label}
-                            </button>
-                          );
-                        })}
+                          <p className="text-sm text-[#9a7d69]">
+                            {step + 1} / {totalSteps} questions
+                          </p>
+                        </div>
+
+                        <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                          {question.text}
+                        </p>
+
+                        <div className="grid gap-3">
+                          {question.options.map((option) => {
+                            const isSelected = selectedLabel === option.label;
+
+                            return (
+                              <button
+                                key={option.label}
+                                onClick={() => {
+                                  if (isActiveQuestion && !isAnsweredThisStep) {
+                                    handleAnswer(option.type, option.label);
+                                  }
+                                }}
+                                disabled={!isActiveQuestion || selectedLabel !== null}
+                                className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                                  isSelected
+                                    ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                                    : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                                } ${!isActiveQuestion ? "pointer-events-none" : ""}`}
+                              >
+                                <span className="block break-words leading-8">
+                                  {option.label}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <button
+                            onClick={handlePrev}
+                            disabled={step === 0 || selectedLabel !== null}
+                            className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                              step === 0 || selectedLabel !== null
+                                ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                                : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                            }`}
+                          >
+                            戻る
+                          </button>
+
+                          <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 flex items-center justify-between">
-                  <button
-                    onClick={handlePrev}
-                    disabled={step === 0 || selectedLabel !== null}
-                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
-                      step === 0 || selectedLabel !== null
-                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
-                    }`}
-                  >
-                    戻る
-                  </button>
-
-                  <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                    );
+                  })}
                 </div>
               </div>
             </>
           ) : (
             <>
-              <div className="mb-6 flex items-start justify-between">
-                <div>
-                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
-                    RESULT
-                  </p>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">RESULT</p>
                   <h2 className="text-3xl font-bold">診断結果</h2>
                 </div>
 
                 <button
                   onClick={closeDiagnosis}
-                  className="rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                  className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
                 >
                   閉じる
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-6 ring-1 ring-[#f2e5dc]">
+              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
-                  <p className="mb-3 text-sm tracking-[0.2em] text-[#b07d62]">
-                    CAT MBTI STYLE
+                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
+                    {resultMeta[result].sub}
                   </p>
-                  <div className="mb-4 text-6xl">{resultMeta[result].emoji}</div>
-                  <h3 className="mb-3 text-3xl font-bold">{result}</h3>
-                  <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b]">
+                  <div className="mb-4 text-7xl">{resultMeta[result].emoji}</div>
+                  <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result}</h3>
+                  <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
                     {resultMeta[result].desc}
                   </p>
                 </div>
@@ -429,6 +453,61 @@ export default function Home() {
               </div>
             </>
           )}
+        </div>
+      </div>
+
+      <div
+        className={`fixed inset-0 z-40 flex items-center justify-center bg-black/25 px-4 transition-all duration-300 ${
+          isTypeListOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeTypeList}
+      >
+        <div
+          className={`w-[min(92vw,760px)] max-w-[760px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:p-8 ${
+            isTypeListOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">TYPE LIST</p>
+              <h2 className="text-3xl font-bold">猫タイプ一覧</h2>
+            </div>
+
+            <button
+              onClick={closeTypeList}
+              className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+            >
+              閉じる
+            </button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {typeList.map((type) => (
+              <div
+                key={type}
+                className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
+              >
+                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                  {resultMeta[type].sub}
+                </p>
+                <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
+                <h3 className="mb-3 text-2xl font-bold">{type}</h3>
+                <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
+
+                <div className="grid gap-3">
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
+                    <p className="font-semibold">{resultMeta[type].traits}</p>
+                  </div>
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
+                    <p className="font-semibold">{resultMeta[type].match}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>
