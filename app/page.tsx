@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 
 type CatType =
-  | "quiet"
-  | "clever"
-  | "excited"
-  | "boss"
-  | "timid"
-  | "clingy"
-  | "moody"
-  | "pace";
+  | "しずかねこ"
+  | "きれものねこ"
+  | "ボスねこ"
+  | "わくわくねこ"
+  | "びびり慎重ねこ"
+  | "あまえんぼねこ"
+  | "きまぐれねこ"
+  | "マイペースねこ";
 
 type QuestionOption = {
   label: string;
@@ -23,394 +23,642 @@ type Question = {
   options: QuestionOption[];
 };
 
-const typeLabels: Record<CatType, string> = {
-  quiet: "しずかねこ",
-  clever: "きれものねこ",
-  excited: "わくわくねこ",
-  boss: "ボスねこ",
-  timid: "びびり慎重ねこ",
-  clingy: "あまえんぼねこ",
-  moody: "きまぐれねこ",
-  pace: "マイペースねこ",
-};
-
-const resultMeta: Record<
-  CatType,
-  { sub: string; emoji: string; description: string }
-> = {
-  quiet: {
-    sub: "静かで落ち着いた空気を持つタイプ",
-    emoji: "🌙",
-    description: "物音や空気の変化に敏感で、自分の落ち着ける時間を大切にするタイプ。",
-  },
-  clever: {
-    sub: "観察力が高く、空気を読むタイプ",
-    emoji: "🧠",
-    description: "周囲をよく見ながら動き、賢く距離感を取れるタイプ。",
-  },
-  excited: {
-    sub: "好奇心が強く、毎日を楽しむタイプ",
-    emoji: "🎈",
-    description: "新しい物や遊びにすぐ反応し、明るくエネルギッシュなタイプ。",
-  },
-  boss: {
-    sub: "堂々として存在感のあるタイプ",
-    emoji: "👑",
-    description: "自分の居場所やペースをしっかり持ち、自然と主役感が出るタイプ。",
-  },
-  timid: {
-    sub: "慎重でやさしい警戒タイプ",
-    emoji: "🌿",
-    description: "初めは慎重だけど、安心できる相手には少しずつ心を開くタイプ。",
-  },
-  clingy: {
-    sub: "人との距離が近い甘えんぼタイプ",
-    emoji: "💞",
-    description: "そばにいたい気持ちが強く、ぬくもりや安心感を大事にするタイプ。",
-  },
-  moody: {
-    sub: "気分で魅力が変わる自由タイプ",
-    emoji: "🎭",
-    description: "読めない魅力があり、その日の気分で見せる表情が変わるタイプ。",
-  },
-  pace: {
-    sub: "自分のペースを守る安定タイプ",
-    emoji: "🐾",
-    description: "周囲に流されすぎず、自分らしいリズムで過ごすことが得意なタイプ。",
-  },
-};
-
 const questions: Question[] = [
   {
     id: 1,
     text: "知らない人が来たとき、いちばん近い反応は？",
     options: [
-      { label: "すぐ隠れる", scores: { timid: 3, quiet: 1 } },
-      { label: "距離を取って様子を見る", scores: { quiet: 2, clever: 1, timid: 1 } },
-      { label: "少しずつ近づく", scores: { clever: 1, excited: 1, moody: 1 } },
-      { label: "普通に出てくる", scores: { boss: 2, excited: 1 } },
+      { label: "すぐ隠れる", scores: { "びびり慎重ねこ": 3, "しずかねこ": 1 } },
+      { label: "距離を取って様子を見る", scores: { "しずかねこ": 2, "きれものねこ": 1, "びびり慎重ねこ": 1 } },
+      { label: "少しずつ近づく", scores: { "きれものねこ": 1, "わくわくねこ": 1, "きまぐれねこ": 1 } },
+      { label: "普通に出てくる", scores: { "ボスねこ": 2, "わくわくねこ": 1 } },
     ],
   },
   {
     id: 2,
     text: "名前を呼ばれたときは？",
     options: [
-      { label: "聞こえていても動かない", scores: { pace: 2, quiet: 1 } },
-      { label: "気が向いたら反応する", scores: { moody: 2, pace: 1 } },
-      { label: "タイミングを見て来る", scores: { clever: 2, quiet: 1 } },
-      { label: "すぐ来る", scores: { clingy: 2, excited: 1 } },
+      { label: "聞こえていても動かない", scores: { "マイペースねこ": 2, "しずかねこ": 1 } },
+      { label: "気が向いたら反応する", scores: { "きまぐれねこ": 2, "マイペースねこ": 1 } },
+      { label: "タイミングを見て来る", scores: { "きれものねこ": 2, "しずかねこ": 1 } },
+      { label: "すぐ来る", scores: { "あまえんぼねこ": 2, "わくわくねこ": 1 } },
     ],
   },
   {
     id: 3,
     text: "おもちゃを出したときの反応は？",
     options: [
-      { label: "あまり興味を示さない", scores: { pace: 2, quiet: 1 } },
-      { label: "少し様子を見てから動く", scores: { clever: 2, timid: 1 } },
-      { label: "気分が合えば遊ぶ", scores: { moody: 2, excited: 1 } },
-      { label: "すぐ飛びつく", scores: { excited: 3, clingy: 1 } },
+      { label: "あまり興味を示さない", scores: { "マイペースねこ": 2, "しずかねこ": 1 } },
+      { label: "少し様子を見てから動く", scores: { "きれものねこ": 2, "びびり慎重ねこ": 1 } },
+      { label: "気分が合えば遊ぶ", scores: { "きまぐれねこ": 2, "わくわくねこ": 1 } },
+      { label: "すぐ飛びつく", scores: { "わくわくねこ": 3, "あまえんぼねこ": 1 } },
     ],
   },
   {
     id: 4,
     text: "甘え方として近いのは？",
     options: [
-      { label: "ほとんど甘えない", scores: { quiet: 2, pace: 1 } },
-      { label: "そっと近くに来る", scores: { quiet: 2, clingy: 1 } },
-      { label: "気分でかなり差がある", scores: { moody: 3 } },
-      { label: "わかりやすく甘える", scores: { clingy: 3, excited: 1 } },
+      { label: "ほとんど甘えない", scores: { "しずかねこ": 2, "マイペースねこ": 1 } },
+      { label: "そっと近くに来る", scores: { "しずかねこ": 2, "あまえんぼねこ": 1 } },
+      { label: "気分でかなり差がある", scores: { "きまぐれねこ": 3 } },
+      { label: "わかりやすく甘える", scores: { "あまえんぼねこ": 3, "わくわくねこ": 1 } },
     ],
   },
   {
     id: 5,
     text: "家の中で好きな場所は？",
     options: [
-      { label: "静かな隅や狭い場所", scores: { timid: 2, quiet: 1 } },
-      { label: "全体を見渡せる場所", scores: { clever: 2, boss: 1 } },
-      { label: "その時々で変わる", scores: { pace: 1, moody: 2 } },
-      { label: "いちばん目立つ・快適な場所", scores: { boss: 3 } },
+      { label: "静かな隅や狭い場所", scores: { "びびり慎重ねこ": 2, "しずかねこ": 1 } },
+      { label: "全体を見渡せる場所", scores: { "きれものねこ": 2, "ボスねこ": 1 } },
+      { label: "その時々で変わる", scores: { "マイペースねこ": 1, "きまぐれねこ": 2 } },
+      { label: "いちばん目立つ・快適な場所", scores: { "ボスねこ": 3 } },
     ],
   },
   {
     id: 6,
     text: "初めての物を見つけたときは？",
     options: [
-      { label: "近づかず警戒する", scores: { timid: 3 } },
-      { label: "安全そうか観察する", scores: { clever: 3, quiet: 1 } },
-      { label: "少し触ってみる", scores: { excited: 2, clever: 1 } },
-      { label: "気分が乗れば行く", scores: { moody: 2, pace: 1 } },
+      { label: "近づかず警戒する", scores: { "びびり慎重ねこ": 3 } },
+      { label: "安全そうか観察する", scores: { "きれものねこ": 3, "しずかねこ": 1 } },
+      { label: "少し触ってみる", scores: { "わくわくねこ": 2, "きれものねこ": 1 } },
+      { label: "気分が乗れば行く", scores: { "きまぐれねこ": 2, "マイペースねこ": 1 } },
     ],
   },
   {
     id: 7,
     text: "飼い主との距離感は？",
     options: [
-      { label: "近すぎるのは苦手", scores: { quiet: 2, pace: 1 } },
-      { label: "ほどよい距離を保つ", scores: { clever: 2, quiet: 1 } },
-      { label: "自分から近くにいたがる", scores: { clingy: 3 } },
-      { label: "自分が主導権を握る感じ", scores: { boss: 2, moody: 1 } },
+      { label: "近すぎるのは苦手", scores: { "しずかねこ": 2, "マイペースねこ": 1 } },
+      { label: "ほどよい距離を保つ", scores: { "きれものねこ": 2, "しずかねこ": 1 } },
+      { label: "自分から近くにいたがる", scores: { "あまえんぼねこ": 3 } },
+      { label: "自分が主導権を握る感じ", scores: { "ボスねこ": 2, "きまぐれねこ": 1 } },
     ],
   },
   {
     id: 8,
     text: "普段の行動でいちばん近いのは？",
     options: [
-      { label: "静かに過ごすことが多い", scores: { quiet: 3 } },
-      { label: "周囲をよく見て動く", scores: { clever: 3 } },
-      { label: "よく動いてテンション高め", scores: { excited: 3 } },
-      { label: "自分のペースでぶれない", scores: { pace: 3 } },
+      { label: "静かに過ごすことが多い", scores: { "しずかねこ": 3 } },
+      { label: "周囲をよく見て動く", scores: { "きれものねこ": 3 } },
+      { label: "よく動いてテンション高め", scores: { "わくわくねこ": 3 } },
+      { label: "自分のペースでぶれない", scores: { "マイペースねこ": 3 } },
     ],
   },
   {
     id: 9,
     text: "他の猫や人との関わり方は？",
     options: [
-      { label: "慎重で受け身", scores: { timid: 2, quiet: 1 } },
-      { label: "相手を見て合わせる", scores: { clever: 2, moody: 1 } },
-      { label: "すぐ関わりにいく", scores: { excited: 2, clingy: 1 } },
-      { label: "自然と中心になる", scores: { boss: 3 } },
+      { label: "慎重で受け身", scores: { "びびり慎重ねこ": 2, "しずかねこ": 1 } },
+      { label: "相手を見て合わせる", scores: { "きれものねこ": 2, "きまぐれねこ": 1 } },
+      { label: "すぐ関わりにいく", scores: { "わくわくねこ": 2, "あまえんぼねこ": 1 } },
+      { label: "自然と中心になる", scores: { "ボスねこ": 3 } },
     ],
   },
   {
     id: 10,
     text: "全体として、いちばん近い印象は？",
     options: [
-      { label: "静かで落ち着いている", scores: { quiet: 2, pace: 1 } },
-      { label: "賢く空気を読む", scores: { clever: 3 } },
-      { label: "気分屋で読めない", scores: { moody: 3 } },
-      { label: "存在感が強く堂々としている", scores: { boss: 2, excited: 1 } },
+      { label: "静かで落ち着いている", scores: { "しずかねこ": 2, "マイペースねこ": 1 } },
+      { label: "賢く空気を読む", scores: { "きれものねこ": 3 } },
+      { label: "気分屋で読めない", scores: { "きまぐれねこ": 3 } },
+      { label: "存在感が強く堂々としている", scores: { "ボスねこ": 2, "わくわくねこ": 1 } },
     ],
   },
 ];
 
-const initialScores: Record<CatType, number> = {
-  quiet: 0,
-  clever: 0,
-  excited: 0,
-  boss: 0,
-  timid: 0,
-  clingy: 0,
-  moody: 0,
-  pace: 0,
+const resultMeta: Record<
+  CatType,
+  {
+    emoji: string;
+    sub: string;
+    desc: string;
+    traits: string;
+    match: string;
+  }
+> = {
+  "しずかねこ": {
+    emoji: "🌙",
+    sub: "SILENT CAT",
+    desc: "警戒心と繊細さを持ちながら、安心した相手にはやさしく心を開くタイプ。",
+    traits: "静けさ / 繊細 / 落ち着き",
+    match: "ボスねこ / きれものねこ",
+  },
+  "きれものねこ": {
+    emoji: "🧠",
+    sub: "SMART CAT",
+    desc: "状況を見る力が高く、空気や距離感を読みながら上手に立ち回るタイプ。",
+    traits: "観察 / 判断 / スマート",
+    match: "しずかねこ / わくわくねこ",
+  },
+  "ボスねこ": {
+    emoji: "👑",
+    sub: "BOSS CAT",
+    desc: "自分のペースを崩さず、自然と存在感を放つ。空間の主役になりやすいタイプ。",
+    traits: "主導権 / 余裕 / 圧",
+    match: "しずかねこ / きれものねこ",
+  },
+  "わくわくねこ": {
+    emoji: "✨",
+    sub: "ACTIVE CAT",
+    desc: "反応が素直で好奇心いっぱい。楽しいことに全身で向かっていくタイプ。",
+    traits: "好奇心 / 素直 / 元気",
+    match: "きれものねこ / あまえんぼねこ",
+  },
+  "びびり慎重ねこ": {
+    emoji: "🫣",
+    sub: "TIMID CAT",
+    desc: "慎重で繊細。安全が確認できてから少しずつ動く、守りに強いタイプ。",
+    traits: "警戒心 / 慎重 / 防御",
+    match: "しずかねこ / あまえんぼねこ",
+  },
+  "あまえんぼねこ": {
+    emoji: "💞",
+    sub: "CLINGY CAT",
+    desc: "大好きな相手にはまっすぐ甘える。ぬくもりと一体感を大切にするタイプ。",
+    traits: "甘え / 密着 / 愛情表現",
+    match: "わくわくねこ / しずかねこ",
+  },
+  "きまぐれねこ": {
+    emoji: "🎭",
+    sub: "MOODY CAT",
+    desc: "気分によって距離感や反応が変わる。読めなさも魅力の自由なタイプ。",
+    traits: "気分屋 / 自由 / ムラ",
+    match: "ボスねこ / マイペースねこ",
+  },
+  "マイペースねこ": {
+    emoji: "🍵",
+    sub: "PACE CAT",
+    desc: "外の空気に流されず、自分のテンポで心地よさを守るタイプ。",
+    traits: "自分軸 / のんびり / 安定",
+    match: "きまぐれねこ / しずかねこ",
+  },
 };
 
-function calculateResult(selectedOptions: QuestionOption[]) {
-  const scores = { ...initialScores };
+const typeList: CatType[] = [
+  "ボスねこ",
+  "きれものねこ",
+  "しずかねこ",
+  "わくわくねこ",
+  "びびり慎重ねこ",
+  "あまえんぼねこ",
+  "きまぐれねこ",
+  "マイペースねこ",
+];
 
-  for (const option of selectedOptions) {
-    for (const [type, value] of Object.entries(option.scores)) {
-      scores[type as CatType] += value ?? 0;
-    }
-  }
+const initialScores: Record<CatType, number> = {
+  "しずかねこ": 0,
+  "きれものねこ": 0,
+  "ボスねこ": 0,
+  "わくわくねこ": 0,
+  "びびり慎重ねこ": 0,
+  "あまえんぼねこ": 0,
+  "きまぐれねこ": 0,
+  "マイペースねこ": 0,
+};
 
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-
-  return {
-    scores,
-    mainType: sorted[0][0] as CatType,
-    subType: sorted[1][0] as CatType,
-  };
-}
-
-export default function Page() {
-  const [started, setStarted] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState<QuestionOption[]>([]);
-  const [result, setResult] = useState<{
-    scores: Record<CatType, number>;
-    mainType: CatType;
-    subType: CatType;
-  } | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-
-  const loadingMessages = useMemo(
-    () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
-    []
+export default function Home() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isTypeListOpen, setIsTypeListOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<(QuestionOption | null)[]>(
+    Array(questions.length).fill(null)
   );
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+  const [direction, setDirection] = useState<"next" | "prev">("next");
+  const [animating, setAnimating] = useState(false);
 
-  const progress = Math.round(((currentQuestionIndex + 1) / questions.length) * 100);
+  const totalSteps = questions.length;
+  const answeredCount = answers.filter(Boolean).length;
 
-  const handleStart = () => {
-    setStarted(true);
-    setCurrentQuestionIndex(0);
-    setSelectedOptions([]);
-    setResult(null);
-    setShowResult(false);
-    setIsCalculating(false);
-    setLoadingMessageIndex(0);
+  const result = useMemo(() => {
+    if (answeredCount !== totalSteps) return null;
+
+    const scores = { ...initialScores };
+
+    answers.forEach((answer) => {
+      if (!answer) return;
+      Object.entries(answer.scores).forEach(([type, value]) => {
+        scores[type as CatType] += value ?? 0;
+      });
+    });
+
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+
+    return {
+      scores,
+      mainType: sorted[0][0] as CatType,
+      subType: sorted[1][0] as CatType,
+    };
+  }, [answers, answeredCount, totalSteps]);
+
+  const openDiagnosis = () => {
+    setIsOpen(true);
+    setStep(0);
+    setAnswers(Array(questions.length).fill(null));
+    setSelectedLabel(null);
+    setAnimating(false);
+    setDirection("next");
   };
 
-  const handleSelect = (option: QuestionOption) => {
-    const nextSelected = [...selectedOptions, option];
-    setSelectedOptions(nextSelected);
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      return;
-    }
-
-    setIsCalculating(true);
-    setLoadingMessageIndex(0);
-
-    const resultData = calculateResult(nextSelected);
-
-    setTimeout(() => setLoadingMessageIndex(1), 700);
-    setTimeout(() => setLoadingMessageIndex(2), 1400);
-
-    setTimeout(() => {
-      setResult(resultData);
-      setIsCalculating(false);
-      setShowResult(true);
-    }, 2200);
+  const closeDiagnosis = () => {
+    setIsOpen(false);
+    setSelectedLabel(null);
+    setAnimating(false);
   };
 
-  const handleRestart = () => {
-    setStarted(false);
-    setCurrentQuestionIndex(0);
-    setSelectedOptions([]);
-    setResult(null);
-    setShowResult(false);
-    setIsCalculating(false);
-    setLoadingMessageIndex(0);
+  const openTypeList = () => {
+    setIsTypeListOpen(true);
   };
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const closeTypeList = () => {
+    setIsTypeListOpen(false);
+  };
+
+  const handleAnswer = (option: QuestionOption) => {
+    if (selectedLabel || animating) return;
+
+    setSelectedLabel(option.label);
+    setDirection("next");
+    setAnimating(true);
+
+    window.setTimeout(() => {
+      setAnswers((prev) => {
+        const next = [...prev];
+        next[step] = option;
+        return next;
+      });
+
+      setSelectedLabel(null);
+
+      if (step < totalSteps - 1) {
+        setStep((prev) => prev + 1);
+        window.setTimeout(() => {
+          setAnimating(false);
+        }, 320);
+      } else {
+        setAnimating(false);
+      }
+    }, 180);
+  };
+
+  const handlePrev = () => {
+    if (step === 0 || selectedLabel || animating) return;
+
+    setDirection("prev");
+    setAnimating(true);
+
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[step - 1] = null;
+      return next;
+    });
+
+    setStep((prev) => prev - 1);
+
+    window.setTimeout(() => {
+      setAnimating(false);
+    }, 320);
+  };
+
+  const restartDiagnosis = () => {
+    setStep(0);
+    setAnswers(Array(questions.length).fill(null));
+    setSelectedLabel(null);
+    setAnimating(false);
+    setDirection("next");
+  };
 
   return (
-    <main className="min-h-screen bg-[#f5efe8] px-5 py-6 text-neutral-900">
-      <div className="mx-auto w-full max-w-[640px]">
-        {!started && (
-          <section className="px-0 py-0">
-            <div className="mb-10 inline-flex rounded-full border border-[#e7d8cf] bg-white px-6 py-4 text-[18px] tracking-[0.12em] text-[#7e6d63] shadow-[0_4px_14px_rgba(0,0,0,0.06)]">
-              ねこびーてぃあい
-            </div>
+    <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
+      <section className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 md:px-10">
+        <div className="mb-6 inline-flex w-fit items-center rounded-full border border-[#e8d8cb] bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm">
+          ねこびーてぃあい
+        </div>
 
-            <p className="mb-6 text-[22px] font-semibold tracking-[0.22em] text-[#b58b73]">
+        <div className="grid items-center gap-12 md:grid-cols-2">
+          <div>
+            <p className="mb-4 text-sm font-semibold tracking-[0.2em] text-[#b07d62]">
               CAT TYPE DIAGNOSIS
             </p>
 
-            <h1 className="text-[72px] font-black leading-[1.06] tracking-[-0.03em] text-[#1f1f23] max-[768px]:text-[34px]">
+            <h1 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
               うちの猫のタイプ、
               <br />
               ちゃんと知ってる？
             </h1>
 
-            <p className="mt-10 max-w-[920px] text-[26px] leading-[1.95] text-[#5f5b5b] max-[768px]:mt-6 max-[768px]:text-[15px] max-[768px]:leading-[2]">
-              性格を人間に当てはめるのではなく、猫らしさのまま読み解く新しい診断。やわらかく触れたくなる体験から、うちの子らしさを言葉にしていく。
+            <p className="mb-8 max-w-xl text-base leading-8 text-[#5f5f5f] md:text-lg">
+              性格を人間に当てはめるのではなく、
+              猫らしさのまま読み解く新しい診断。
+              やわらかく触れたくなる体験から、
+              うちの子らしさを言葉にしていく。
             </p>
 
-            <button
-              onClick={handleStart}
-              className="mt-12 w-full rounded-full bg-[#242427] px-6 py-6 text-[22px] font-bold text-white transition active:scale-[0.99] max-[768px]:mt-10 max-[768px]:py-5 max-[768px]:text-[18px]"
-            >
-              診断をはじめる
-            </button>
-          </section>
-        )}
-
-        {started && !showResult && !isCalculating && (
-          <section className="rounded-[28px] bg-white px-6 py-7 shadow-sm">
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <span className="text-sm font-medium text-neutral-500">
-                {currentQuestionIndex + 1} / {questions.length} questions
-              </span>
+            <div className="flex flex-col gap-4 sm:flex-row">
               <button
-                onClick={handleRestart}
-                className="text-sm font-medium text-neutral-400 underline-offset-4 hover:underline"
+                onClick={openDiagnosis}
+                className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
               >
-                やり直す
+                診断をはじめる
+              </button>
+
+              <button
+                onClick={openTypeList}
+                className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+              >
+                タイプ一覧を見る
               </button>
             </div>
 
-            <div className="mb-7 h-2 w-full overflow-hidden rounded-full bg-neutral-200">
-              <div
-                className="h-full rounded-full bg-neutral-900 transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            <div className="animate-[slideInRight_0.28s_ease]">
-              <h2 className="text-[24px] font-bold leading-snug">{currentQuestion.text}</h2>
-
-              <div className="mt-6 space-y-3">
-                {currentQuestion.options.map((option) => (
-                  <button
-                    key={option.label}
-                    onClick={() => handleSelect(option)}
-                    className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-left text-[15px] font-medium text-neutral-800 transition hover:bg-neutral-100 active:scale-[0.99]"
-                  >
-                    {option.label}
-                  </button>
-                ))}
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]">
+                <p className="mb-2 text-sm text-[#9a7d69]">TYPE</p>
+                <p className="text-lg font-bold">きれものねこ</p>
+              </div>
+              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]">
+                <p className="mb-2 text-sm text-[#9a7d69]">TYPE</p>
+                <p className="text-lg font-bold">しずかねこ</p>
+              </div>
+              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]">
+                <p className="mb-2 text-sm text-[#9a7d69]">TYPE</p>
+                <p className="text-lg font-bold">わくわくねこ</p>
               </div>
             </div>
-          </section>
-        )}
+          </div>
 
-        {started && isCalculating && (
-          <section className="rounded-[28px] bg-white px-6 py-10 shadow-sm">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="mb-5 h-10 w-10 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-800" />
-              <p className="text-lg font-semibold text-neutral-900">
-                {loadingMessages[loadingMessageIndex]}
-              </p>
-              <p className="mt-2 text-sm text-neutral-500">
-                うちの子のタイプを読み解いています
-              </p>
+          <div className="relative">
+            <div className="absolute -left-4 -top-4 h-32 w-32 rounded-full bg-[#ffe8d9] blur-2xl" />
+            <div className="absolute -bottom-8 -right-2 h-40 w-40 rounded-full bg-[#f9d8c2] blur-3xl" />
 
-              <div className="mt-5 flex gap-2">
-                <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.2s]" />
-                <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.1s]" />
-                <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-neutral-400" />
-              </div>
-            </div>
-          </section>
-        )}
-
-        {started && showResult && result ? (
-          <section className="rounded-[28px] bg-white px-6 py-8 shadow-sm">
-            <p className="text-sm tracking-[0.18em] text-neutral-500">診断結果</p>
-
-            <div className="mb-6 mt-4 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#f7efe8] px-5 py-6">
-              <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
-                {resultMeta[result.mainType].sub}
-              </p>
-              <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
-              <h2 className="text-[30px] font-bold leading-tight text-[#1f1f23]">
-                {typeLabels[result.mainType]}
-              </h2>
-            </div>
-
-            <p className="mt-4 text-[15px] leading-7 text-neutral-600">
-              {resultMeta[result.mainType].description}
-            </p>
-
-            <div className="mt-6 rounded-2xl bg-neutral-50 px-4 py-4">
-              <p className="text-sm text-neutral-500">サブ傾向</p>
-              <p className="mt-1 text-lg font-semibold text-neutral-900">
-                {typeLabels[result.subType]}
-              </p>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              {Object.entries(result.scores).map(([key, value]) => (
-                <div key={key} className="rounded-2xl border border-neutral-200 px-4 py-3">
-                  <p className="text-xs text-neutral-500">{typeLabels[key as CatType]}</p>
-                  <p className="mt-1 text-lg font-bold text-neutral-900">{value}</p>
+            <div className="relative overflow-hidden rounded-[32px] border border-[#f0dfd3] bg-white p-8 shadow-xl">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[#a3826b]">Preview</p>
+                  <h2 className="text-2xl font-bold">猫タイプカード</h2>
                 </div>
-              ))}
+                <div className="rounded-full bg-[#fff3ea] px-4 py-2 text-sm font-semibold text-[#b07d62]">
+                  BETA
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 ring-1 ring-[#f3e3d8]">
+                <div className="mb-6 aspect-[4/5] rounded-[28px] bg-[#f8eee7] p-6">
+                  <div className="flex h-full flex-col justify-between rounded-[24px] border border-dashed border-[#d9bca8] p-6 text-center">
+                    <div>
+                      <p className="mb-3 text-sm tracking-[0.2em] text-[#b07d62]">
+                        CAT MBTI STYLE
+                      </p>
+                      <h3 className="text-3xl font-bold">ボスねこ</h3>
+                    </div>
+
+                    <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-full bg-white text-6xl shadow-sm">
+                      🐈
+                    </div>
+
+                    <p className="text-sm leading-7 text-[#6c625b]">
+                      堂々としていて、自分のペースを崩さない。
+                      空気を読むより、空間を支配するタイプ。
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
+                    <p className="font-semibold">主導権 / 余裕 / 圧</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
+                    <p className="font-semibold">しずかねこ / きれものねこ</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-500 ${
+          isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeDiagnosis}
+      >
+        <div
+          className={`w-[min(92vw,680px)] max-w-[680px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:p-8 ${
+            isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {!result ? (
+            <>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                    DIAGNOSIS START
+                  </p>
+                  <h2 className="text-3xl font-bold">まずは{step + 1}問目</h2>
+                </div>
+
+                <button
+                  onClick={closeDiagnosis}
+                  className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                >
+                  閉じる
+                </button>
+              </div>
+
+              <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
+                <div className="mb-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    {questions.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
+                          index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-[#9a7d69]">
+                    {step + 1} / {totalSteps} questions
+                  </p>
+                </div>
+
+                <div
+                  key={step}
+                  className={`transition-all duration-300 ${
+                    direction === "next"
+                      ? "animate-[slideInRight_.28s_ease-out]"
+                      : "animate-[slideInLeft_.28s_ease-out]"
+                  }`}
+                >
+                  <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                    {questions[step].text}
+                  </p>
+
+                  <div className="grid gap-3">
+                    {questions[step].options.map((option) => {
+                      const isSelected = selectedLabel === option.label;
+                      const isAnsweredThisStep = answers[step] !== null;
+
+                      return (
+                        <button
+                          key={option.label}
+                          onClick={() => {
+                            if (!isAnsweredThisStep) {
+                              handleAnswer(option);
+                            }
+                          }}
+                          disabled={selectedLabel !== null || animating}
+                          className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                            isSelected
+                              ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                              : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                          }`}
+                        >
+                          <span className="block break-words leading-8">
+                            {option.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <button
+                      onClick={handlePrev}
+                      disabled={step === 0 || selectedLabel !== null || animating}
+                      className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                        step === 0 || selectedLabel !== null || animating
+                          ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                          : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                      }`}
+                    >
+                      戻る
+                    </button>
+
+                    <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">RESULT</p>
+                  <h2 className="text-3xl font-bold">診断結果</h2>
+                </div>
+
+                <button
+                  onClick={closeDiagnosis}
+                  className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                >
+                  閉じる
+                </button>
+              </div>
+
+              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+                <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
+                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
+                    {resultMeta[result.mainType].sub}
+                  </p>
+                  <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
+                  <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
+                    サブ傾向：{result.subType}
+                  </p>
+                  <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
+                    {resultMeta[result.mainType].desc}
+                  </p>
+                </div>
+
+                <div className="mb-6 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
+                    <p className="font-semibold">{resultMeta[result.mainType].traits}</p>
+                  </div>
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
+                    <p className="font-semibold">{resultMeta[result.mainType].match}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    onClick={restartDiagnosis}
+                    className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
+                  >
+                    もう一度診断する
+                  </button>
+                  <button
+                    onClick={closeDiagnosis}
+                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                  >
+                    閉じる
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div
+        className={`fixed inset-0 z-40 flex items-center justify-center bg-black/25 px-4 transition-all duration-300 ${
+          isTypeListOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeTypeList}
+      >
+        <div
+          className={`w-[min(92vw,760px)] max-w-[760px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:p-8 ${
+            isTypeListOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">TYPE LIST</p>
+              <h2 className="text-3xl font-bold">猫タイプ一覧</h2>
             </div>
 
             <button
-              onClick={handleRestart}
-              className="mt-8 w-full rounded-full bg-neutral-900 px-5 py-4 text-base font-semibold text-white transition active:scale-[0.99]"
+              onClick={closeTypeList}
+              className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
             >
-              もう一度診断する
+              閉じる
             </button>
-          </section>
-        ) : null}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {typeList.map((type) => (
+              <div
+                key={type}
+                className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
+              >
+                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                  {resultMeta[type].sub}
+                </p>
+                <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
+                <h3 className="mb-3 text-2xl font-bold">{type}</h3>
+                <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
+
+                <div className="grid gap-3">
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
+                    <p className="font-semibold">{resultMeta[type].traits}</p>
+                  </div>
+                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
+                    <p className="font-semibold">{resultMeta[type].match}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );
