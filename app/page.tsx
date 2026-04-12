@@ -176,12 +176,19 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
-const Paw = ({ active }: { active: boolean }) => (
+const Paw = ({
+  active,
+  rotate = 0,
+}: {
+  active: boolean;
+  rotate?: number;
+}) => (
   <svg
     viewBox="0 0 24 24"
-    className={`h-3.5 w-3.5 transition-colors duration-300 sm:h-4 sm:w-4 ${
+    className={`h-5 w-5 transition-colors duration-300 sm:h-6 sm:w-6 ${
       active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
     }`}
+    style={{ transform: `rotate(${rotate}deg)` }}
     aria-hidden="true"
   >
     <circle cx="12" cy="15" r="4" />
@@ -734,7 +741,11 @@ export default function Home() {
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
                     {questions.map((_, index) => (
-                      <Paw key={index} active={index < answeredCount} />
+                      <Paw
+                        key={index}
+                        active={index < answeredCount}
+                        rotate={index % 2 === 0 ? -18 : 18}
+                      />
                     ))}
                   </div>
 
@@ -855,14 +866,8 @@ export default function Home() {
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
-                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
-                    {resultMeta[result.mainType].sub}
-                  </p>
                   <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
-                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
-                    MBTI：{result.mbti}
-                  </p>
                   <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
                     {resultMeta[result.mainType].desc}
                   </p>
@@ -958,9 +963,6 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
-                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
-                  {resultMeta[type].sub}
-                </p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
                 <h3 className="mb-3 text-2xl font-bold">{type}</h3>
                 <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
