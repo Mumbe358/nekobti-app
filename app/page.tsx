@@ -43,24 +43,32 @@ const questionPool: Record<Segment, Question[]> = {
     { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ飛びつく", axis: "E" }, { label: "しばらく様子を見る", axis: "I" }] },
     { id: 3, text: "お気に入りの場所は？", segment: "EI", options: [{ label: "みんながいる場所", axis: "E" }, { label: "静かで落ち着く場所", axis: "I" }] },
     { id: 4, text: "他の猫がいたら？", segment: "EI", options: [{ label: "関わろうとする", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
+    { id: 5, text: "来客の気配を感じたら？", segment: "EI", options: [{ label: "自分から見に行く", axis: "E" }, { label: "安全な場所で様子を見る", axis: "I" }] },
+    { id: 6, text: "部屋の中心にいたい？", segment: "EI", options: [{ label: "目立つ場所が好き", axis: "E" }, { label: "すみっこが落ち着く", axis: "I" }] },
   ],
   SN: [
     { id: 7, text: "遊び方は？", segment: "SN", options: [{ label: "全力で追いかける", axis: "S" }, { label: "タイミングを見て狙う", axis: "N" }] },
     { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "すぐ確認しに行く", axis: "S" }, { label: "じっと様子を見る", axis: "N" }] },
     { id: 9, text: "高い場所は？", segment: "SN", options: [{ label: "特にこだわらない", axis: "S" }, { label: "好き", axis: "N" }] },
     { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動くものを追う", axis: "S" }, { label: "ぼんやり景色に浸る", axis: "N" }] },
+    { id: 11, text: "おもちゃを前にすると？", segment: "SN", options: [{ label: "まず触って確かめる", axis: "S" }, { label: "動きを読んで狙う", axis: "N" }] },
+    { id: 12, text: "新しい場所では？", segment: "SN", options: [{ label: "足元から順に確かめる", axis: "S" }, { label: "先に全体を見渡す", axis: "N" }] },
   ],
   TF: [
     { id: 13, text: "飼い主との距離感は？", segment: "TF", options: [{ label: "よく近くにいる", axis: "F" }, { label: "気が向いたときだけ", axis: "T" }] },
     { id: 14, text: "遊びに誘われたら？", segment: "TF", options: [{ label: "すぐ乗る", axis: "F" }, { label: "気分次第", axis: "T" }] },
     { id: 15, text: "縄張り意識は？", segment: "TF", options: [{ label: "強い", axis: "T" }, { label: "あまり気にしない", axis: "F" }] },
     { id: 16, text: "飼い主の指示には？", segment: "TF", options: [{ label: "わりと従う", axis: "F" }, { label: "基本マイペース", axis: "T" }] },
+    { id: 17, text: "甘えたい気分のときは？", segment: "TF", options: [{ label: "すぐ伝える", axis: "F" }, { label: "伝えず様子を見る", axis: "T" }] },
+    { id: 18, text: "ごはんを分けるなら？", segment: "TF", options: [{ label: "みんなと穏やかに", axis: "F" }, { label: "自分の分を守る", axis: "T" }] },
   ],
   JP: [
     { id: 19, text: "ごはんの時間がズレたら？", segment: "JP", options: [{ label: "気にせず待つ", axis: "P" }, { label: "しっかり主張する", axis: "J" }] },
     { id: 20, text: "新しい環境では？", segment: "JP", options: [{ label: "すぐ探検する", axis: "P" }, { label: "慎重に動く", axis: "J" }] },
     { id: 21, text: "くつろぐときは？", segment: "JP", options: [{ label: "どこでもリラックス", axis: "P" }, { label: "決まった場所がいい", axis: "J" }] },
     { id: 22, text: "眠いときは？", segment: "JP", options: [{ label: "その場で寝る", axis: "P" }, { label: "落ち着く場所に移動", axis: "J" }] },
+    { id: 23, text: "行動パターンは？", segment: "JP", options: [{ label: "気分で変わる", axis: "P" }, { label: "ある程度決まっている", axis: "J" }] },
+    { id: 24, text: "お気に入りルートは？", segment: "JP", options: [{ label: "毎回違っても平気", axis: "P" }, { label: "いつもの順番が安心", axis: "J" }] },
   ],
 };
 
@@ -249,123 +257,106 @@ const resultMeta: Record<
   CatType,
   {
     emoji: string;
-    sub: string;
-    desc: string;
-    traits: string;
-    match: string;
+    features: string[];
+    summary: string;
+    patterns: string[];
   }
 > = {
   "規律番ねこ": {
     emoji: "📋",
-    sub: "ISTJ",
-    desc: "きっちり守って整える。決まったことや日々の流れをしっかり支える、堅実なおうちの番人タイプ。",
-    traits: "規律 / 誠実 / 安定感",
-    match: "よりそい守りねこ / 導きカリスマねこ",
+    features: ["ルールと秩序を守る", "コツコツ継続する", "安定志向", "信頼されやすい"],
+    summary: "ブレずに積み上げる猫",
+    patterns: ["決めたことをやり抜く", "計画通りに動く", "変化より安定", "責任を重く捉える"],
   },
   "よりそい守りねこ": {
     emoji: "🤍",
-    sub: "ISFJ",
-    desc: "やさしく寄り添いながら相手を見守る。空気を乱さず、安心感で場を包む癒やし役タイプ。",
-    traits: "思いやり / 献身 / 安心感",
-    match: "規律番ねこ / しずか哲学ねこ",
+    features: ["周りを支える優しさ", "安心できる空気を作る", "気配りが細かい", "責任感が強い"],
+    summary: "見えないところで支える猫",
+    patterns: ["困っている人にすぐ気づく", "自分より他人を優先", "静かに行動する", "縁の下の力持ち"],
   },
   "しずか哲学ねこ": {
     emoji: "🌙",
-    sub: "INFJ",
-    desc: "静かに深く考え、表には出しすぎない。でも内面には強い世界観を持つ哲学者タイプ。",
-    traits: "静けさ / 深さ / 洞察",
-    match: "よりそい守りねこ / 戦略きれものねこ",
+    features: ["物事の本質をじっと考える", "人の気持ちを静かに読み取る", "深く理解してから動く", "理想を大切にする"],
+    summary: "静かに世界を見抜く猫",
+    patterns: ["一人で考える時間が必要", "直感で本質を掴む", "言葉より空気を読む", "気づけば核心にいる"],
   },
   "戦略きれものねこ": {
     emoji: "🧠",
-    sub: "INTJ",
-    desc: "先を読んで動く設計者。感情より構造を見て、最適な流れを静かに組み立てるタイプ。",
-    traits: "戦略 / 設計 / 冷静",
-    match: "しずか哲学ねこ / 覇王ボスねこ",
+    features: ["最短ルートを見抜く", "合理的思考", "一人で完成度を高める", "無駄を嫌う"],
+    summary: "静かに勝ち筋を描く猫",
+    patterns: ["先を読む", "効率を重視", "一人で考える時間が長い", "必要なことだけやる"],
   },
   "無口クラフトねこ": {
     emoji: "🛠️",
-    sub: "ISTP",
-    desc: "多くを語らず、必要な時だけ動く。手を動かしながら答えを見つける職人気質タイプ。",
-    traits: "実践 / 器用 / 無駄がない",
-    match: "ふわアートねこ / わくわく自由ねこ",
+    features: ["手を動かして理解する", "無駄を嫌う", "冷静", "実用重視"],
+    summary: "黙って作る職人猫",
+    patterns: ["まず触る", "試しながら覚える", "言葉より行動", "淡々とこなす"],
   },
   "ふわアートねこ": {
     emoji: "🎨",
-    sub: "ISFP",
-    desc: "感性のままに世界を受け取る。やわらかく穏やかな空気で、自分らしさを大切にするタイプ。",
-    traits: "感性 / やわらかさ / 美意識",
-    match: "無口クラフトねこ / ゆめふわロマンねこ",
+    features: ["感性が豊か", "自分の世界を大事にする", "優しく繊細", "美しさにこだわる"],
+    summary: "静かに表現する猫",
+    patterns: ["好きなことに集中", "感覚で判断", "争いを避ける", "自由に動く"],
   },
   "ゆめふわロマンねこ": {
     emoji: "✨",
-    sub: "INFP",
-    desc: "現実よりも心の中の世界を大切にする。理想やときめきにまっすぐなロマン派タイプ。",
-    traits: "理想 / 空想 / 純粋さ",
-    match: "ふわアートねこ / いたずら天才ねこ",
+    features: ["理想を大切にする", "優しく共感力が高い", "感情が豊か", "自分の世界観を持つ"],
+    summary: "心で世界を見る猫",
+    patterns: ["共感で動く", "理想を追う", "一人時間も大事", "静かに深く考える"],
   },
   "ひらめき遊びねこ": {
     emoji: "💡",
-    sub: "INTP",
-    desc: "考えること自体が遊び。ひらめきと仕組みが大好きな、知的いたずら好きタイプ。",
-    traits: "発想 / 分析 / 遊び心",
-    match: "いたずら天才ねこ / 戦略きれものねこ",
+    features: ["考えることが楽しい", "論理的思考", "一人で没頭", "探究心が強い"],
+    summary: "思考で遊ぶ猫",
+    patterns: ["疑問から始まる", "納得するまで考える", "興味で動く", "静かに深掘り"],
   },
   "突撃アクティブねこ": {
     emoji: "⚡",
-    sub: "ESTP",
-    desc: "迷う前に飛び込む、瞬発力の冒険家。体感で世界をつかみにいくタイプ。",
-    traits: "行動力 / 勢い / 勇気",
-    match: "わくわく自由ねこ / きらきらパーティーねこ",
+    features: ["行動力が高い", "スピード重視", "リスクを恐れない", "現場主義"],
+    summary: "体で覚える猫",
+    patterns: ["まずやる", "考えるより動く", "その場で判断", "瞬発力が高い"],
   },
   "きらきらパーティーねこ": {
     emoji: "🎉",
-    sub: "ESFP",
-    desc: "場の空気を明るくする人気者。楽しさを見つけるのが上手で、人を笑顔にするタイプ。",
-    traits: "明るさ / 社交性 / 華やかさ",
-    match: "突撃アクティブねこ / みんな大好きねこ",
+    features: ["楽しいこと最優先", "明るく社交的", "場を盛り上げる", "感情豊か"],
+    summary: "場を明るくする猫",
+    patterns: ["ノリで動く", "人と一緒が好き", "今を楽しむ", "直感で判断"],
   },
   "わくわく自由ねこ": {
     emoji: "🌈",
-    sub: "ENFP",
-    desc: "好奇心いっぱいで、自由に世界を広げる。ワクワクを原動力に動くタイプ。",
-    traits: "自由 / 好奇心 / 可能性",
-    match: "突撃アクティブねこ / いたずら天才ねこ",
+    features: ["新しいことが好き", "発想が自由", "感情で動く", "可能性重視"],
+    summary: "可能性に飛び込む猫",
+    patterns: ["ワクワクで動く", "すぐ興味が移る", "人との繋がり重視", "自由を求める"],
   },
   "いたずら天才ねこ": {
     emoji: "🃏",
-    sub: "ENTP",
-    desc: "発想でひっくり返すトリックスター。頭の回転が速く、遊びながら場を変えていくタイプ。",
-    traits: "機転 / いたずら / 知性",
-    match: "ひらめき遊びねこ / わくわく自由ねこ",
+    features: ["思いついたら即実験", "ルールは壊してから考える", "周りを巻き込んで変化を起こす", "いたずら＝クリエイティブ"],
+    summary: "遊びながら世界をアップデートする猫",
+    patterns: ["「これやったらどうなる？」で動く", "飽きたらすぐ次へ", "空気を変える起爆剤", "気づいたら中心にいる"],
   },
   "しきり屋リーダーねこ": {
     emoji: "📣",
-    sub: "ESTJ",
-    desc: "しっかり仕切って全体を動かす現場統率者。頼られると強い、実務派リーダータイプ。",
-    traits: "統率 / 実行 / 責任感",
-    match: "みんな大好きねこ / 覇王ボスねこ",
+    features: ["仕切るのが得意", "ルールを回す", "実行力が高い", "結果重視"],
+    summary: "現場を回す猫",
+    patterns: ["指示を出す", "計画的に進める", "効率重視", "責任を持つ"],
   },
   "みんな大好きねこ": {
     emoji: "💗",
-    sub: "ESFJ",
-    desc: "愛され上手で空気をあたためる。まわりを気づかいながら関係を育てるタイプ。",
-    traits: "親しみ / 気配り / 愛され力",
-    match: "きらきらパーティーねこ / しきり屋リーダーねこ",
+    features: ["人との関係を大切にする", "面倒見がいい", "空気を読む", "調和重視"],
+    summary: "みんなを繋ぐ猫",
+    patterns: ["周りを気にする", "サポートに回る", "安心を優先", "集団で動く"],
   },
   "導きカリスマねこ": {
     emoji: "🌟",
-    sub: "ENFJ",
-    desc: "人を導くやさしい影響力。周囲の気持ちを動かしながら、前へ進めるカリスマタイプ。",
-    traits: "影響力 / 共感 / 推進力",
-    match: "よりそい守りねこ / 覇王ボスねこ",
+    features: ["人を引っ張る力", "影響力がある", "理想を共有する", "情熱的"],
+    summary: "人を動かす猫",
+    patterns: ["人を導く", "周囲を巻き込む", "感情で動かす", "目的意識が強い"],
   },
   "覇王ボスねこ": {
     emoji: "👑",
-    sub: "ENTJ",
-    desc: "堂々と采配し、全体を前へ進める王者。圧倒的な存在感で空間を支配するタイプ。",
-    traits: "支配力 / 決断 / 王者感",
-    match: "戦略きれものねこ / しきり屋リーダーねこ",
+    features: ["圧倒的な決断力", "戦略的思考", "支配力が強い", "結果にこだわる"],
+    summary: "勝ちに行く王の猫",
+    patterns: ["ゴールから逆算", "迷わず決める", "人を動かす", "効率を最大化"],
   },
 };
 
@@ -595,7 +586,7 @@ export default function Home() {
   const handleShare = async () => {
     const dataUrl = await generateResultPng();
     const shareText = result
-      ? `うちの猫のタイプは「${result.mainType}（${result.mbti}）」でした🐱\n診断してみて👇`
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
       : "うちの猫のタイプ診断をやってみた🐱";
     const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
@@ -911,22 +902,33 @@ export default function Home() {
               </div>
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
-                  <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
-                  <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
-                  <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
-                    {resultMeta[result.mainType].desc}
-                  </p>
-                </div>
+                <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 ring-1 ring-[#f3e3d8]">
+                  <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
+                  <h3 className="mb-6 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                <div className="mb-6 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
-                    <p className="font-semibold">{resultMeta[result.mainType].traits}</p>
+                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-3 text-sm font-semibold text-[#9a7d69]">💡 特徴</p>
+                    <ul className="space-y-2 text-sm leading-7 text-[#4e433d] sm:text-base">
+                      {resultMeta[result.mainType].features.map((feature) => (
+                        <li key={feature}>・{feature}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
-                    <p className="font-semibold">{resultMeta[result.mainType].match}</p>
+
+                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-3 text-sm font-semibold text-[#9a7d69]">🔥 性格まとめ</p>
+                    <p className="text-sm font-semibold leading-7 text-[#4e433d] sm:text-base">
+                      👉 {resultMeta[result.mainType].summary}
+                    </p>
+                  </div>
+
+                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-3 text-sm font-semibold text-[#9a7d69]">🧠 行動パターン</p>
+                    <ul className="space-y-2 text-sm leading-7 text-[#4e433d] sm:text-base">
+                      {resultMeta[result.mainType].patterns.map((pattern) => (
+                        <li key={pattern}>・{pattern}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
 
@@ -935,8 +937,10 @@ export default function Home() {
                   <div className="space-y-2 text-sm">
                     {ownerCompatibility[result.mainType].map((item) => (
                       <div key={item.type} className="flex items-center justify-between gap-4">
-                        <span className="font-bold text-[#4e433d]">{item.type}（{ownerMbtiLabelMap[item.type]}）</span>
-                        <span className="shrink-0 text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
+                        <span className="font-bold text-[#4e433d]">
+                          {item.type}（{ownerMbtiLabelMap[item.type]}）
+                        </span>
+                        <span className="whitespace-nowrap text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
                       </div>
                     ))}
                   </div>
@@ -1009,20 +1013,32 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
-                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]" aria-hidden="true"></p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
-                <h3 className="mb-3 text-2xl font-bold">{type}</h3>
-                <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
+                <h3 className="mb-4 text-2xl font-bold">{type}</h3>
 
-                <div className="grid gap-3">
-                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                    <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
-                    <p className="font-semibold">{resultMeta[type].traits}</p>
-                  </div>
-                  <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
-                    <p className="font-semibold">{resultMeta[type].match}</p>
-                  </div>
+                <div className="mb-3 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                  <p className="mb-2 text-sm text-[#9a7d69]">💡 特徴</p>
+                  <ul className="space-y-1 text-sm leading-7 text-[#4e433d]">
+                    {resultMeta[type].features.map((feature) => (
+                      <li key={feature}>・{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mb-3 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                  <p className="mb-2 text-sm text-[#9a7d69]">🔥 性格まとめ</p>
+                  <p className="text-sm font-semibold leading-7 text-[#4e433d]">
+                    👉 {resultMeta[type].summary}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                  <p className="mb-2 text-sm text-[#9a7d69]">🧠 行動パターン</p>
+                  <ul className="space-y-1 text-sm leading-7 text-[#4e433d]">
+                    {resultMeta[type].patterns.map((pattern) => (
+                      <li key={pattern}>・{pattern}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             ))}
