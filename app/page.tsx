@@ -257,105 +257,105 @@ const resultMeta: Record<
   CatType,
   {
     emoji: string;
+    description: string;
     features: string[];
-    summary: string;
     patterns: string[];
   }
 > = {
   "規律番ねこ": {
     emoji: "📋",
+    description: "きっちり守って整える。決まったことや日々の流れをしっかり支える、堅実なおうちの番人タイプ。",
     features: ["ルールと秩序を守る", "コツコツ継続する", "安定志向", "信頼されやすい"],
-    summary: "ブレずに積み上げる猫",
     patterns: ["決めたことをやり抜く", "計画通りに動く", "変化より安定", "責任を重く捉える"],
   },
   "よりそい守りねこ": {
     emoji: "🤍",
+    description: "やさしく寄り添いながら相手を見守る。空気を乱さず、安心感で場を包む癒やし役タイプ。",
     features: ["周りを支える優しさ", "安心できる空気を作る", "気配りが細かい", "責任感が強い"],
-    summary: "見えないところで支える猫",
     patterns: ["困っている人にすぐ気づく", "自分より他人を優先", "静かに行動する", "縁の下の力持ち"],
   },
   "しずか哲学ねこ": {
     emoji: "🌙",
+    description: "静かに深く考え、表には出しすぎない。でも内面には強い世界観を持つ哲学者タイプ。",
     features: ["物事の本質をじっと考える", "人の気持ちを静かに読み取る", "深く理解してから動く", "理想を大切にする"],
-    summary: "静かに世界を見抜く猫",
     patterns: ["一人で考える時間が必要", "直感で本質を掴む", "言葉より空気を読む", "気づけば核心にいる"],
   },
   "戦略きれものねこ": {
     emoji: "🧠",
+    description: "先を読んで動く設計者。感情より構造を見て、最適な流れを静かに組み立てるタイプ。",
     features: ["最短ルートを見抜く", "合理的思考", "一人で完成度を高める", "無駄を嫌う"],
-    summary: "静かに勝ち筋を描く猫",
     patterns: ["先を読む", "効率を重視", "一人で考える時間が長い", "必要なことだけやる"],
   },
   "無口クラフトねこ": {
     emoji: "🛠️",
+    description: "多くを語らず、必要な時だけ動く。手を動かしながら答えを見つける職人気質タイプ。",
     features: ["手を動かして理解する", "無駄を嫌う", "冷静", "実用重視"],
-    summary: "黙って作る職人猫",
     patterns: ["まず触る", "試しながら覚える", "言葉より行動", "淡々とこなす"],
   },
   "ふわアートねこ": {
     emoji: "🎨",
+    description: "感性のままに世界を受け取る。やわらかく穏やかな空気で、自分らしさを大切にするタイプ。",
     features: ["感性が豊か", "自分の世界を大事にする", "優しく繊細", "美しさにこだわる"],
-    summary: "静かに表現する猫",
     patterns: ["好きなことに集中", "感覚で判断", "争いを避ける", "自由に動く"],
   },
   "ゆめふわロマンねこ": {
     emoji: "✨",
+    description: "現実よりも心の中の世界を大切にする。理想やときめきにまっすぐなロマン派タイプ。",
     features: ["理想を大切にする", "優しく共感力が高い", "感情が豊か", "自分の世界観を持つ"],
-    summary: "心で世界を見る猫",
     patterns: ["共感で動く", "理想を追う", "一人時間も大事", "静かに深く考える"],
   },
   "ひらめき遊びねこ": {
     emoji: "💡",
+    description: "考えること自体が遊び。ひらめきと仕組みが大好きな、知的いたずら好きタイプ。",
     features: ["考えることが楽しい", "論理的思考", "一人で没頭", "探究心が強い"],
-    summary: "思考で遊ぶ猫",
     patterns: ["疑問から始まる", "納得するまで考える", "興味で動く", "静かに深掘り"],
   },
   "突撃アクティブねこ": {
     emoji: "⚡",
+    description: "迷う前に飛び込む、瞬発力の冒険家。体感で世界をつかみにいくタイプ。",
     features: ["行動力が高い", "スピード重視", "リスクを恐れない", "現場主義"],
-    summary: "体で覚える猫",
     patterns: ["まずやる", "考えるより動く", "その場で判断", "瞬発力が高い"],
   },
   "きらきらパーティーねこ": {
     emoji: "🎉",
+    description: "場の空気を明るくする人気者。楽しさを見つけるのが上手で、人を笑顔にするタイプ。",
     features: ["楽しいこと最優先", "明るく社交的", "場を盛り上げる", "感情豊か"],
-    summary: "場を明るくする猫",
     patterns: ["ノリで動く", "人と一緒が好き", "今を楽しむ", "直感で判断"],
   },
   "わくわく自由ねこ": {
     emoji: "🌈",
+    description: "好奇心いっぱいで、自由に世界を広げる。ワクワクを原動力に動くタイプ。",
     features: ["新しいことが好き", "発想が自由", "感情で動く", "可能性重視"],
-    summary: "可能性に飛び込む猫",
     patterns: ["ワクワクで動く", "すぐ興味が移る", "人との繋がり重視", "自由を求める"],
   },
   "いたずら天才ねこ": {
     emoji: "🃏",
+    description: "発想でひっくり返すトリックスター。頭の回転が速く、遊びながら場を変えていくタイプ。",
     features: ["思いついたら即実験", "ルールは壊してから考える", "周りを巻き込んで変化を起こす", "いたずら＝クリエイティブ"],
-    summary: "遊びながら世界をアップデートする猫",
     patterns: ["「これやったらどうなる？」で動く", "飽きたらすぐ次へ", "空気を変える起爆剤", "気づいたら中心にいる"],
   },
   "しきり屋リーダーねこ": {
     emoji: "📣",
+    description: "しっかり仕切って全体を動かす現場統率者。頼られると強い、実務派リーダータイプ。",
     features: ["仕切るのが得意", "ルールを回す", "実行力が高い", "結果重視"],
-    summary: "現場を回す猫",
     patterns: ["指示を出す", "計画的に進める", "効率重視", "責任を持つ"],
   },
   "みんな大好きねこ": {
     emoji: "💗",
+    description: "愛され上手で空気をあたためる。まわりを気づかいながら関係を育てるタイプ。",
     features: ["人との関係を大切にする", "面倒見がいい", "空気を読む", "調和重視"],
-    summary: "みんなを繋ぐ猫",
     patterns: ["周りを気にする", "サポートに回る", "安心を優先", "集団で動く"],
   },
   "導きカリスマねこ": {
     emoji: "🌟",
+    description: "人を導くやさしい影響力。周囲の気持ちを動かしながら、前へ進めるカリスマタイプ。",
     features: ["人を引っ張る力", "影響力がある", "理想を共有する", "情熱的"],
-    summary: "人を動かす猫",
     patterns: ["人を導く", "周囲を巻き込む", "感情で動かす", "目的意識が強い"],
   },
   "覇王ボスねこ": {
     emoji: "👑",
+    description: "堂々と采配し、全体を前へ進める王者。圧倒的な存在感で空間を支配するタイプ。",
     features: ["圧倒的な決断力", "戦略的思考", "支配力が強い", "結果にこだわる"],
-    summary: "勝ちに行く王の猫",
     patterns: ["ゴールから逆算", "迷わず決める", "人を動かす", "効率を最大化"],
   },
 };
@@ -904,7 +904,10 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 ring-1 ring-[#f3e3d8]">
                   <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
-                  <h3 className="mb-6 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <h3 className="mb-4 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <p className="mb-5 text-center text-sm leading-7 text-[#6c625b] sm:text-base">
+                    {resultMeta[result.mainType].description}
+                  </p>
 
                   <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
                     <p className="mb-3 text-sm font-semibold text-[#9a7d69]">💡 特徴</p>
@@ -913,13 +916,6 @@ export default function Home() {
                         <li key={feature}>・{feature}</li>
                       ))}
                     </ul>
-                  </div>
-
-                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <p className="mb-3 text-sm font-semibold text-[#9a7d69]">🔥 性格まとめ</p>
-                    <p className="text-sm font-semibold leading-7 text-[#4e433d] sm:text-base">
-                      👉 {resultMeta[result.mainType].summary}
-                    </p>
                   </div>
 
                   <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
