@@ -228,6 +228,7 @@ export default function Home() {
   const [animating, setAnimating] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [showResult, setShowResult] = useState(false);
 
   const loadingMessages = useMemo(
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
@@ -264,9 +265,10 @@ export default function Home() {
     setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
+    setDirection("next");
     setIsCalculating(false);
     setLoadingMessageIndex(0);
-    setDirection("next");
+    setShowResult(false);
   };
 
   const closeDiagnosis = () => {
@@ -275,6 +277,7 @@ export default function Home() {
     setAnimating(false);
     setIsCalculating(false);
     setLoadingMessageIndex(0);
+    setShowResult(false);
   };
 
   const openTypeList = () => {
@@ -286,7 +289,7 @@ export default function Home() {
   };
 
   const handleAnswer = (option: QuestionOption) => {
-    if (selectedLabel || animating) return;
+    if (selectedLabel || animating || isCalculating) return;
 
     setSelectedLabel(option.label);
     setDirection("next");
@@ -307,15 +310,21 @@ export default function Home() {
           setAnimating(false);
         }, 320);
       } else {
-        setSelectedLabel(null);
         setAnimating(false);
         setIsCalculating(true);
         setLoadingMessageIndex(0);
 
-        window.setTimeout(() => setLoadingMessageIndex(1), 700);
-        window.setTimeout(() => setLoadingMessageIndex(2), 1400);
+        window.setTimeout(() => {
+          setLoadingMessageIndex(1);
+        }, 700);
+
+        window.setTimeout(() => {
+          setLoadingMessageIndex(2);
+        }, 1400);
+
         window.setTimeout(() => {
           setIsCalculating(false);
+          setShowResult(true);
         }, 2200);
       }
     }, 180);
@@ -345,9 +354,10 @@ export default function Home() {
     setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
+    setDirection("next");
     setIsCalculating(false);
     setLoadingMessageIndex(0);
-    setDirection("next");
+    setShowResult(false);
   };
 
   return (
@@ -472,7 +482,7 @@ export default function Home() {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {!result && !isCalculating ? (
+          {!showResult && !isCalculating ? (
             <>
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -573,7 +583,7 @@ export default function Home() {
                   <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
                     ANALYZING
                   </p>
-                  <h2 className="text-3xl font-bold">診断中</h2>
+                  <h2 className="text-3xl font-bold">診断中...</h2>
                 </div>
 
                 <button
@@ -584,19 +594,21 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-[#f2e5dc] sm:p-10">
-                <div className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
-                <p className="text-lg font-semibold text-[#2b2b2b]">
-                  {loadingMessages[loadingMessageIndex]}
-                </p>
-                <p className="mt-2 text-sm text-[#9a7d69]">
-                  うちの子のタイプを読み解いています
-                </p>
+              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+                <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
+                  <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
+                  <p className="text-lg font-semibold text-[#2b2b2b]">
+                    {loadingMessages[loadingMessageIndex]}
+                  </p>
+                  <p className="mt-2 text-sm text-[#9a7d69]">
+                    うちの子のタイプを読み解いています
+                  </p>
 
-                <div className="mt-5 flex items-center justify-center gap-2">
-                  <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c7a995] [animation-delay:-0.2s]" />
-                  <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c7a995] [animation-delay:-0.1s]" />
-                  <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c7a995]" />
+                  <div className="mt-6 flex gap-2">
+                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#d2b8a7] [animation-delay:-0.2s]" />
+                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#d2b8a7] [animation-delay:-0.1s]" />
+                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#d2b8a7]" />
+                  </div>
                 </div>
               </div>
             </>
@@ -712,7 +724,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
