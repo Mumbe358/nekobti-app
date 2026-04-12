@@ -43,32 +43,24 @@ const questionPool: Record<Segment, Question[]> = {
     { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ飛びつく", axis: "E" }, { label: "しばらく様子を見る", axis: "I" }] },
     { id: 3, text: "お気に入りの場所は？", segment: "EI", options: [{ label: "みんながいる場所", axis: "E" }, { label: "静かで落ち着く場所", axis: "I" }] },
     { id: 4, text: "他の猫がいたら？", segment: "EI", options: [{ label: "関わろうとする", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
-    { id: 5, text: "来客の気配を感じたら？", segment: "EI", options: [{ label: "自分から見に行く", axis: "E" }, { label: "安全な場所で様子を見る", axis: "I" }] },
-    { id: 6, text: "部屋の中心にいたい？", segment: "EI", options: [{ label: "目立つ場所が好き", axis: "E" }, { label: "すみっこが落ち着く", axis: "I" }] },
   ],
   SN: [
     { id: 7, text: "遊び方は？", segment: "SN", options: [{ label: "全力で追いかける", axis: "S" }, { label: "タイミングを見て狙う", axis: "N" }] },
     { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "すぐ確認しに行く", axis: "S" }, { label: "じっと様子を見る", axis: "N" }] },
     { id: 9, text: "高い場所は？", segment: "SN", options: [{ label: "特にこだわらない", axis: "S" }, { label: "好き", axis: "N" }] },
     { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動くものを追う", axis: "S" }, { label: "ぼんやり景色に浸る", axis: "N" }] },
-    { id: 11, text: "おもちゃを前にすると？", segment: "SN", options: [{ label: "まず触って確かめる", axis: "S" }, { label: "動きを読んで狙う", axis: "N" }] },
-    { id: 12, text: "新しい場所では？", segment: "SN", options: [{ label: "足元から順に確かめる", axis: "S" }, { label: "先に全体を見渡す", axis: "N" }] },
   ],
   TF: [
     { id: 13, text: "飼い主との距離感は？", segment: "TF", options: [{ label: "よく近くにいる", axis: "F" }, { label: "気が向いたときだけ", axis: "T" }] },
     { id: 14, text: "遊びに誘われたら？", segment: "TF", options: [{ label: "すぐ乗る", axis: "F" }, { label: "気分次第", axis: "T" }] },
     { id: 15, text: "縄張り意識は？", segment: "TF", options: [{ label: "強い", axis: "T" }, { label: "あまり気にしない", axis: "F" }] },
     { id: 16, text: "飼い主の指示には？", segment: "TF", options: [{ label: "わりと従う", axis: "F" }, { label: "基本マイペース", axis: "T" }] },
-    { id: 17, text: "甘えたい気分のときは？", segment: "TF", options: [{ label: "すぐ伝える", axis: "F" }, { label: "伝えず様子を見る", axis: "T" }] },
-    { id: 18, text: "ごはんを分けるなら？", segment: "TF", options: [{ label: "みんなと穏やかに", axis: "F" }, { label: "自分の分を守る", axis: "T" }] },
   ],
   JP: [
     { id: 19, text: "ごはんの時間がズレたら？", segment: "JP", options: [{ label: "気にせず待つ", axis: "P" }, { label: "しっかり主張する", axis: "J" }] },
     { id: 20, text: "新しい環境では？", segment: "JP", options: [{ label: "すぐ探検する", axis: "P" }, { label: "慎重に動く", axis: "J" }] },
     { id: 21, text: "くつろぐときは？", segment: "JP", options: [{ label: "どこでもリラックス", axis: "P" }, { label: "決まった場所がいい", axis: "J" }] },
     { id: 22, text: "眠いときは？", segment: "JP", options: [{ label: "その場で寝る", axis: "P" }, { label: "落ち着く場所に移動", axis: "J" }] },
-    { id: 23, text: "行動パターンは？", segment: "JP", options: [{ label: "気分で変わる", axis: "P" }, { label: "ある程度決まっている", axis: "J" }] },
-    { id: 24, text: "お気に入りルートは？", segment: "JP", options: [{ label: "毎回違っても平気", axis: "P" }, { label: "いつもの順番が安心", axis: "J" }] },
   ],
 };
 
