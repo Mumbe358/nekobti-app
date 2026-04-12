@@ -176,57 +176,21 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
-
-const mbtiLabelMap: Record<string, string> = {
-  ISTJ: "管理者",
-  ISFJ: "擁護者",
-  INFJ: "提唱者",
-  INTJ: "建築家",
-  ISTP: "巨匠",
-  ISFP: "冒険家",
-  INFP: "仲介者",
-  INTP: "論理学者",
-  ESTP: "起業家",
-  ESFP: "エンターテイナー",
-  ENFP: "運動家",
-  ENTP: "討論者",
-  ESTJ: "幹部",
-  ESFJ: "領事",
-  ENFJ: "主人公",
-  ENTJ: "指揮官",
-};
-
-const Paw = ({
-  active,
-  isCurrent,
-  index,
-}: {
-  active: boolean;
-  isCurrent: boolean;
-  index: number;
-}) => {
-  const rotate = index % 2 === 0 ? 85 : 95;
-  const offsetY = index % 2 === 0 ? "-2px" : "2px";
-
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={`transition-all duration-300 ${
-        isCurrent
-          ? "h-9 w-9 sm:h-10 sm:w-10 drop-shadow-sm"
-          : "h-7 w-7 sm:h-8 sm:w-8"
-      } ${active ? "fill-[#b07d62]" : "fill-[#f3e8df]"}`}
-      style={{ transform: `rotate(${rotate}deg) translateY(${offsetY})` }}
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="15" r="4" />
-      <circle cx="7" cy="9" r="1.8" />
-      <circle cx="10.5" cy="6.5" r="1.8" />
-      <circle cx="13.5" cy="6.5" r="1.8" />
-      <circle cx="17" cy="9" r="1.8" />
-    </svg>
-  );
-};
+const Paw = ({ active }: { active: boolean }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={`h-3.5 w-3.5 transition-colors duration-300 sm:h-4 sm:w-4 ${
+      active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
+    }`}
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="15" r="4" />
+    <circle cx="7" cy="9" r="1.8" />
+    <circle cx="10.5" cy="6.5" r="1.8" />
+    <circle cx="13.5" cy="6.5" r="1.8" />
+    <circle cx="17" cy="9" r="1.8" />
+  </svg>
+);
 
 
 const resultMeta: Record<
@@ -743,7 +707,7 @@ export default function Home() {
         onClick={closeDiagnosis}
       >
         <div
-          className={`mx-auto my-6 w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
+          className={`mx-auto my-6 flex w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] flex-col rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
             isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -770,13 +734,8 @@ export default function Home() {
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
                     {questions.map((_, index) => (
-  <Paw
-    key={index}
-    index={index}
-    active={index < answeredCount}
-    isCurrent={index === answeredCount}
-  />
-))}
+                      <Paw key={index} active={index < answeredCount} />
+                    ))}
                   </div>
 
                   <p className="text-sm text-[#9a7d69]">
@@ -896,8 +855,14 @@ export default function Home() {
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
+                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
+                    {resultMeta[result.mainType].sub}
+                  </p>
                   <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
+                    MBTI：{result.mbti}
+                  </p>
                   <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
                     {resultMeta[result.mainType].desc}
                   </p>
@@ -919,7 +884,7 @@ export default function Home() {
                   <div className="space-y-2 text-sm">
                     {ownerCompatibility[result.mainType].map((item) => (
                       <div key={item.type} className="flex items-center justify-between gap-4">
-                        <span className="font-medium text-[#4e433d]"><span className="font-semibold">{item.type}</span><span className="ml-1 text-[#7a5c48]">（{mbtiLabelMap[item.type]}）</span></span>
+                        <span className="font-medium text-[#4e433d]">{item.type}</span>
                         <span className="whitespace-nowrap text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
                       </div>
                     ))}
@@ -993,6 +958,9 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
+                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                  {resultMeta[type].sub}
+                </p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
                 <h3 className="mb-3 text-2xl font-bold">{type}</h3>
                 <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
