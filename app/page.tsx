@@ -394,7 +394,7 @@ export default function Home() {
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>(() => buildQuestionSet());
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(QuestionOption | null)[]>(() =>
-    Array(QUESTION_COUNT_PER_SEGMENT * 4).fill(null)
+    Array(16).fill(null)
   );
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [direction, setDirection] = useState<"next" | "prev">("next");
