@@ -176,6 +176,28 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
+const ownerMbti = "INTJ";
+
+const ownerMbtiLabelMap: Record<string, string> = {
+  INTJ: "建築家",
+  INTP: "論理学者",
+  ENTJ: "指揮官",
+  ENTP: "討論者",
+  INFJ: "提唱者",
+  INFP: "仲介者",
+  ENFJ: "主人公",
+  ENFP: "運動家",
+  ISTJ: "管理者",
+  ISFJ: "擁護者",
+  ESTJ: "幹部",
+  ESFJ: "領事",
+  ISTP: "巨匠",
+  ISFP: "冒険家",
+  ESTP: "起業家",
+  ESFP: "エンターテイナー",
+};
+
+
 const Paw = ({ active }: { active: boolean }) => (
   <svg
     viewBox="0 0 24 24"
@@ -538,7 +560,7 @@ export default function Home() {
   const handleShare = async () => {
     const dataUrl = await generateResultPng();
     const shareText = result
-      ? `うちの猫のタイプは「${result.mainType}（${result.mbti}）」でした🐱\n診断してみて👇`
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
       : "うちの猫のタイプ診断をやってみた🐱";
     const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
@@ -855,14 +877,8 @@ export default function Home() {
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
-                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
-                    {resultMeta[result.mainType].sub}
-                  </p>
                   <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
-                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
-                    MBTI：{result.mbti}
-                  </p>
                   <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
                     {resultMeta[result.mainType].desc}
                   </p>
@@ -880,6 +896,10 @@ export default function Home() {
                 </div>
 
                 <div className="mb-6 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                  <p className="mb-1 text-sm text-[#9a7d69]">飼い主のMBTI属性</p>
+                  <p className="mb-4 text-base text-[#4e433d]">
+                    <span className="font-bold">{ownerMbti}</span>（{ownerMbtiLabelMap[ownerMbti]}）
+                  </p>
                   <p className="mb-3 text-sm text-[#9a7d69]">飼い主との相性</p>
                   <div className="space-y-2 text-sm">
                     {ownerCompatibility[result.mainType].map((item) => (
@@ -958,9 +978,6 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
-                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
-                  {resultMeta[type].sub}
-                </p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
                 <h3 className="mb-3 text-2xl font-bold">{type}</h3>
                 <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
