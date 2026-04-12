@@ -226,9 +226,16 @@ export default function Home() {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [animating, setAnimating] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
   const totalSteps = questions.length;
   const answeredCount = answers.filter(Boolean).length;
+  const loadingMessages = [
+    "猫らしさを分析中...",
+    "行動パターンを整理中...",
+    "タイプを判定しています...",
+  ];
 
   const result = useMemo(() => {
     if (answeredCount !== totalSteps) return null;
@@ -258,12 +265,16 @@ export default function Home() {
     setSelectedLabel(null);
     setAnimating(false);
     setDirection("next");
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
   };
 
   const closeDiagnosis = () => {
     setIsOpen(false);
     setSelectedLabel(null);
     setAnimating(false);
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
   };
 
   const openTypeList = () => {
@@ -275,19 +286,16 @@ export default function Home() {
   };
 
   const handleAnswer = (option: QuestionOption) => {
-    if (selectedLabel || animating) return;
+    if (selectedLabel || animating || isCalculating) return;
 
     setSelectedLabel(option.label);
     setDirection("next");
     setAnimating(true);
 
     window.setTimeout(() => {
-      setAnswers((prev) => {
-        const next = [...prev];
-        next[step] = option;
-        return next;
-      });
-
+      const nextAnswers = [...answers];
+      nextAnswers[step] = option;
+      setAnswers(nextAnswers);
       setSelectedLabel(null);
 
       if (step < totalSteps - 1) {
@@ -297,6 +305,11 @@ export default function Home() {
         }, 320);
       } else {
         setAnimating(false);
+        setIsCalculating(true);
+        setLoadingMessageIndex(0);
+
+        window.setTimeout(() => setLoadingMessageIndex(1), 700);
+        window.setTimeout(() => setLoadingMessageIndex(2), 1400);
       }
     }, 180);
   };
@@ -326,6 +339,8 @@ export default function Home() {
     setSelectedLabel(null);
     setAnimating(false);
     setDirection("next");
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
   };
 
   return (
@@ -450,7 +465,7 @@ export default function Home() {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {!result ? (
+          {!result && !isCalculating ? (
             <>
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -540,6 +555,42 @@ export default function Home() {
                     </button>
 
                     <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : isCalculating ? (
+            <>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                    ANALYZING
+                  </p>
+                  <h2 className="text-3xl font-bold">診断結果を作成中</h2>
+                </div>
+
+                <button
+                  onClick={closeDiagnosis}
+                  className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                >
+                  閉じる
+                </button>
+              </div>
+
+              <div className="rounded-3xl bg-white p-8 ring-1 ring-[#f2e5dc] sm:p-10">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#2b2b2b]" />
+                  <p className="text-xl font-semibold text-[#2b2b2b]">
+                    {loadingMessages[loadingMessageIndex]}
+                  </p>
+                  <p className="mt-3 text-sm leading-7 text-[#8a7668]">
+                    うちの子らしさを、やわらかく言葉にしています。
+                  </p>
+
+                  <div className="mt-6 flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c8ab97] [animation-delay:-0.2s]" />
+                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c8ab97] [animation-delay:-0.1s]" />
+                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c8ab97]" />
                   </div>
                 </div>
               </div>
