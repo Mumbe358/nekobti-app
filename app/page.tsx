@@ -176,12 +176,19 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
-const Paw = ({ active }: { active: boolean }) => (
+const Paw = ({
+  active,
+  rotate = 0,
+}: {
+  active: boolean;
+  rotate?: number;
+}) => (
   <svg
     viewBox="0 0 24 24"
-    className={`h-3.5 w-3.5 transition-colors duration-300 sm:h-4 sm:w-4 ${
+    className={`h-5 w-5 transition-colors duration-300 sm:h-6 sm:w-6 ${
       active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
     }`}
+    style={{ transform: `rotate(${rotate}deg)` }}
     aria-hidden="true"
   >
     <circle cx="12" cy="15" r="4" />
@@ -707,7 +714,7 @@ export default function Home() {
         onClick={closeDiagnosis}
       >
         <div
-          className={`mx-auto my-6 flex w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] flex-col rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
             isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -730,12 +737,17 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
-                <div className="mb-4">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
+                <div className="mb-4 shrink-0">
                   <div className="mb-3 flex items-center gap-1.5">
                     {questions.map((_, index) => (
-                      <Paw key={index} active={index < answeredCount} />
-                    ))}
+  <Paw
+    key={index}
+    index={index}
+    active={index < answeredCount}
+    isCurrent={index === answeredCount}
+  />
+))}
                   </div>
 
                   <p className="text-sm text-[#9a7d69]">
@@ -743,62 +755,65 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div
-                  key={step}
-                  className={`transition-all duration-300 ${
-                    direction === "next"
-                      ? "animate-[slideInRight_.28s_ease-out]"
-                      : "animate-[slideInLeft_.28s_ease-out]"
-                  }`}
-                >
-                  <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                    {questions[step].text}
-                  </p>
+                <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                  <div
+                    key={step}
+                    className={`transition-all duration-300 ${
+                      direction === "next"
+                        ? "animate-[slideInRight_.28s_ease-out]"
+                        : "animate-[slideInLeft_.28s_ease-out]"
+                    }`}
+                  >
+                    <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                      {questions[step].text}
+                    </p>
 
-                  <div className="grid gap-3">
-                    {questions[step].options.map((option) => {
-                      const isSelected = selectedLabel === option.label;
-                      const isAnsweredThisStep = answers[step] !== null;
+                    <div className="grid gap-3">
+                      {questions[step].options.map((option) => {
+                        const isSelected = selectedLabel === option.label;
+                        const isAnsweredThisStep = answers[step] !== null;
 
-                      return (
-                        <button
-                          key={option.label}
-                          onClick={() => {
-                            if (!isAnsweredThisStep) {
-                              handleAnswer(option);
-                            }
-                          }}
-                          disabled={selectedLabel !== null || animating}
-                          className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
-                            isSelected
-                              ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                              : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
-                          }`}
-                        >
-                          <span className="block break-words leading-8">
-                            {option.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <button
-                      onClick={handlePrev}
-                      disabled={step === 0 || selectedLabel !== null || animating}
-                      className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
-                        step === 0 || selectedLabel !== null || animating
-                          ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                          : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
-                      }`}
-                    >
-                      戻る
-                    </button>
-
-                    <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                        return (
+                          <button
+                            key={option.label}
+                            onClick={() => {
+                              if (!isAnsweredThisStep) {
+                                handleAnswer(option);
+                              }
+                            }}
+                            disabled={selectedLabel !== null || animating}
+                            className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                              isSelected
+                                ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                                : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                            }`}
+                          >
+                            <span className="block break-words leading-8">
+                              {option.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
+
+                <div className="mt-6 shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    onClick={handlePrev}
+                    disabled={step === 0 || selectedLabel !== null || animating}
+                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                      step === 0 || selectedLabel !== null || animating
+                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                    }`}
+                  >
+                    戻る
+                  </button>
+
+                  <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
+                </div>
+              </div>
               </div>
             </>
           ) : isCalculating ? (
@@ -855,14 +870,8 @@ export default function Home() {
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
-                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
-                    {resultMeta[result.mainType].sub}
-                  </p>
                   <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
-                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
-                    MBTI：{result.mbti}
-                  </p>
                   <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
                     {resultMeta[result.mainType].desc}
                   </p>
@@ -958,9 +967,6 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
-                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
-                  {resultMeta[type].sub}
-                </p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
                 <h3 className="mb-3 text-2xl font-bold">{type}</h3>
                 <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
