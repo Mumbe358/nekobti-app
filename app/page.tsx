@@ -971,9 +971,7 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
-                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
-                  {resultMeta[type].sub}
-                </p>
+                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]" aria-hidden="true"></p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
                 <h3 className="mb-3 text-2xl font-bold">{type}</h3>
                 <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
