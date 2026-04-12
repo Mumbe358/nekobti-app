@@ -178,26 +178,35 @@ const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 
 
 const Paw = ({
   active,
-  rotate = 0,
+  isCurrent,
+  index,
 }: {
   active: boolean;
-  rotate?: number;
-}) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={`h-5 w-5 transition-colors duration-300 sm:h-6 sm:w-6 ${
-      active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
-    }`}
-    style={{ transform: `rotate(${rotate}deg)` }}
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="15" r="4" />
-    <circle cx="7" cy="9" r="1.8" />
-    <circle cx="10.5" cy="6.5" r="1.8" />
-    <circle cx="13.5" cy="6.5" r="1.8" />
-    <circle cx="17" cy="9" r="1.8" />
-  </svg>
-);
+  isCurrent: boolean;
+  index: number;
+}) => {
+  const rotate = index % 2 === 0 ? 85 : 95;
+  const offsetY = index % 2 === 0 ? "-2px" : "2px";
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={`transition-all duration-300 ${
+        isCurrent
+          ? "h-9 w-9 sm:h-10 sm:w-10 drop-shadow-sm"
+          : "h-7 w-7 sm:h-8 sm:w-8"
+      } ${active ? "fill-[#b07d62]" : "fill-[#f3e8df]"}`}
+      style={{ transform: `rotate(${rotate}deg) translateY(${offsetY})` }}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="15" r="4" />
+      <circle cx="7" cy="9" r="1.8" />
+      <circle cx="10.5" cy="6.5" r="1.8" />
+      <circle cx="13.5" cy="6.5" r="1.8" />
+      <circle cx="17" cy="9" r="1.8" />
+    </svg>
+  );
+};
 
 
 const resultMeta: Record<
@@ -741,12 +750,13 @@ export default function Home() {
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
                     {questions.map((_, index) => (
-                      <Paw
-                        key={index}
-                        active={index < answeredCount}
-                        rotate={index % 2 === 0 ? -18 : 18}
-                      />
-                    ))}
+  <Paw
+    key={index}
+    index={index}
+    active={index < answeredCount}
+    isCurrent={index === answeredCount}
+  />
+))}
                   </div>
 
                   <p className="text-sm text-[#9a7d69]">
