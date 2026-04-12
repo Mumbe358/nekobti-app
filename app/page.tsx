@@ -874,14 +874,8 @@ export default function Home() {
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
-                  <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
-                    {resultMeta[result.mainType].sub}
-                  </p>
                   <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
-                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
-                    MBTI：{result.mbti}
-                  </p>
                   <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
                     {resultMeta[result.mainType].desc}
                   </p>
