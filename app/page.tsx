@@ -226,6 +226,13 @@ export default function Home() {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [animating, setAnimating] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
+  const loadingMessages = useMemo(
+    () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
+    []
+  );
 
   const totalSteps = questions.length;
   const answeredCount = answers.filter(Boolean).length;
@@ -257,6 +264,8 @@ export default function Home() {
     setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
     setDirection("next");
   };
 
@@ -264,6 +273,8 @@ export default function Home() {
     setIsOpen(false);
     setSelectedLabel(null);
     setAnimating(false);
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
   };
 
   const openTypeList = () => {
@@ -296,7 +307,16 @@ export default function Home() {
           setAnimating(false);
         }, 320);
       } else {
+        setSelectedLabel(null);
         setAnimating(false);
+        setIsCalculating(true);
+        setLoadingMessageIndex(0);
+
+        window.setTimeout(() => setLoadingMessageIndex(1), 700);
+        window.setTimeout(() => setLoadingMessageIndex(2), 1400);
+        window.setTimeout(() => {
+          setIsCalculating(false);
+        }, 2200);
       }
     }, 180);
   };
@@ -325,6 +345,8 @@ export default function Home() {
     setAnswers(Array(questions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
     setDirection("next");
   };
 
@@ -450,7 +472,7 @@ export default function Home() {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {!result ? (
+          {!result && !isCalculating ? (
             <>
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -544,7 +566,41 @@ export default function Home() {
                 </div>
               </div>
             </>
-          ) : (
+          ) : isCalculating ? (
+            <>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
+                    ANALYZING
+                  </p>
+                  <h2 className="text-3xl font-bold">診断中</h2>
+                </div>
+
+                <button
+                  onClick={closeDiagnosis}
+                  className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+                >
+                  閉じる
+                </button>
+              </div>
+
+              <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-[#f2e5dc] sm:p-10">
+                <div className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
+                <p className="text-lg font-semibold text-[#2b2b2b]">
+                  {loadingMessages[loadingMessageIndex]}
+                </p>
+                <p className="mt-2 text-sm text-[#9a7d69]">
+                  うちの子のタイプを読み解いています
+                </p>
+
+                <div className="mt-5 flex items-center justify-center gap-2">
+                  <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c7a995] [animation-delay:-0.2s]" />
+                  <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c7a995] [animation-delay:-0.1s]" />
+                  <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c7a995]" />
+                </div>
+              </div>
+            </>
+          ) : result ? (
             <>
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="min-w-0">
