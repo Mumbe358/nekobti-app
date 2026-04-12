@@ -28,30 +28,71 @@ type QuestionOption = {
   axis: Axis;
 };
 
+type Segment = "EI" | "SN" | "TF" | "JP";
+
 type Question = {
   id: number;
   text: string;
+  segment: Segment;
   options: [QuestionOption, QuestionOption];
 };
 
-const questions: Question[] = [
-  { id: 1, text: "知らない人が来たら？", options: [{ label: "近づいて様子を見る", axis: "E" }, { label: "物陰から観察する", axis: "I" }] },
-  { id: 2, text: "新しいおもちゃを見つけたら？", options: [{ label: "すぐ飛びつく", axis: "E" }, { label: "しばらく様子を見る", axis: "I" }] },
-  { id: 3, text: "お気に入りの場所は？", options: [{ label: "みんながいる場所", axis: "E" }, { label: "静かで落ち着く場所", axis: "I" }] },
-  { id: 4, text: "ごはんの時間がズレたら？", options: [{ label: "気にせず待つ", axis: "P" }, { label: "しっかり主張する", axis: "J" }] },
-  { id: 5, text: "遊び方は？", options: [{ label: "全力で追いかける", axis: "S" }, { label: "タイミングを見て狙う", axis: "N" }] },
-  { id: 6, text: "飼い主との距離感は？", options: [{ label: "よく近くにいる", axis: "F" }, { label: "気が向いたときだけ", axis: "T" }] },
-  { id: 7, text: "新しい環境では？", options: [{ label: "すぐ探検する", axis: "P" }, { label: "慎重に動く", axis: "J" }] },
-  { id: 8, text: "他の猫がいたら？", options: [{ label: "関わろうとする", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
-  { id: 9, text: "くつろぐときは？", options: [{ label: "どこでもリラックス", axis: "P" }, { label: "決まった場所がいい", axis: "J" }] },
-  { id: 10, text: "気になる音がしたら？", options: [{ label: "すぐ確認しに行く", axis: "S" }, { label: "じっと様子を見る", axis: "N" }] },
-  { id: 11, text: "遊びに誘われたら？", options: [{ label: "すぐ乗る", axis: "F" }, { label: "気分次第", axis: "T" }] },
-  { id: 12, text: "高い場所は？", options: [{ label: "好き", axis: "N" }, { label: "特にこだわらない", axis: "S" }] },
-  { id: 13, text: "眠いときは？", options: [{ label: "その場で寝る", axis: "P" }, { label: "落ち着く場所に移動", axis: "J" }] },
-  { id: 14, text: "縄張り意識は？", options: [{ label: "強い", axis: "T" }, { label: "あまり気にしない", axis: "F" }] },
-  { id: 15, text: "行動パターンは？", options: [{ label: "ある程度決まっている", axis: "J" }, { label: "気分で変わる", axis: "P" }] },
-  { id: 16, text: "飼い主の指示には？", options: [{ label: "わりと従う", axis: "F" }, { label: "基本マイペース", axis: "T" }] },
-];
+const questionPool: Record<Segment, Question[]> = {
+  EI: [
+    { id: 1, text: "知らない人が来たら？", segment: "EI", options: [{ label: "近づいて様子を見る", axis: "E" }, { label: "物陰から観察する", axis: "I" }] },
+    { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ飛びつく", axis: "E" }, { label: "しばらく様子を見る", axis: "I" }] },
+    { id: 3, text: "お気に入りの場所は？", segment: "EI", options: [{ label: "みんながいる場所", axis: "E" }, { label: "静かで落ち着く場所", axis: "I" }] },
+    { id: 4, text: "他の猫がいたら？", segment: "EI", options: [{ label: "関わろうとする", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
+    { id: 5, text: "来客の気配を感じたら？", segment: "EI", options: [{ label: "自分から見に行く", axis: "E" }, { label: "安全な場所で様子を見る", axis: "I" }] },
+    { id: 6, text: "部屋の中心にいたい？", segment: "EI", options: [{ label: "目立つ場所が好き", axis: "E" }, { label: "すみっこが落ち着く", axis: "I" }] },
+  ],
+  SN: [
+    { id: 7, text: "遊び方は？", segment: "SN", options: [{ label: "全力で追いかける", axis: "S" }, { label: "タイミングを見て狙う", axis: "N" }] },
+    { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "すぐ確認しに行く", axis: "S" }, { label: "じっと様子を見る", axis: "N" }] },
+    { id: 9, text: "高い場所は？", segment: "SN", options: [{ label: "特にこだわらない", axis: "S" }, { label: "好き", axis: "N" }] },
+    { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動くものを追う", axis: "S" }, { label: "ぼんやり景色に浸る", axis: "N" }] },
+    { id: 11, text: "おもちゃを前にすると？", segment: "SN", options: [{ label: "まず触って確かめる", axis: "S" }, { label: "動きを読んで狙う", axis: "N" }] },
+    { id: 12, text: "新しい場所では？", segment: "SN", options: [{ label: "足元から順に確かめる", axis: "S" }, { label: "先に全体を見渡す", axis: "N" }] },
+  ],
+  TF: [
+    { id: 13, text: "飼い主との距離感は？", segment: "TF", options: [{ label: "よく近くにいる", axis: "F" }, { label: "気が向いたときだけ", axis: "T" }] },
+    { id: 14, text: "遊びに誘われたら？", segment: "TF", options: [{ label: "すぐ乗る", axis: "F" }, { label: "気分次第", axis: "T" }] },
+    { id: 15, text: "縄張り意識は？", segment: "TF", options: [{ label: "強い", axis: "T" }, { label: "あまり気にしない", axis: "F" }] },
+    { id: 16, text: "飼い主の指示には？", segment: "TF", options: [{ label: "わりと従う", axis: "F" }, { label: "基本マイペース", axis: "T" }] },
+    { id: 17, text: "甘えたい気分のときは？", segment: "TF", options: [{ label: "すぐ伝える", axis: "F" }, { label: "伝えず様子を見る", axis: "T" }] },
+    { id: 18, text: "ごはんを分けるなら？", segment: "TF", options: [{ label: "みんなと穏やかに", axis: "F" }, { label: "自分の分を守る", axis: "T" }] },
+  ],
+  JP: [
+    { id: 19, text: "ごはんの時間がズレたら？", segment: "JP", options: [{ label: "気にせず待つ", axis: "P" }, { label: "しっかり主張する", axis: "J" }] },
+    { id: 20, text: "新しい環境では？", segment: "JP", options: [{ label: "すぐ探検する", axis: "P" }, { label: "慎重に動く", axis: "J" }] },
+    { id: 21, text: "くつろぐときは？", segment: "JP", options: [{ label: "どこでもリラックス", axis: "P" }, { label: "決まった場所がいい", axis: "J" }] },
+    { id: 22, text: "眠いときは？", segment: "JP", options: [{ label: "その場で寝る", axis: "P" }, { label: "落ち着く場所に移動", axis: "J" }] },
+    { id: 23, text: "行動パターンは？", segment: "JP", options: [{ label: "気分で変わる", axis: "P" }, { label: "ある程度決まっている", axis: "J" }] },
+    { id: 24, text: "お気に入りルートは？", segment: "JP", options: [{ label: "毎回違っても平気", axis: "P" }, { label: "いつもの順番が安心", axis: "J" }] },
+  ],
+};
+
+const QUESTION_COUNT_PER_SEGMENT = 4;
+
+function shuffleArray<T>(array: T[]) {
+  const copied = [...array];
+
+  for (let i = copied.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copied[i], copied[j]] = [copied[j], copied[i]];
+  }
+
+  return copied;
+}
+
+function buildQuestionSet() {
+  return shuffleArray([
+    ...shuffleArray(questionPool.EI).slice(0, QUESTION_COUNT_PER_SEGMENT),
+    ...shuffleArray(questionPool.SN).slice(0, QUESTION_COUNT_PER_SEGMENT),
+    ...shuffleArray(questionPool.TF).slice(0, QUESTION_COUNT_PER_SEGMENT),
+    ...shuffleArray(questionPool.JP).slice(0, QUESTION_COUNT_PER_SEGMENT),
+  ]);
+}
 
 const catTypeMap: Record<string, CatType> = {
   ISTJ: "規律番ねこ",
@@ -89,6 +130,25 @@ const mbtiSubMap: Record<CatType, string> = {
   "みんな大好きねこ": "ESFJ",
   "導きカリスマねこ": "ENFJ",
   "覇王ボスねこ": "ENTJ",
+};
+
+const ownerMbtiLabelMap: Record<string, string> = {
+  INTJ: "建築家",
+  INTP: "論理学者",
+  ENTJ: "指揮官",
+  ENTP: "討論者",
+  INFJ: "提唱者",
+  INFP: "仲介者",
+  ENFJ: "主人公",
+  ENFP: "運動家",
+  ISTJ: "管理者",
+  ISFJ: "擁護者",
+  ESTJ: "幹部",
+  ESFJ: "領事",
+  ISTP: "巨匠",
+  ISFP: "冒険家",
+  ESTP: "起業家",
+  ESFP: "エンターテイナー",
 };
 
 const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = {
@@ -176,32 +236,10 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
-const ownerMbti = "INTJ";
-
-const ownerMbtiLabelMap: Record<string, string> = {
-  INTJ: "建築家",
-  INTP: "論理学者",
-  ENTJ: "指揮官",
-  ENTP: "討論者",
-  INFJ: "提唱者",
-  INFP: "仲介者",
-  ENFJ: "主人公",
-  ENFP: "運動家",
-  ISTJ: "管理者",
-  ISFJ: "擁護者",
-  ESTJ: "幹部",
-  ESFJ: "領事",
-  ISTP: "巨匠",
-  ISFP: "冒険家",
-  ESTP: "起業家",
-  ESFP: "エンターテイナー",
-};
-
-
 const Paw = ({ active }: { active: boolean }) => (
   <svg
     viewBox="0 0 24 24"
-    className={`h-3.5 w-3.5 transition-colors duration-300 sm:h-4 sm:w-4 ${
+    className={`h-7 w-7 transition-colors duration-300 sm:h-8 sm:w-8 ${
       active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
     }`}
     aria-hidden="true"
@@ -380,9 +418,10 @@ function getMbtiType(scores: Record<Axis, number>) {
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
+  const [currentQuestions, setCurrentQuestions] = useState<Question[]>(() => buildQuestionSet());
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<(QuestionOption | null)[]>(
-    Array(questions.length).fill(null)
+  const [answers, setAnswers] = useState<(QuestionOption | null)[]>(() =>
+    Array(QUESTION_COUNT_PER_SEGMENT * 4).fill(null)
   );
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [direction, setDirection] = useState<"next" | "prev">("next");
@@ -409,7 +448,7 @@ export default function Home() {
     };
   }, [isOpen, isTypeListOpen]);
 
-  const totalSteps = questions.length;
+  const totalSteps = currentQuestions.length;
   const answeredCount = answers.filter(Boolean).length;
 
   const result = useMemo(() => {
@@ -435,7 +474,9 @@ export default function Home() {
   const openDiagnosis = () => {
     setIsOpen(true);
     setStep(0);
-    setAnswers(Array(questions.length).fill(null));
+    const nextQuestions = buildQuestionSet();
+    setCurrentQuestions(nextQuestions);
+    setAnswers(Array(nextQuestions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
     setDirection("next");
@@ -524,7 +565,9 @@ export default function Home() {
 
   const restartDiagnosis = () => {
     setStep(0);
-    setAnswers(Array(questions.length).fill(null));
+    const nextQuestions = buildQuestionSet();
+    setCurrentQuestions(nextQuestions);
+    setAnswers(Array(nextQuestions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
     setDirection("next");
@@ -560,7 +603,7 @@ export default function Home() {
   const handleShare = async () => {
     const dataUrl = await generateResultPng();
     const shareText = result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
+      ? `うちの猫のタイプは「${result.mainType}（${result.mbti}）」でした🐱\n診断してみて👇`
       : "うちの猫のタイプ診断をやってみた🐱";
     const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
@@ -723,13 +766,13 @@ export default function Home() {
       </section>
 
       <div
-        className={`fixed inset-0 z-50 overflow-y-auto bg-black/30 px-4 transition-all duration-500 ${
+        className={`fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/30 px-4 transition-all duration-500 ${
           isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeDiagnosis}
       >
         <div
-          className={`mx-auto my-6 flex w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] flex-col rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
+          className={`mx-auto my-6 flex w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] flex-col overflow-x-hidden rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
             isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -755,7 +798,7 @@ export default function Home() {
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
-                    {questions.map((_, index) => (
+                    {currentQuestions.map((_, index) => (
                       <Paw key={index} active={index < answeredCount} />
                     ))}
                   </div>
@@ -774,11 +817,11 @@ export default function Home() {
                   }`}
                 >
                   <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                    {questions[step].text}
+                    {currentQuestions[step].text}
                   </p>
 
                   <div className="grid gap-3">
-                    {questions[step].options.map((option) => {
+                    {currentQuestions[step].options.map((option) => {
                       const isSelected = selectedLabel === option.label;
                       const isAnsweredThisStep = answers[step] !== null;
 
@@ -896,16 +939,12 @@ export default function Home() {
                 </div>
 
                 <div className="mb-6 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                  <p className="mb-1 text-sm text-[#9a7d69]">飼い主のMBTI属性</p>
-                  <p className="mb-4 text-base text-[#4e433d]">
-                    <span className="font-bold">{ownerMbti}</span>（{ownerMbtiLabelMap[ownerMbti]}）
-                  </p>
                   <p className="mb-3 text-sm text-[#9a7d69]">飼い主との相性</p>
                   <div className="space-y-2 text-sm">
                     {ownerCompatibility[result.mainType].map((item) => (
                       <div key={item.type} className="flex items-center justify-between gap-4">
-                        <span className="font-medium text-[#4e433d]">{item.type}</span>
-                        <span className="whitespace-nowrap text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
+                        <span className="font-bold text-[#4e433d]">{item.type}（{ownerMbtiLabelMap[item.type]}）</span>
+                        <span className="shrink-0 text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
                       </div>
                     ))}
                   </div>
@@ -947,13 +986,13 @@ export default function Home() {
       </div>
 
       <div
-        className={`fixed inset-0 z-40 overflow-y-auto bg-black/25 px-4 transition-all duration-300 ${
+        className={`fixed inset-0 z-40 overflow-y-auto overflow-x-hidden bg-black/25 px-4 transition-all duration-300 ${
           isTypeListOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeTypeList}
       >
         <div
-          className={`mx-auto my-6 w-[min(92vw,760px)] max-w-[760px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,760px)] max-w-[760px] max-h-[calc(100dvh-48px)] overflow-y-auto overflow-x-hidden rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
             isTypeListOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -978,6 +1017,7 @@ export default function Home() {
                 key={type}
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
+                <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]" aria-hidden="true"></p>
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
                 <h3 className="mb-3 text-2xl font-bold">{type}</h3>
                 <p className="mb-4 text-sm leading-7 text-[#6c625b]">{resultMeta[type].desc}</p>
