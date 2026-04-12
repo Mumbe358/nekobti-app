@@ -814,7 +814,6 @@ export default function Home() {
                   <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
                 </div>
               </div>
-              </div>
             </>
           ) : isCalculating ? (
             <>
