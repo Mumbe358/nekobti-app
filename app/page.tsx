@@ -2,46 +2,126 @@
 
 import { useMemo, useState } from "react";
 
-type CatType = "しずかねこ" | "きれものねこ" | "ボスねこ" | "わくわくねこ";
+type CatType =
+  | "しずかねこ"
+  | "きれものねこ"
+  | "ボスねこ"
+  | "わくわくねこ"
+  | "びびり慎重ねこ"
+  | "あまえんぼねこ"
+  | "きまぐれねこ"
+  | "マイペースねこ";
+
+type QuestionOption = {
+  label: string;
+  scores: Partial<Record<CatType, number>>;
+};
 
 type Question = {
   id: number;
   text: string;
-  options: {
-    label: string;
-    type: CatType;
-  }[];
+  options: QuestionOption[];
 };
 
 const questions: Question[] = [
   {
     id: 1,
-    text: "あなたの猫は、知らない人が来たときどうする？",
+    text: "知らない人が来たとき、いちばん近い反応は？",
     options: [
-      { label: "すぐ隠れる", type: "しずかねこ" },
-      { label: "少し様子を見る", type: "きれものねこ" },
-      { label: "普通に近づく", type: "わくわくねこ" },
-      { label: "むしろ主役みたいに出てくる", type: "ボスねこ" },
+      { label: "すぐ隠れる", scores: { "びびり慎重ねこ": 3, "しずかねこ": 1 } },
+      { label: "距離を取って様子を見る", scores: { "しずかねこ": 2, "きれものねこ": 1, "びびり慎重ねこ": 1 } },
+      { label: "少しずつ近づく", scores: { "きれものねこ": 1, "わくわくねこ": 1, "きまぐれねこ": 1 } },
+      { label: "普通に出てくる", scores: { "ボスねこ": 2, "わくわくねこ": 1 } },
     ],
   },
   {
     id: 2,
-    text: "普段いちばん近い行動は？",
+    text: "名前を呼ばれたときは？",
     options: [
-      { label: "静かな場所でのんびりしている", type: "しずかねこ" },
-      { label: "周囲をよく観察して動く", type: "きれものねこ" },
-      { label: "高いところや中心を陣取る", type: "ボスねこ" },
-      { label: "おもちゃや人にすぐ反応する", type: "わくわくねこ" },
+      { label: "聞こえていても動かない", scores: { "マイペースねこ": 2, "しずかねこ": 1 } },
+      { label: "気が向いたら反応する", scores: { "きまぐれねこ": 2, "マイペースねこ": 1 } },
+      { label: "タイミングを見て来る", scores: { "きれものねこ": 2, "しずかねこ": 1 } },
+      { label: "すぐ来る", scores: { "あまえんぼねこ": 2, "わくわくねこ": 1 } },
     ],
   },
   {
     id: 3,
+    text: "おもちゃを出したときの反応は？",
+    options: [
+      { label: "あまり興味を示さない", scores: { "マイペースねこ": 2, "しずかねこ": 1 } },
+      { label: "少し様子を見てから動く", scores: { "きれものねこ": 2, "びびり慎重ねこ": 1 } },
+      { label: "気分が合えば遊ぶ", scores: { "きまぐれねこ": 2, "わくわくねこ": 1 } },
+      { label: "すぐ飛びつく", scores: { "わくわくねこ": 3, "あまえんぼねこ": 1 } },
+    ],
+  },
+  {
+    id: 4,
     text: "甘え方として近いのは？",
     options: [
-      { label: "気が向いたときだけそっと来る", type: "しずかねこ" },
-      { label: "距離感を見ながら賢く寄ってくる", type: "きれものねこ" },
-      { label: "当然のように特等席を使う", type: "ボスねこ" },
-      { label: "全身で『かまって！』が伝わる", type: "わくわくねこ" },
+      { label: "ほとんど甘えない", scores: { "しずかねこ": 2, "マイペースねこ": 1 } },
+      { label: "そっと近くに来る", scores: { "しずかねこ": 2, "あまえんぼねこ": 1 } },
+      { label: "気分でかなり差がある", scores: { "きまぐれねこ": 3 } },
+      { label: "わかりやすく甘える", scores: { "あまえんぼねこ": 3, "わくわくねこ": 1 } },
+    ],
+  },
+  {
+    id: 5,
+    text: "家の中で好きな場所は？",
+    options: [
+      { label: "静かな隅や狭い場所", scores: { "びびり慎重ねこ": 2, "しずかねこ": 1 } },
+      { label: "全体を見渡せる場所", scores: { "きれものねこ": 2, "ボスねこ": 1 } },
+      { label: "その時々で変わる", scores: { "マイペースねこ": 1, "きまぐれねこ": 2 } },
+      { label: "いちばん目立つ・快適な場所", scores: { "ボスねこ": 3 } },
+    ],
+  },
+  {
+    id: 6,
+    text: "初めての物を見つけたときは？",
+    options: [
+      { label: "近づかず警戒する", scores: { "びびり慎重ねこ": 3 } },
+      { label: "安全そうか観察する", scores: { "きれものねこ": 3, "しずかねこ": 1 } },
+      { label: "少し触ってみる", scores: { "わくわくねこ": 2, "きれものねこ": 1 } },
+      { label: "気分が乗れば行く", scores: { "きまぐれねこ": 2, "マイペースねこ": 1 } },
+    ],
+  },
+  {
+    id: 7,
+    text: "飼い主との距離感は？",
+    options: [
+      { label: "近すぎるのは苦手", scores: { "しずかねこ": 2, "マイペースねこ": 1 } },
+      { label: "ほどよい距離を保つ", scores: { "きれものねこ": 2, "しずかねこ": 1 } },
+      { label: "自分から近くにいたがる", scores: { "あまえんぼねこ": 3 } },
+      { label: "自分が主導権を握る感じ", scores: { "ボスねこ": 2, "きまぐれねこ": 1 } },
+    ],
+  },
+  {
+    id: 8,
+    text: "普段の行動でいちばん近いのは？",
+    options: [
+      { label: "静かに過ごすことが多い", scores: { "しずかねこ": 3 } },
+      { label: "周囲をよく見て動く", scores: { "きれものねこ": 3 } },
+      { label: "よく動いてテンション高め", scores: { "わくわくねこ": 3 } },
+      { label: "自分のペースでぶれない", scores: { "マイペースねこ": 3 } },
+    ],
+  },
+  {
+    id: 9,
+    text: "他の猫や人との関わり方は？",
+    options: [
+      { label: "慎重で受け身", scores: { "びびり慎重ねこ": 2, "しずかねこ": 1 } },
+      { label: "相手を見て合わせる", scores: { "きれものねこ": 2, "きまぐれねこ": 1 } },
+      { label: "すぐ関わりにいく", scores: { "わくわくねこ": 2, "あまえんぼねこ": 1 } },
+      { label: "自然と中心になる", scores: { "ボスねこ": 3 } },
+    ],
+  },
+  {
+    id: 10,
+    text: "全体として、いちばん近い印象は？",
+    options: [
+      { label: "静かで落ち着いている", scores: { "しずかねこ": 2, "マイペースねこ": 1 } },
+      { label: "賢く空気を読む", scores: { "きれものねこ": 3 } },
+      { label: "気分屋で読めない", scores: { "きまぐれねこ": 3 } },
+      { label: "存在感が強く堂々としている", scores: { "ボスねこ": 2, "わくわくねこ": 1 } },
     ],
   },
 ];
@@ -56,43 +136,91 @@ const resultMeta: Record<
     match: string;
   }
 > = {
-  しずかねこ: {
+  "しずかねこ": {
     emoji: "🌙",
     sub: "SILENT CAT",
     desc: "警戒心と繊細さを持ちながら、安心した相手にはやさしく心を開くタイプ。",
     traits: "静けさ / 繊細 / 落ち着き",
     match: "ボスねこ / きれものねこ",
   },
-  きれものねこ: {
+  "きれものねこ": {
     emoji: "🧠",
     sub: "SMART CAT",
     desc: "状況を見る力が高く、空気や距離感を読みながら上手に立ち回るタイプ。",
     traits: "観察 / 判断 / スマート",
     match: "しずかねこ / わくわくねこ",
   },
-  ボスねこ: {
+  "ボスねこ": {
     emoji: "👑",
     sub: "BOSS CAT",
     desc: "自分のペースを崩さず、自然と存在感を放つ。空間の主役になりやすいタイプ。",
     traits: "主導権 / 余裕 / 圧",
-    match: "しずかねこ / クールねこ",
+    match: "しずかねこ / きれものねこ",
   },
-  わくわくねこ: {
+  "わくわくねこ": {
     emoji: "✨",
     sub: "ACTIVE CAT",
     desc: "反応が素直で好奇心いっぱい。楽しいことに全身で向かっていくタイプ。",
     traits: "好奇心 / 素直 / 元気",
-    match: "きれものねこ / しずかねこ",
+    match: "きれものねこ / あまえんぼねこ",
+  },
+  "びびり慎重ねこ": {
+    emoji: "🫣",
+    sub: "TIMID CAT",
+    desc: "慎重で繊細。安全が確認できてから少しずつ動く、守りに強いタイプ。",
+    traits: "警戒心 / 慎重 / 防御",
+    match: "しずかねこ / あまえんぼねこ",
+  },
+  "あまえんぼねこ": {
+    emoji: "💞",
+    sub: "CLINGY CAT",
+    desc: "大好きな相手にはまっすぐ甘える。ぬくもりと一体感を大切にするタイプ。",
+    traits: "甘え / 密着 / 愛情表現",
+    match: "わくわくねこ / しずかねこ",
+  },
+  "きまぐれねこ": {
+    emoji: "🎭",
+    sub: "MOODY CAT",
+    desc: "気分によって距離感や反応が変わる。読めなさも魅力の自由なタイプ。",
+    traits: "気分屋 / 自由 / ムラ",
+    match: "ボスねこ / マイペースねこ",
+  },
+  "マイペースねこ": {
+    emoji: "🍵",
+    sub: "PACE CAT",
+    desc: "外の空気に流されず、自分のテンポで心地よさを守るタイプ。",
+    traits: "自分軸 / のんびり / 安定",
+    match: "きまぐれねこ / しずかねこ",
   },
 };
 
-const typeList: CatType[] = ["ボスねこ", "きれものねこ", "しずかねこ", "わくわくねこ"];
+const typeList: CatType[] = [
+  "ボスねこ",
+  "きれものねこ",
+  "しずかねこ",
+  "わくわくねこ",
+  "びびり慎重ねこ",
+  "あまえんぼねこ",
+  "きまぐれねこ",
+  "マイペースねこ",
+];
+
+const initialScores: Record<CatType, number> = {
+  "しずかねこ": 0,
+  "きれものねこ": 0,
+  "ボスねこ": 0,
+  "わくわくねこ": 0,
+  "びびり慎重ねこ": 0,
+  "あまえんぼねこ": 0,
+  "きまぐれねこ": 0,
+  "マイペースねこ": 0,
+};
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<(CatType | null)[]>(
+  const [answers, setAnswers] = useState<(QuestionOption | null)[]>(
     Array(questions.length).fill(null)
   );
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
@@ -105,22 +233,22 @@ export default function Home() {
   const result = useMemo(() => {
     if (answeredCount !== totalSteps) return null;
 
-    const counts: Record<CatType, number> = {
-      しずかねこ: 0,
-      きれものねこ: 0,
-      ボスねこ: 0,
-      わくわくねこ: 0,
-    };
+    const scores = { ...initialScores };
 
     answers.forEach((answer) => {
-      if (answer) counts[answer] += 1;
+      if (!answer) return;
+      Object.entries(answer.scores).forEach(([type, value]) => {
+        scores[type as CatType] += value ?? 0;
+      });
     });
 
-    const ordered: CatType[] = ["ボスねこ", "きれものねこ", "わくわくねこ", "しずかねこ"];
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
-    return ordered.reduce((best, current) => {
-      return counts[current] > counts[best] ? current : best;
-    }, ordered[0]);
+    return {
+      scores,
+      mainType: sorted[0][0] as CatType,
+      subType: sorted[1][0] as CatType,
+    };
   }, [answers, answeredCount, totalSteps]);
 
   const openDiagnosis = () => {
@@ -146,17 +274,17 @@ export default function Home() {
     setIsTypeListOpen(false);
   };
 
-  const handleAnswer = (type: CatType, label: string) => {
+  const handleAnswer = (option: QuestionOption) => {
     if (selectedLabel || animating) return;
 
-    setSelectedLabel(label);
+    setSelectedLabel(option.label);
     setDirection("next");
     setAnimating(true);
 
     window.setTimeout(() => {
       setAnswers((prev) => {
         const next = [...prev];
-        next[step] = type;
+        next[step] = option;
         return next;
       });
 
@@ -181,7 +309,7 @@ export default function Home() {
 
     setAnswers((prev) => {
       const next = [...prev];
-      next[step] = null;
+      next[step - 1] = null;
       return next;
     });
 
@@ -301,7 +429,7 @@ export default function Home() {
                   </div>
                   <div className="rounded-2xl bg-white p-4 shadow-sm">
                     <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
-                    <p className="font-semibold">しずかねこ / クールねこ</p>
+                    <p className="font-semibold">しずかねこ / きれものねこ</p>
                   </div>
                 </div>
               </div>
@@ -380,7 +508,7 @@ export default function Home() {
                           key={option.label}
                           onClick={() => {
                             if (!isAnsweredThisStep) {
-                              handleAnswer(option.type, option.label);
+                              handleAnswer(option);
                             }
                           }}
                           disabled={selectedLabel !== null || animating}
@@ -435,23 +563,26 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 text-center ring-1 ring-[#f3e3d8]">
                   <p className="mb-2 text-sm tracking-[0.22em] text-[#b07d62]">
-                    {resultMeta[result].sub}
+                    {resultMeta[result.mainType].sub}
                   </p>
-                  <div className="mb-4 text-7xl">{resultMeta[result].emoji}</div>
-                  <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result}</h3>
+                  <div className="mb-4 text-7xl">{resultMeta[result.mainType].emoji}</div>
+                  <h3 className="mb-3 text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <p className="mb-3 text-sm font-medium text-[#9a7d69]">
+                    サブ傾向：{result.subType}
+                  </p>
                   <p className="mx-auto max-w-md text-sm leading-7 text-[#6c625b] sm:text-base">
-                    {resultMeta[result].desc}
+                    {resultMeta[result.mainType].desc}
                   </p>
                 </div>
 
                 <div className="mb-6 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
                     <p className="mb-1 text-sm text-[#9a7d69]">特徴</p>
-                    <p className="font-semibold">{resultMeta[result].traits}</p>
+                    <p className="font-semibold">{resultMeta[result.mainType].traits}</p>
                   </div>
                   <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
                     <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
-                    <p className="font-semibold">{resultMeta[result].match}</p>
+                    <p className="font-semibold">{resultMeta[result.mainType].match}</p>
                   </div>
                 </div>
 
