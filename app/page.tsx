@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CatType =
   | "しずかねこ"
@@ -234,6 +234,18 @@ export default function Home() {
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
     []
   );
+
+  useEffect(() => {
+    if (isOpen || isTypeListOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, isTypeListOpen]);
 
   const totalSteps = questions.length;
   const answeredCount = answers.filter(Boolean).length;
@@ -471,13 +483,13 @@ export default function Home() {
       </section>
 
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-500 ${
+        className={`fixed inset-0 z-50 overflow-y-auto bg-black/30 px-4 transition-all duration-500 ${
           isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeDiagnosis}
       >
         <div
-          className={`w-[min(92vw,680px)] max-w-[680px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
             isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -675,13 +687,13 @@ export default function Home() {
       </div>
 
       <div
-        className={`fixed inset-0 z-40 flex items-center justify-center bg-black/25 px-4 transition-all duration-300 ${
+        className={`fixed inset-0 z-40 overflow-y-auto bg-black/25 px-4 transition-all duration-300 ${
           isTypeListOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeTypeList}
       >
         <div
-          className={`w-[min(92vw,760px)] max-w-[760px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,760px)] max-w-[760px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
             isTypeListOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
