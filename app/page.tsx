@@ -1010,25 +1010,11 @@ export default function Home() {
                 className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]"
               >
                 <div className="mb-3 text-5xl">{resultMeta[type].emoji}</div>
-                <h3 className="mb-4 text-2xl font-bold">{type}</h3>
+                <h3 className="mb-3 text-2xl font-bold">{type}</h3>
 
-                <div className="mb-3 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                  <p className="mb-2 text-sm text-[#9a7d69]">💡 特徴</p>
-                  <ul className="space-y-1 text-sm leading-7 text-[#4e433d]">
-                    {resultMeta[type].features.map((feature) => (
-                      <li key={feature}>・{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                  <p className="mb-2 text-sm text-[#9a7d69]">🧠 行動パターン</p>
-                  <ul className="space-y-1 text-sm leading-7 text-[#4e433d]">
-                    {resultMeta[type].patterns.map((pattern) => (
-                      <li key={pattern}>・{pattern}</li>
-                    ))}
-                  </ul>
-                </div>
+                <p className="text-sm leading-7 text-[#4e433d]">
+                  {resultMeta[type].description}
+                </p>
               </div>
             ))}
           </div>
