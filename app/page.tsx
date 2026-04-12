@@ -782,22 +782,22 @@ export default function Home() {
                       );
                     })}
                   </div>
+                </div>
 
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <button
-                      onClick={handlePrev}
-                      disabled={step === 0 || selectedLabel !== null || animating}
-                      className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
-                        step === 0 || selectedLabel !== null || animating
-                          ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                          : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
-                      }`}
-                    >
-                      戻る
-                    </button>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    onClick={handlePrev}
+                    disabled={step === 0 || selectedLabel !== null || animating}
+                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                      step === 0 || selectedLabel !== null || animating
+                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                    }`}
+                  >
+                    戻る
+                  </button>
 
-                    <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
-                  </div>
+                  <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
                 </div>
               </div>
             </>
