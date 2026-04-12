@@ -670,7 +670,7 @@ export default function Home() {
                 </div>
               </div>
             </>
-          )}
+          ) : null}
         </div>
       </div>
 
