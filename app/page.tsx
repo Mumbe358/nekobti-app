@@ -884,7 +884,7 @@ export default function Home() {
                   <div className="space-y-2 text-sm">
                     {ownerCompatibility[result.mainType].map((item) => (
                       <div key={item.type} className="flex items-center justify-between gap-4">
-                        <span className="font-medium text-[#4e433d]">{item.type}</span>
+                        <span className="font-bold text-[#4e433d]">{item.type}（{ownerMbtiLabelMap[item.type]}）</span>
                         <span className="whitespace-nowrap text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
                       </div>
                     ))}
