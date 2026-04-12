@@ -389,7 +389,6 @@ export default function Home() {
 
   const totalSteps = questions.length;
   const answeredCount = answers.filter(Boolean).length;
-  const answeredCount = answers.filter(Boolean).length;
 
   const result = useMemo(() => {
     if (answeredCount !== totalSteps) return null;
