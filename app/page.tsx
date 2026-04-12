@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 
 type CatType =
   | "しずかねこ"
@@ -229,11 +230,24 @@ export default function Home() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const loadingMessages = useMemo(
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
     []
   );
+
+  useEffect(() => {
+    if (isOpen || isTypeListOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, isTypeListOpen]);
 
   const totalSteps = questions.length;
   const answeredCount = answers.filter(Boolean).length;
@@ -286,137 +300,6 @@ export default function Home() {
 
   const closeTypeList = () => {
     setIsTypeListOpen(false);
-  };
-
-
-  const createResultSvg = (resultData: NonNullable<typeof result>) => {
-    const meta = resultMeta[resultData.mainType];
-    const esc = (value: string) =>
-      value
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&apos;");
-
-    return `
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
-  <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#fff4ec" />
-      <stop offset="100%" stop-color="#fffdfb" />
-    </linearGradient>
-  </defs>
-  <rect width="1080" height="1350" rx="48" fill="#fffaf6"/>
-  <rect x="48" y="48" width="984" height="1254" rx="44" fill="url(#bg)" stroke="#f1e4da" stroke-width="4"/>
-  <text x="540" y="132" text-anchor="middle" font-size="26" font-family="Arial, Helvetica, sans-serif" fill="#b07d62" letter-spacing="4">ねこびーてぃあい</text>
-  <text x="540" y="198" text-anchor="middle" font-size="20" font-family="Arial, Helvetica, sans-serif" fill="#b07d62" letter-spacing="6">${esc(meta.sub)}</text>
-  <text x="540" y="380" text-anchor="middle" font-size="120">${esc(meta.emoji)}</text>
-  <text x="540" y="500" text-anchor="middle" font-size="64" font-weight="700" font-family="Arial, Helvetica, sans-serif" fill="#1f1f23">${esc(resultData.mainType)}</text>
-  <text x="540" y="560" text-anchor="middle" font-size="26" font-family="Arial, Helvetica, sans-serif" fill="#9a7d69">サブ傾向：${esc(resultData.subType)}</text>
-  <foreignObject x="140" y="620" width="800" height="180">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, Helvetica, sans-serif; font-size: 26px; line-height: 1.8; color: #6c625b; text-align: center;">
-      ${esc(meta.desc)}
-    </div>
-  </foreignObject>
-  <rect x="140" y="860" width="360" height="150" rx="28" fill="#fffaf6" stroke="#f1e4da" stroke-width="3"/>
-  <text x="180" y="910" font-size="24" font-family="Arial, Helvetica, sans-serif" fill="#9a7d69">特徴</text>
-  <foreignObject x="180" y="930" width="280" height="70">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, Helvetica, sans-serif; font-size: 28px; font-weight: 700; color: #2b2b2b;">
-      ${esc(meta.traits)}
-    </div>
-  </foreignObject>
-  <rect x="580" y="860" width="360" height="150" rx="28" fill="#fffaf6" stroke="#f1e4da" stroke-width="3"/>
-  <text x="620" y="910" font-size="24" font-family="Arial, Helvetica, sans-serif" fill="#9a7d69">相性</text>
-  <foreignObject x="620" y="930" width="280" height="70">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, Helvetica, sans-serif; font-size: 28px; font-weight: 700; color: #2b2b2b;">
-      ${esc(meta.match)}
-    </div>
-  </foreignObject>
-  <text x="540" y="1190" text-anchor="middle" font-size="22" font-family="Arial, Helvetica, sans-serif" fill="#b07d62">#ねこびーてぃあい</text>
-</svg>`.trim();
-  };
-
-  const svgToPngBlob = async (svg: string) => {
-    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-
-    try {
-      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = reject;
-        image.src = url;
-      });
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 1080;
-      canvas.height = 1350;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas not supported");
-      ctx.drawImage(img, 0, 0);
-
-      return await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((pngBlob) => {
-          if (pngBlob) resolve(pngBlob);
-          else reject(new Error("PNG export failed"));
-        }, "image/png");
-      });
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  };
-
-  const handleSaveImage = async () => {
-    if (!result) return;
-
-    try {
-      const svg = createResultSvg(result);
-      const blob = await svgToPngBlob(svg);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `nekobti-${result.mainType}.png`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(error);
-      alert("画像の保存に失敗しました。");
-    }
-  };
-
-  const handleShare = async () => {
-    if (!result) return;
-
-    const shareTitle = `うちの猫は「${result.mainType}」でした`;
-    const shareText = `診断結果は「${result.mainType}」でした。${resultMeta[result.mainType].sub} #ねこびーてぃあい`;
-
-    try {
-      const svg = createResultSvg(result);
-      const blob = await svgToPngBlob(svg);
-      const file = new File([blob], `nekobti-${result.mainType}.png`, { type: "image/png" });
-
-      if (navigator.share) {
-        const shareData: ShareData = {
-          title: shareTitle,
-          text: shareText,
-        };
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          shareData.files = [file];
-        }
-
-        await navigator.share(shareData);
-        return;
-      }
-    } catch (error) {
-      console.error(error);
-    }
-
-    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      `うちの猫は「${result.mainType}」タイプでした。${resultMeta[result.mainType].sub} #ねこびーてぃあい`
-    )}`;
-    window.open(xUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleAnswer = (option: QuestionOption) => {
@@ -489,6 +372,86 @@ export default function Home() {
     setIsCalculating(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
+  };
+
+
+  const generateResultPng = async () => {
+    if (!resultCardRef.current) return null;
+    try {
+      return await toPng(resultCardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+      });
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  };
+
+  const handleSaveImage = async () => {
+    const dataUrl = await generateResultPng();
+    if (!dataUrl) return;
+
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "nekobti-result.png";
+    link.click();
+  };
+
+  const handleShare = async () => {
+    const dataUrl = await generateResultPng();
+    const shareText = result
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
+      : "うちの猫のタイプ診断をやってみた🐱";
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+    if (dataUrl) {
+      try {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], "nekobti-result.png", { type: "image/png" });
+
+        if (
+          typeof navigator !== "undefined" &&
+          "share" in navigator &&
+          "canShare" in navigator &&
+          navigator.canShare({ files: [file] })
+        ) {
+          await navigator.share({
+            text: `${shareText}\n${shareUrl}`,
+            files: [file],
+          });
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await navigator.share({
+          text: `${shareText}\n${shareUrl}`,
+        });
+        return;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    const fallbackText = `${shareText}\n${shareUrl}`;
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(fallbackText);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(fallbackText)}`,
+      "_blank"
+    );
   };
 
   return (
@@ -602,13 +565,13 @@ export default function Home() {
       </section>
 
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 transition-all duration-500 ${
+        className={`fixed inset-0 z-50 overflow-y-auto bg-black/30 px-4 transition-all duration-500 ${
           isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeDiagnosis}
       >
         <div
-          className={`w-[min(92vw,680px)] max-w-[680px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,680px)] max-w-[680px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-500 sm:my-8 sm:p-8 ${
             isOpen ? "scale-100 blur-0" : "scale-90 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -725,7 +688,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+              <div ref={resultCardRef} className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
                   <p className="text-lg font-semibold text-[#2b2b2b]">
@@ -785,21 +748,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="mb-3 grid gap-3 sm:grid-cols-2">
-                  <button
-                    onClick={handleSaveImage}
-                    className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
-                  >
-                    画像を保存
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
-                  >
-                    SNSで共有
-                  </button>
-                </div>
-
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={restartDiagnosis}
@@ -814,6 +762,21 @@ export default function Home() {
                     閉じる
                   </button>
                 </div>
+
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    onClick={handleSaveImage}
+                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                  >
+                    画像を保存
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
+                  >
+                    SNSで共有
+                  </button>
+                </div>
               </div>
             </>
           ) : null}
@@ -821,13 +784,13 @@ export default function Home() {
       </div>
 
       <div
-        className={`fixed inset-0 z-40 flex items-center justify-center bg-black/25 px-4 transition-all duration-300 ${
+        className={`fixed inset-0 z-40 overflow-y-auto bg-black/25 px-4 transition-all duration-300 ${
           isTypeListOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeTypeList}
       >
         <div
-          className={`w-[min(92vw,760px)] max-w-[760px] rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,760px)] max-w-[760px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
             isTypeListOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
