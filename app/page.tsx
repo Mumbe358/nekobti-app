@@ -239,7 +239,7 @@ const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 
 const Paw = ({ active }: { active: boolean }) => (
   <svg
     viewBox="0 0 24 24"
-    className={`h-7 w-7 shrink-0 transition-colors duration-300 sm:h-8 sm:w-8 ${
+    className={`h-7 w-7 transition-colors duration-300 sm:h-8 sm:w-8 ${
       active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
     }`}
     aria-hidden="true"
@@ -251,6 +251,7 @@ const Paw = ({ active }: { active: boolean }) => (
     <circle cx="17" cy="9" r="1.8" />
   </svg>
 );
+
 
 const resultMeta: Record<
   CatType,
