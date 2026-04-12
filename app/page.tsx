@@ -1021,13 +1021,6 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <div className="mb-3 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
-                  <p className="mb-2 text-sm text-[#9a7d69]">🔥 性格まとめ</p>
-                  <p className="text-sm font-semibold leading-7 text-[#4e433d]">
-                    👉 {resultMeta[type].summary}
-                  </p>
-                </div>
-
                 <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
                   <p className="mb-2 text-sm text-[#9a7d69]">🧠 行動パターン</p>
                   <ul className="space-y-1 text-sm leading-7 text-[#4e433d]">
