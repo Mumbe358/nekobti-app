@@ -91,6 +91,108 @@ const mbtiSubMap: Record<CatType, string> = {
   "覇王ボスねこ": "ENTJ",
 };
 
+const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = {
+  "規律番ねこ": [
+    { type: "ESTJ", hearts: 5 },
+    { type: "ESFJ", hearts: 4 },
+    { type: "ENFJ", hearts: 4 },
+  ],
+  "よりそい守りねこ": [
+    { type: "ESFJ", hearts: 5 },
+    { type: "ISFJ", hearts: 5 },
+    { type: "ENFJ", hearts: 4 },
+  ],
+  "しずか哲学ねこ": [
+    { type: "INFJ", hearts: 5 },
+    { type: "INTJ", hearts: 4 },
+    { type: "ENFJ", hearts: 4 },
+  ],
+  "戦略きれものねこ": [
+    { type: "ENTJ", hearts: 5 },
+    { type: "INTJ", hearts: 5 },
+    { type: "ESTJ", hearts: 4 },
+  ],
+  "無口クラフトねこ": [
+    { type: "ISTP", hearts: 5 },
+    { type: "ISFP", hearts: 4 },
+    { type: "ESTP", hearts: 4 },
+  ],
+  "ふわアートねこ": [
+    { type: "ISFP", hearts: 5 },
+    { type: "INFP", hearts: 5 },
+    { type: "ESFP", hearts: 4 },
+  ],
+  "ゆめふわロマンねこ": [
+    { type: "INFP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+    { type: "ISFP", hearts: 4 },
+  ],
+  "ひらめき遊びねこ": [
+    { type: "INTP", hearts: 5 },
+    { type: "ENTP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+  ],
+  "突撃アクティブねこ": [
+    { type: "ESTP", hearts: 5 },
+    { type: "ESFP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+  ],
+  "きらきらパーティーねこ": [
+    { type: "ESFP", hearts: 5 },
+    { type: "ENFP", hearts: 5 },
+    { type: "ESTP", hearts: 4 },
+  ],
+  "わくわく自由ねこ": [
+    { type: "ENFP", hearts: 5 },
+    { type: "ENTP", hearts: 5 },
+    { type: "ESFP", hearts: 4 },
+  ],
+  "いたずら天才ねこ": [
+    { type: "ENTP", hearts: 5 },
+    { type: "INTP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+  ],
+  "しきり屋リーダーねこ": [
+    { type: "ESTJ", hearts: 5 },
+    { type: "ENTJ", hearts: 5 },
+    { type: "ESFJ", hearts: 4 },
+  ],
+  "みんな大好きねこ": [
+    { type: "ESFJ", hearts: 5 },
+    { type: "ENFJ", hearts: 5 },
+    { type: "ISFJ", hearts: 4 },
+  ],
+  "導きカリスマねこ": [
+    { type: "ENFJ", hearts: 5 },
+    { type: "INFJ", hearts: 4 },
+    { type: "ESFJ", hearts: 4 },
+  ],
+  "覇王ボスねこ": [
+    { type: "ENTJ", hearts: 5 },
+    { type: "ESTJ", hearts: 5 },
+    { type: "INTJ", hearts: 4 },
+  ],
+};
+
+const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
+
+const Paw = ({ active }: { active: boolean }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={`h-3.5 w-3.5 transition-colors duration-300 sm:h-4 sm:w-4 ${
+      active ? "fill-[#b07d62]" : "fill-[#f3e8df]"
+    }`}
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="15" r="4" />
+    <circle cx="7" cy="9" r="1.8" />
+    <circle cx="10.5" cy="6.5" r="1.8" />
+    <circle cx="13.5" cy="6.5" r="1.8" />
+    <circle cx="17" cy="9" r="1.8" />
+  </svg>
+);
+
+
 const resultMeta: Record<
   CatType,
   {
@@ -286,6 +388,7 @@ export default function Home() {
   }, [isOpen, isTypeListOpen]);
 
   const totalSteps = questions.length;
+  const answeredCount = answers.filter(Boolean).length;
   const answeredCount = answers.filter(Boolean).length;
 
   const result = useMemo(() => {
@@ -630,14 +733,9 @@ export default function Home() {
 
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-4">
-                  <div className="mb-3 flex items-center gap-2">
+                  <div className="mb-3 flex items-center gap-1.5">
                     {questions.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
-                          index <= step ? "bg-[#b07d62]" : "bg-[#eadfd6]"
-                        }`}
-                      />
+                      <Paw key={index} active={index < answeredCount} />
                     ))}
                   </div>
 
@@ -779,6 +877,18 @@ export default function Home() {
                   <div className="rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
                     <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
                     <p className="font-semibold">{resultMeta[result.mainType].match}</p>
+                  </div>
+                </div>
+
+                <div className="mb-6 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                  <p className="mb-3 text-sm text-[#9a7d69]">飼い主との相性</p>
+                  <div className="space-y-2 text-sm">
+                    {ownerCompatibility[result.mainType].map((item) => (
+                      <div key={item.type} className="flex items-center justify-between gap-4">
+                        <span className="font-medium text-[#4e433d]">{item.type}</span>
+                        <span className="whitespace-nowrap text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
