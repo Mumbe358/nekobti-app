@@ -23,6 +23,18 @@ type CatType =
   | "導きカリスマねこ"
   | "覇王ボスねこ";
 
+type CatGender = "boy" | "girl";
+
+type CatCoat =
+  | "brown_tabby"
+  | "white"
+  | "black"
+  | "kijitora"
+  | "calico"
+  | "gray"
+  | "hachiware";
+
+
 type QuestionOption = {
   label: string;
   axis: Axis;
@@ -226,216 +238,50 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
+const genderOptions: { label: string; value: CatGender }[] = [
+  { label: "男の子", value: "boy" },
+  { label: "女の子", value: "girl" },
+];
 
-type AruaruSet = {
-  text: string;
-  quote: string;
+const coatOptions: { label: string; value: CatCoat }[] = [
+  { label: "茶トラ", value: "brown_tabby" },
+  { label: "白猫", value: "white" },
+  { label: "黒猫", value: "black" },
+  { label: "キジトラ", value: "kijitora" },
+  { label: "三毛", value: "calico" },
+  { label: "グレー", value: "gray" },
+  { label: "ハチワレ", value: "hachiware" },
+];
+
+const typeCodeMap: Record<CatType, string> = {
+  "しずか哲学ねこ": "shizuka_tetsugaku",
+  "よりそい守りねこ": "yorisoi_mamori",
+  "規律番ねこ": "kiritsu_ban",
+  "戦略きれものねこ": "senryaku_kiremono",
+  "無口クラフトねこ": "mukuchi_craft",
+  "ふわアートねこ": "fuwa_art",
+  "ゆめふわロマンねこ": "yumefuwa_roman",
+  "ひらめき遊びねこ": "hirameki_asobi",
+  "突撃アクティブねこ": "totsugeki_active",
+  "きらきらパーティーねこ": "kirakira_party",
+  "わくわく自由ねこ": "wakuwaku_jiyuu",
+  "いたずら天才ねこ": "itazura_tensai",
+  "しきり屋リーダーねこ": "shikiriya_leader",
+  "みんな大好きねこ": "minna_daisuki",
+  "導きカリスマねこ": "michibiki_charisma",
+  "覇王ボスねこ": "haou_boss",
 };
 
-const traitsMap: Record<CatType, string[]> = {
-  "規律番ねこ": ["ルールに正確", "いつも通りが安心", "確認してから動く"],
-  "よりそい守りねこ": ["そっと寄りそう", "安心感つよめ", "気づくと守ってる"],
-  "しずか哲学ねこ": ["静かに見てる", "空気を深読み", "一人時間が主戦場"],
-  "戦略きれものねこ": ["先読みが早い", "無駄がきらい", "一手先で動く"],
-  "無口クラフトねこ": ["手で試したい", "静かに職人肌", "触って理解する"],
-  "ふわアートねこ": ["感覚で決める", "好きがはっきり", "世界観を持ってる"],
-  "ゆめふわロマンねこ": ["自分の世界が濃い", "繊細さMAX", "距離感が独特"],
-  "ひらめき遊びねこ": ["発想が独特", "仕組みが気になる", "考え出すと止まらない"],
-  "突撃アクティブねこ": ["先に飛びこむ", "勢いで突破", "危なそうほど行く"],
-  "きらきらパーティーねこ": ["楽しさに敏感", "人の輪に入る", "場が明るくなる"],
-  "わくわく自由ねこ": ["好奇心が暴れる", "飽きるのも早い", "次がすぐ気になる"],
-  "いたずら天才ねこ": ["試したがり", "反応を見るの好き", "遊び方を発明する"],
-  "しきり屋リーダーねこ": ["仕切るのが自然", "乱れが気になる", "全体を回したい"],
-  "みんな大好きねこ": ["人懐っこさMAX", "誰とでも近い", "好かれ力つよめ"],
-  "導きカリスマねこ": ["気配りの達人", "自然に導く", "寄りそい上手"],
-  "覇王ボスねこ": ["主役ポジを取る", "迷わず決める", "圧があるのに強い"],
-};
+const imageMap: Record<string, string> = {};
+const FALLBACK_IMAGE = "/images/cat_silhouette_black.png";
 
-const bestMatchMap: Record<CatType, string> = {
-  "規律番ねこ": "きらきらパーティーねこ",
-  "よりそい守りねこ": "きらきらパーティーねこ",
-  "しずか哲学ねこ": "わくわく自由ねこ",
-  "戦略きれものねこ": "わくわく自由ねこ",
-  "無口クラフトねこ": "みんな大好きねこ",
-  "ふわアートねこ": "導きカリスマねこ",
-  "ゆめふわロマンねこ": "導きカリスマねこ",
-  "ひらめき遊びねこ": "覇王ボスねこ",
-  "突撃アクティブねこ": "よりそい守りねこ",
-  "きらきらパーティーねこ": "よりそい守りねこ",
-  "わくわく自由ねこ": "しずか哲学ねこ",
-  "いたずら天才ねこ": "しずか哲学ねこ",
-  "しきり屋リーダーねこ": "ふわアートねこ",
-  "みんな大好きねこ": "無口クラフトねこ",
-  "導きカリスマねこ": "ゆめふわロマンねこ",
-  "覇王ボスねこ": "ゆめふわロマンねこ",
-};
+function getImageCode(typeName: CatType, gender: CatGender, coat: CatCoat) {
+  return `${typeCodeMap[typeName]}_${gender}_${coat}`;
+}
 
-const aruaruMap: Record<CatType, AruaruSet[]> = {
-  "しずか哲学ねこ": [
-    { text: "夜になると急に活動し始める。昼は静かなのに、暗くなった部屋のすみでじっと何か考えてる顔をしている。呼ぶと少し間をおいてから来る。", quote: `いま考えてるにゃ。
-あとで行くにゃ。` },
-    { text: "窓の外を長い時間見ている。鳥も虫もいないのに、なぜか真剣な顔でずっと一点を見つめている。話しかけると、ゆっくりだけ振り向く。", quote: `まだ見てるにゃ。
-少し待つにゃ。` },
-    { text: "みんなが騒いでいる時は少し離れた場所にいる。でも静かになった瞬間だけ、すっと近くに来て隣に座る。落ち着いた空気を選んで動くタイプ。", quote: `いまなら行くにゃ。
-ここでいいにゃ。` },
-    { text: "お気に入りの場所がいつも同じ。しかも部屋の真ん中じゃなく、少し端の落ち着く位置を選ぶ。誰かが座ると別の静かな場所へ移動する。", quote: `ここが落ち着くにゃ。
-静かにするにゃ。` },
-  ],
-  "よりそい守りねこ": [
-    { text: "誰かが横になると、いつの間にかその近くに来ている。ぴったりくっつくわけじゃないのに、手を伸ばせば触れられる距離に必ずいる。", quote: `ここにいるにゃ。
-そばにいるにゃ。` },
-    { text: "元気がなさそうな人のところにだけ寄っていく。他の人には行かないのに、その人の足元や横に静かに座り続ける。", quote: `大丈夫にゃ。
-ここにいるにゃ。` },
-    { text: "寝ている人の足元に丸くなる。邪魔にならない絶妙な位置で落ち着いていて、起きてもすぐには離れない。", quote: `ここで見るにゃ。
-まだいるにゃ。` },
-    { text: "怒られても完全には離れない。少し距離を取って座り直して、それでも同じ部屋には残っている。", quote: `離れないにゃ。
-気にしてるにゃ。` },
-  ],
-  "規律番ねこ": [
-    { text: "ごはんの時間が少しでも遅れると、決まった場所で待ち始める。鳴くタイミングまで毎日ほぼ同じで、時計を見ているみたいに正確。", quote: `時間にゃ。
-もう分かってるにゃ。` },
-    { text: "トイレや寝床の位置が変わるとすぐ気づく。いつもの位置に戻るまで落ち着かず、変わったものにはなかなか近づかない。", quote: `違うにゃ。
-元に戻すにゃ。` },
-    { text: "部屋を移動するルートがいつも同じ。椅子の横を通って棚の前で止まって、そのあと窓際に行く流れまで毎回ほとんど変わらない。", quote: `ここ通るにゃ。
-決まってるにゃ。` },
-    { text: "新しい物が置かれるとすぐには触らない。遠くから見て、安全そうだと分かってからやっと近づいて匂いを確認する。", quote: `まだ早いにゃ。
-確認するにゃ。` },
-  ],
-  "戦略きれものねこ": [
-    { text: "高い場所に登る時、無駄な試行をほとんどしない。一度だけ周りを見て、踏み台にする場所を決めたらそのまま最短で成功する。", quote: `そこ行けるにゃ。
-もう見えたにゃ。` },
-    { text: "ドアや引き出しの仕組みを観察している。人が開けるのを何度か見たあと、自分でも前足で同じ場所を触り始める。", quote: `こうするにゃ。
-分かったにゃ。` },
-    { text: "おもちゃをすぐには追わない。まず相手の動きや落ちる場所を見て、狙いを定めてから一番いいタイミングで飛びつく。", quote: `まだ行かないにゃ。
-今にするにゃ。` },
-    { text: "他の猫が騒いでいても、少し離れた場所から様子を見ている。危なくないか確認してから、自分に必要な時だけ動く。", quote: `先に見るにゃ。
-それから行くにゃ。` },
-  ],
-  "無口クラフトねこ": [
-    { text: "段ボールや袋を見ると、とりあえず中に入る。ただ入るだけじゃなく、中で向きを変えたり前足で押したりして、自分の落ち着く形に整えている。", quote: `これ使うにゃ。
-ちょうどいいにゃ。` },
-    { text: "ヒモや細いおもちゃだけやたら得意。他のおもちゃには見向きもしないのに、それだけは何回投げても正確に仕留める。", quote: `それ貸すにゃ。
-やってみるにゃ。` },
-    { text: "壊れたおもちゃも捨てずに遊ぶ。取れた部品や紐の端だけで、元より面白そうな遊び方を見つけている。", quote: `まだいけるにゃ。
-直して使うにゃ。` },
-    { text: "静かだと思ったら、家具のすき間や見慣れない場所を前足でずっと触っている。何があるか、どう動くかを確かめている感じがある。", quote: `ちょっと触るにゃ。
-分かるまでやるにゃ。` },
-  ],
-  "ふわアートねこ": [
-    { text: "カーテン越しの光や床の反射をじっと見ている。何もないのに、急に前足を出して追いかけ始めて、満足すると静かに座り直す。", quote: `これきれいにゃ。
-ちょっと追うにゃ。` },
-    { text: "寝る場所を見た目じゃなく触り心地で選ぶ。ふわふわの毛布、やわらかい服、少しあたたかいクッションにだけ長くいる。", quote: `ここいいにゃ。
-落ち着くにゃ。` },
-    { text: "急に走り出したと思ったら、次の瞬間には窓辺で止まっている。予定がある感じじゃなく、その時の気分で全部決めている動き。", quote: `いま行くにゃ。
-もういいにゃ。` },
-    { text: "小さな音への反応が早い。袋の音や引き出しの音にすぐ耳が向いて、少しだけ近づいて様子を見る。", quote: `いまの何にゃ？
-気になるにゃ。` },
-  ],
-  "ゆめふわロマンねこ": [
-    { text: "何もない壁や空中をじっと見ている。呼んでもすぐには反応しないのに、二回目でゆっくり振り向いてくる。自分の世界に入っている時間が長い。", quote: `いま見てたにゃ。
-あとで行くにゃ。` },
-    { text: "お気に入りの場所に入ると長時間ほとんど動かない。丸くなっているわけでもなく、ぼんやり起きたまま静かに過ごしている。", quote: `ここがいいにゃ。
-そのままでいいにゃ。` },
-    { text: "甘えてくる時は急に距離が近い。でも満足すると、こちらが追う前にすっと離れていく。近づき方も離れ方も独特。", quote: `ちょっと行くにゃ。
-やっぱ戻るにゃ。` },
-    { text: "他の猫や人と完全には離れないけど、ぴったりもくっつかない。少し離れたところで同じ空間にいたがる。", quote: `そこにいるにゃ。
-ここでいいにゃ。` },
-  ],
-  "ひらめき遊びねこ": [
-    { text: "普通のおもちゃでも、みんなと違う遊び方を始める。転がすより止めたり、追うよりひっくり返したりして仕組みを見ている感じがある。", quote: `これ違うにゃ。
-こうするにゃ。` },
-    { text: "同じ動きを何回も繰り返す。前足で押す、止まる、また押すを延々と続けていて、本人だけずっと真剣。", quote: `もう一回にゃ。
-試すにゃ。` },
-    { text: "他の猫が興味を示さない物にだけ反応する。コードの影、箱の角、転がらない部品みたいな微妙なものに夢中になる。", quote: `これ面白いにゃ。
-続けるにゃ。` },
-    { text: "おもちゃを壊して中身を見たがる。遊ぶより、どうできているか確かめているような動きになる。", quote: `中見るにゃ。
-知りたいにゃ。` },
-  ],
-  "突撃アクティブねこ": [
-    { text: "閉まりかけたドアを見ると、そのまま突っ込んでいく。間に合うか考える前に動いていて、止めても勢いが勝つ。", quote: `いけるにゃ！
-そのまま行くにゃ！` },
-    { text: "高い場所からのジャンプにためらいがない。下をちょっと見たらすぐ飛んで、着地してから何事もなかった顔をしている。", quote: `飛ぶにゃ！
-あとで考えるにゃ！` },
-    { text: "危なそうな場所ほど先に行く。棚のすき間、ドアの向こう、知らない部屋に一番最初に入るのはだいたいこのタイプ。", quote: `先行くにゃ！
-大丈夫にゃ！` },
-    { text: "急にスイッチが入って部屋を全力で走り回る。一直線に一周して、満足したら急に止まって毛づくろいを始める。", quote: `いまにゃ！
-止まらないにゃ！` },
-  ],
-  "きらきらパーティーねこ": [
-    { text: "人が集まっている場所に必ず入ってくる。気づいたら一番触られやすい真ん中の位置を取っていて、そのまま場の中心にいる。", quote: `こっち楽しいにゃ！
-混ざるにゃ！` },
-    { text: "笑い声やにぎやかな音がすると、別の部屋からでもすぐ来る。何が起きているか分からなくても、その空気だけで参加しにくる。", quote: `なんかあるにゃ！
-行くにゃ！` },
-    { text: "誰かが遊んでいると、そのすぐ近くに座る。自分も完全に参加しているつもりで、ずっと楽しそうに見ている。", quote: `それやるにゃ！
-一緒にいるにゃ！` },
-    { text: "静かな場所に長くいない。音や動きのある方へ自然に流れていって、気づいたらまた人のいる場所に戻っている。", quote: `いまにゃ！
-そっち行くにゃ！` },
-  ],
-  "わくわく自由ねこ": [
-    { text: "新しいおもちゃや箱を見ると真っ先に飛びつく。少し遊んだだけで満足して、次の瞬間には別の物に興味が移っている。", quote: `それいいにゃ！
-次いくにゃ！` },
-    { text: "人が移動するとすぐ後をついていく。でも途中で別の音や物に気を取られて、目的地まで行かずに寄り道する。", quote: `そっち行くにゃ！
-やっぱこっちにゃ！` },
-    { text: "遊び始めると一気にテンションが上がる。全力で楽しんでいたのに、数分後には急に落ち着いて別の場所で座っている。", quote: `楽しいにゃ！
-もういいにゃ！` },
-    { text: "同時にいろんなものが気になる。箱にも行くし、ヒモも見るし、人にも絡むしで、一つに集中するより全部触りたい動きになる。", quote: `これもにゃ！
-あれもにゃ！` },
-  ],
-  "いたずら天才ねこ": [
-    { text: "テーブルの端にある物を、わざと少しずつ前足で押す。一回落として終わりじゃなく、こちらの反応を見てもう一回やる。", quote: `どうなるにゃ？
-もう一回やるにゃ。` },
-    { text: "入っちゃダメな場所ほど行きたがる。見られているタイミングを選んでわざと乗るあたり、かなり確信犯っぽい。", quote: `それダメにゃ？
-試すにゃ。` },
-    { text: "他の猫や人にちょっかいを出して反応を見る。逃げたら追いかけるし、反応が大きいほど楽しそうになる。", quote: `いま行くにゃ。
-遊ぶにゃ。` },
-    { text: "普通のおもちゃを独自ルールで使い始める。本来の遊び方より、自分で新しい遊び方を作る方が面白いタイプ。", quote: `これ違うにゃ。
-こうするにゃ。` },
-  ],
-  "しきり屋リーダーねこ": [
-    { text: "他の猫が落ち着かない動きをしていると、近くまで行って止めに入る。自分のペースに周りを合わせようとする感じが強い。", quote: `順番にゃ。
-こっち来るにゃ。` },
-    { text: "寝る場所や座る場所を先に決めてしまう。あとから来た相手がいても譲らず、その場のルールを自分で作っている。", quote: `ここ使うにゃ。
-決めるにゃ。` },
-    { text: "騒がしいとすぐ様子を見に行く。ただ混ざるというより、何が起きてるか確認して収めに入る動きになる。", quote: `それやめるにゃ。
-落ち着くにゃ。` },
-    { text: "人の動線や部屋の流れをよく見ていて、邪魔な物や乱れた空気があるとそこに自分から入って整えにいく。", quote: `これで行くにゃ。
-まとめるにゃ。` },
-  ],
-  "みんな大好きねこ": [
-    { text: "来客があると一番最初に玄関の近くまで見に行く。少し様子を見たあと、平気な相手だと分かるとそのまま距離を詰めていく。", quote: `そっちいくにゃ。
-そこ座るにゃ。` },
-    { text: "部屋にいる人全員に順番に甘える。一人のところに少し寄って、また別の人のところに行って、全員にちゃんと絡む。", quote: `こっちもにゃ。
-そっちも行くにゃ。` },
-    { text: "優しそうな人を見つけるのが早い。その人の近くを行ったり来たりして、触ってもらえるまで自然に距離を詰めていく。", quote: `そこいいにゃ。
-ちょっと寄るにゃ。` },
-    { text: "誰かが帰ろうとすると後ろをついていく。ドアの前まで見送りに来て、まだ行くの？みたいな顔で立ち止まる。", quote: `まだ行くにゃ。
-ついてくにゃ。` },
-  ],
-  "導きカリスマねこ": [
-    { text: "元気がなさそうな人がいると、その人の近くにだけ座る。他の人には行かないのに、その時だけはピンポイントで寄り添う。", quote: `ここにいるにゃ。
-大丈夫にゃ。` },
-    { text: "にぎやかな空気の中でも、場の変化にすぐ気づく。誰かが静かになったり空気が落ちた瞬間に、自然とその方向へ動いていく。", quote: `いま行くにゃ。
-見てるにゃ。` },
-    { text: "複数人いると、順番に顔を見て回る。誰が何してるか全部分かっているみたいな動きで、その場全体を把握している感じがある。", quote: `そっちもにゃ。
-ちゃんと見るにゃ。` },
-    { text: "誰かが移動すると後ろからついていく。でも前に出るわけじゃなく、少し後ろを歩いて見守るような距離感を取る。", quote: `ついてくにゃ。
-そのままでいいにゃ。` },
-  ],
-  "覇王ボスねこ": [
-    { text: "人が座っていたクッションや椅子を、当然みたいな顔で取りにいく。少しどかされてもまた戻ってきて、最終的にその場所を自分のものにする。", quote: `そこ使うにゃ。
-もう決まってるにゃ。` },
-    { text: "部屋の中で一番高い場所や見渡せる場所を選ぶ。そこに座るとしばらく動かず、全体を見ている感じになる。", quote: `ここが上にゃ。
-ここにいるにゃ。` },
-    { text: "歩き出すと他の猫や人が自然に道をあける。急いでいなくても、自分が通る前提でまっすぐ進んでくる。", quote: `通るにゃ。
-あけるにゃ。` },
-    { text: "人が集まると、その中央か一番目立つ位置を取る。誰より先にいい場所を押さえて、最後までそこを譲らない。", quote: `ここにするにゃ。
-動かないにゃ。` },
-  ],
-};
-
-function getRandomAruaru(type: CatType) {
-  const list = aruaruMap[type];
-  return list[Math.floor(Math.random() * list.length)];
+function getResultImage(typeName: CatType, gender: CatGender, coat: CatCoat) {
+  const code = getImageCode(typeName, gender, coat);
+  return imageMap[code] ?? FALLBACK_IMAGE;
 }
 
 const Paw = ({ active }: { active: boolean }) => (
@@ -614,7 +460,8 @@ export default function Home() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [selectedAruaru, setSelectedAruaru] = useState<AruaruSet | null>(null);
+  const [catGender, setCatGender] = useState<CatGender | "">("");
+  const [catCoat, setCatCoat] = useState<CatCoat | "">("");
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const loadingMessages = useMemo(
@@ -634,11 +481,13 @@ export default function Home() {
     };
   }, [isOpen, isTypeListOpen]);
 
-  const totalSteps = currentQuestions.length;
-  const answeredCount = answers.filter(Boolean).length;
+  const totalQuestionSteps = currentQuestions.length;
+  const totalSteps = totalQuestionSteps + 1;
+  const answeredCount = answers.filter(Boolean).length + (catGender && catCoat ? 1 : 0);
+  const isGenderCoatStep = step === totalQuestionSteps;
 
   const result = useMemo(() => {
-    if (answeredCount !== totalSteps) return null;
+    if (answers.filter(Boolean).length !== totalQuestionSteps) return null;
 
     const scores = { ...initialScores };
 
@@ -655,13 +504,7 @@ export default function Home() {
       mbti,
       mainType,
     };
-  }, [answers, answeredCount, totalSteps]);
-
-  useEffect(() => {
-    if (showResult && result) {
-      setSelectedAruaru(getRandomAruaru(result.mainType));
-    }
-  }, [showResult, result]);
+  }, [answers, totalQuestionSteps]);
 
   const openDiagnosis = () => {
     setIsOpen(true);
@@ -675,7 +518,8 @@ export default function Home() {
     setIsCalculating(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
-    setSelectedAruaru(null);
+    setCatGender("");
+    setCatCoat("");
   };
 
   const closeDiagnosis = () => {
@@ -685,6 +529,8 @@ export default function Home() {
     setIsCalculating(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
+    setCatGender("");
+    setCatCoat("");
   };
 
   const openTypeList = () => {
@@ -711,34 +557,30 @@ export default function Home() {
 
       setSelectedLabel(null);
 
-      if (step < totalSteps - 1) {
+      if (step < totalQuestionSteps - 1) {
         setStep((prev) => prev + 1);
         window.setTimeout(() => {
           setAnimating(false);
         }, 320);
       } else {
         setAnimating(false);
-        setIsCalculating(true);
-        setLoadingMessageIndex(0);
-
-        window.setTimeout(() => {
-          setLoadingMessageIndex(1);
-        }, 700);
-
-        window.setTimeout(() => {
-          setLoadingMessageIndex(2);
-        }, 1400);
-
-        window.setTimeout(() => {
-          setIsCalculating(false);
-          setShowResult(true);
-        }, 2200);
+        setStep(totalQuestionSteps);
       }
     }, 180);
   };
 
   const handlePrev = () => {
     if (step === 0 || selectedLabel || animating) return;
+
+    if (isGenderCoatStep) {
+      setDirection("prev");
+      setAnimating(true);
+      setStep((prev) => prev - 1);
+      window.setTimeout(() => {
+        setAnimating(false);
+      }, 320);
+      return;
+    }
 
     setDirection("prev");
     setAnimating(true);
@@ -767,7 +609,28 @@ export default function Home() {
     setIsCalculating(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
-    setSelectedAruaru(null);
+    setCatGender("");
+    setCatCoat("");
+  };
+
+  const handleGenderCoatNext = () => {
+    if (!catGender || !catCoat) return;
+
+    setIsCalculating(true);
+    setLoadingMessageIndex(0);
+
+    window.setTimeout(() => {
+      setLoadingMessageIndex(1);
+    }, 700);
+
+    window.setTimeout(() => {
+      setLoadingMessageIndex(2);
+    }, 1400);
+
+    window.setTimeout(() => {
+      setIsCalculating(false);
+      setShowResult(true);
+    }, 2200);
   };
 
   const generateResultPng = async () => {
@@ -978,7 +841,7 @@ export default function Home() {
                   <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
                     DIAGNOSIS START
                   </p>
-                  <h2 className="text-3xl font-bold">まずは{step + 1}問目</h2>
+                  <h2 className="text-3xl font-bold">Q{step + 1}</h2>
                 </div>
 
                 <button
@@ -992,13 +855,13 @@ export default function Home() {
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
-                    {currentQuestions.map((_, index) => (
+                    {Array.from({ length: totalSteps }).map((_, index) => (
                       <Paw key={index} active={index < answeredCount} />
                     ))}
                   </div>
 
                   <p className="text-sm text-[#9a7d69]">
-                    {step + 1} / {totalSteps} questions
+                    Q{step + 1} / {totalSteps}
                   </p>
                 </div>
 
@@ -1010,51 +873,104 @@ export default function Home() {
                       : "animate-[slideInLeft_.28s_ease-out]"
                   }`}
                 >
-                  <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                    {currentQuestions[step].text}
-                  </p>
+                  {isGenderCoatStep ? (
+                    <>
+                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                        うちの子の性別と毛色は？
+                      </p>
 
-                  <div className="grid gap-3">
-                    {currentQuestions[step].options.map((option) => {
-                      const isSelected = selectedLabel === option.label;
-                      const isAnsweredThisStep = answers[step] !== null;
-
-                      return (
-                        <button
-                          key={option.label}
-                          onClick={() => {
-                            if (!isAnsweredThisStep) {
-                              handleAnswer(option);
-                            }
-                          }}
-                          disabled={selectedLabel !== null || animating}
-                          className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
-                            isSelected
-                              ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                              : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
-                          }`}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <select
+                          value={catGender}
+                          onChange={(e) => setCatGender(e.target.value as CatGender | "")}
+                          className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
                         >
-                          <span className="block break-words leading-8">
-                            {option.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          <option value="">性別</option>
+                          {genderOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={catCoat}
+                          onChange={(e) => setCatCoat(e.target.value as CatCoat | "")}
+                          className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
+                        >
+                          <option value="">毛色</option>
+                          {coatOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                        {currentQuestions[step].text}
+                      </p>
+
+                      <div className="grid gap-3">
+                        {currentQuestions[step].options.map((option) => {
+                          const isSelected = selectedLabel === option.label;
+                          const isAnsweredThisStep = answers[step] !== null;
+
+                          return (
+                            <button
+                              key={option.label}
+                              onClick={() => {
+                                if (!isAnsweredThisStep) {
+                                  handleAnswer(option);
+                                }
+                              }}
+                              disabled={selectedLabel !== null || animating}
+                              className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                                isSelected
+                                  ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                              }`}
+                            >
+                              <span className="block break-words leading-8">
+                                {option.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <button
-                    onClick={handlePrev}
-                    disabled={step === 0 || selectedLabel !== null || animating}
-                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
-                      step === 0 || selectedLabel !== null || animating
-                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
-                    }`}
-                  >
-                    戻る
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handlePrev}
+                      disabled={step === 0 || selectedLabel !== null || animating}
+                      className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                        step === 0 || selectedLabel !== null || animating
+                          ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                          : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                      }`}
+                    >
+                      戻る
+                    </button>
+                    {isGenderCoatStep ? (
+                      <button
+                        onClick={handleGenderCoatNext}
+                        disabled={!catGender || !catCoat}
+                        className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                          !catGender || !catCoat
+                            ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                            : "bg-[#2b2b2b] text-white hover:opacity-90"
+                        }`}
+                      >
+                        結果を見る
+                      </button>
+                    ) : null}
+                  </div>
 
                   <div className="text-sm text-[#9a7d69]">ゆっくり選んでOK</div>
                 </div>
@@ -1113,45 +1029,51 @@ export default function Home() {
               </div>
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                <div
-                  ref={resultCardRef}
-                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]"
-                >
-                  <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
+                <div ref={resultCardRef} className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 ring-1 ring-[#f3e3d8]">
+                  {catGender && catCoat ? (
+                    <img
+                      src={getResultImage(result.mainType, catGender, catCoat)}
+                      alt={result.mainType}
+                      className="mx-auto mb-4 h-40 w-40 object-contain"
+                    />
+                  ) : null}
                   <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
-                  <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <h3 className="mb-4 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
+                  <p className="mb-5 text-center text-sm leading-7 text-[#6c625b] sm:text-base">
+                    {resultMeta[result.mainType].description}
+                  </p>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
-                      {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait}>・{trait}</p>
+                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-3 text-sm font-semibold text-[#9a7d69]">💡 特徴</p>
+                    <ul className="space-y-1 text-sm leading-6 text-[#4e433d] sm:text-base">
+                      {resultMeta[result.mainType].features.map((feature) => (
+                        <li key={feature}>・{feature}</li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
 
-                  {selectedAruaru && (
-                    <>
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
-                      </div>
-
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
-                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
-                        </p>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="text-center">
-                    <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
-                    <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {bestMatchMap[result.mainType]} ★★★★★
-                    </p>
+                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <p className="mb-3 text-sm font-semibold text-[#9a7d69]">🧠 行動パターン</p>
+                    <ul className="space-y-1 text-sm leading-6 text-[#4e433d] sm:text-base">
+                      {resultMeta[result.mainType].patterns.map((pattern) => (
+                        <li key={pattern}>・{pattern}</li>
+                      ))}
+                    </ul>
                   </div>
+                </div>
 
-                  <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
+                <div className="mb-6 rounded-2xl bg-[#fffaf6] p-4 ring-1 ring-[#f1e4da]">
+                  <p className="mb-3 text-sm text-[#9a7d69]">飼い主との相性</p>
+                  <div className="space-y-2 text-sm">
+                    {ownerCompatibility[result.mainType].map((item) => (
+                      <div key={item.type} className="flex items-center justify-between gap-4">
+                        <span className="font-bold text-[#4e433d]">
+                          {item.type}（{ownerMbtiLabelMap[item.type]}）
+                        </span>
+                        <span className="whitespace-nowrap text-[#cf7f7f]">{renderHearts(item.hearts)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
