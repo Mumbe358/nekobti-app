@@ -37,6 +37,9 @@ type Question = {
   options: [QuestionOption, QuestionOption];
 };
 
+type GenderOption = "male" | "female";
+type CoatOption = "white" | "black" | "gray" | "tabby" | "calico" | "brown";
+
 const questionPool: Record<Segment, Question[]> = {
   EI: [
     { id: 1, text: "知らない人が来たら？", segment: "EI", options: [{ label: "近づいて様子を見る", axis: "E" }, { label: "物陰から観察する", axis: "I" }] },
@@ -600,6 +603,10 @@ function getMbtiType(scores: Record<Axis, number>) {
   return `${EI}${SN}${TF}${JP}`;
 }
 
+function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption) {
+  return `/images/cats/${mbti}_${gender}_${coat}.png`;
+}
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
@@ -615,6 +622,9 @@ export default function Home() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedAruaru, setSelectedAruaru] = useState<AruaruSet | null>(null);
+  const [selectedGender, setSelectedGender] = useState<GenderOption>("male");
+  const [selectedCoat, setSelectedCoat] = useState<CoatOption>("black");
+  const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const loadingMessages = useMemo(
@@ -634,11 +644,13 @@ export default function Home() {
     };
   }, [isOpen, isTypeListOpen]);
 
-  const totalSteps = currentQuestions.length;
+  const totalQuestions = currentQuestions.length;
+  const totalSteps = totalQuestions + 1;
   const answeredCount = answers.filter(Boolean).length;
+  const isAppearanceStep = step === totalQuestions;
 
   const result = useMemo(() => {
-    if (answeredCount !== totalSteps) return null;
+    if (answeredCount !== totalQuestions) return null;
 
     const scores = { ...initialScores };
 
@@ -655,13 +667,19 @@ export default function Home() {
       mbti,
       mainType,
     };
-  }, [answers, answeredCount, totalSteps]);
+  }, [answers, answeredCount, totalQuestions]);
 
   useEffect(() => {
     if (showResult && result) {
       setSelectedAruaru(getRandomAruaru(result.mainType));
     }
   }, [showResult, result]);
+
+  useEffect(() => {
+    if (!result) return;
+
+    setResultImageSrc(getResultImagePath(result.mbti, selectedGender, selectedCoat));
+  }, [result, selectedGender, selectedCoat]);
 
   const openDiagnosis = () => {
     setIsOpen(true);
@@ -676,6 +694,9 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
+    setSelectedGender("male");
+    setSelectedCoat("black");
+    setResultImageSrc("/images/silhouette.png");
   };
 
   const closeDiagnosis = () => {
@@ -711,28 +732,16 @@ export default function Home() {
 
       setSelectedLabel(null);
 
-      if (step < totalSteps - 1) {
+      if (step < totalQuestions - 1) {
         setStep((prev) => prev + 1);
         window.setTimeout(() => {
           setAnimating(false);
         }, 320);
       } else {
-        setAnimating(false);
-        setIsCalculating(true);
-        setLoadingMessageIndex(0);
-
+        setStep(totalQuestions);
         window.setTimeout(() => {
-          setLoadingMessageIndex(1);
-        }, 700);
-
-        window.setTimeout(() => {
-          setLoadingMessageIndex(2);
-        }, 1400);
-
-        window.setTimeout(() => {
-          setIsCalculating(false);
-          setShowResult(true);
-        }, 2200);
+          setAnimating(false);
+        }, 320);
       }
     }, 180);
   };
@@ -768,6 +777,29 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
+    setSelectedGender("male");
+    setSelectedCoat("black");
+    setResultImageSrc("/images/silhouette.png");
+  };
+
+  const handleAppearanceNext = () => {
+    if (animating || isCalculating) return;
+
+    setIsCalculating(true);
+    setLoadingMessageIndex(0);
+
+    window.setTimeout(() => {
+      setLoadingMessageIndex(1);
+    }, 700);
+
+    window.setTimeout(() => {
+      setLoadingMessageIndex(2);
+    }, 1400);
+
+    window.setTimeout(() => {
+      setIsCalculating(false);
+      setShowResult(true);
+    }, 2200);
   };
 
   const generateResultPng = async () => {
@@ -992,8 +1024,8 @@ export default function Home() {
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
-                    {currentQuestions.map((_, index) => (
-                      <Paw key={index} active={index < answeredCount} />
+                    {Array.from({ length: totalSteps }).map((_, index) => (
+                      <Paw key={index} active={index < answeredCount || (isAppearanceStep && index === totalQuestions)} />
                     ))}
                   </div>
 
@@ -1010,37 +1042,84 @@ export default function Home() {
                       : "animate-[slideInLeft_.28s_ease-out]"
                   }`}
                 >
-                  <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                    {currentQuestions[step].text}
-                  </p>
+                  {!isAppearanceStep ? (
+                    <>
+                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                        {currentQuestions[step].text}
+                      </p>
 
-                  <div className="grid gap-3">
-                    {currentQuestions[step].options.map((option) => {
-                      const isSelected = selectedLabel === option.label;
-                      const isAnsweredThisStep = answers[step] !== null;
+                      <div className="grid gap-3">
+                        {currentQuestions[step].options.map((option) => {
+                          const isSelected = selectedLabel === option.label;
+                          const isAnsweredThisStep = answers[step] !== null;
 
-                      return (
+                          return (
+                            <button
+                              key={option.label}
+                              onClick={() => {
+                                if (!isAnsweredThisStep) {
+                                  handleAnswer(option);
+                                }
+                              }}
+                              disabled={selectedLabel !== null || animating}
+                              className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                                isSelected
+                                  ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                              }`}
+                            >
+                              <span className="block break-words leading-8">
+                                {option.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                        性別と毛色を選んでください
+                      </p>
+
+                      <div className="grid gap-4">
+                        <label className="grid gap-2">
+                          <span className="text-sm font-semibold text-[#7a5c48]">性別</span>
+                          <select
+                            value={selectedGender}
+                            onChange={(e) => setSelectedGender(e.target.value as GenderOption)}
+                            className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-base text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
+                          >
+                            <option value="male">男の子</option>
+                            <option value="female">女の子</option>
+                          </select>
+                        </label>
+
+                        <label className="grid gap-2">
+                          <span className="text-sm font-semibold text-[#7a5c48]">毛色</span>
+                          <select
+                            value={selectedCoat}
+                            onChange={(e) => setSelectedCoat(e.target.value as CoatOption)}
+                            className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-base text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
+                          >
+                            <option value="white">白</option>
+                            <option value="black">黒</option>
+                            <option value="gray">グレー</option>
+                            <option value="tabby">キジトラ</option>
+                            <option value="calico">三毛</option>
+                            <option value="brown">茶トラ</option>
+                          </select>
+                        </label>
+
                         <button
-                          key={option.label}
-                          onClick={() => {
-                            if (!isAnsweredThisStep) {
-                              handleAnswer(option);
-                            }
-                          }}
-                          disabled={selectedLabel !== null || animating}
-                          className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
-                            isSelected
-                              ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                              : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
-                          }`}
+                          onClick={handleAppearanceNext}
+                          className="mt-2 w-full rounded-2xl bg-[#2b2b2b] px-4 py-4 text-base font-semibold text-white transition hover:opacity-90"
                         >
-                          <span className="block break-words leading-8">
-                            {option.label}
-                          </span>
+                          結果を見る
                         </button>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1118,7 +1197,16 @@ export default function Home() {
                   className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]"
                 >
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
-                  <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
+                  <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+                    <img
+                      src={resultImageSrc}
+                      alt={result.mainType}
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/silhouette.png";
+                      }}
+                      className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
+                    />
+                  </div>
                   <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
                   <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
