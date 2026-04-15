@@ -37,8 +37,8 @@ type Question = {
   options: [QuestionOption, QuestionOption];
 };
 
-type GenderOption = "male" | "female";
-type CoatOption = "white" | "black" | "gray" | "tabby" | "calico" | "brown";
+type GenderOption = "" | "male" | "female";
+type CoatOption = "" | "white" | "black" | "gray" | "tabby" | "calico" | "brown";
 
 const questionPool: Record<Segment, Question[]> = {
   EI: [
@@ -604,6 +604,7 @@ function getMbtiType(scores: Record<Axis, number>) {
 }
 
 function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption) {
+  if (!gender || !coat) return "/images/silhouette.png";
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
 }
 
@@ -622,8 +623,8 @@ export default function Home() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedAruaru, setSelectedAruaru] = useState<AruaruSet | null>(null);
-  const [selectedGender, setSelectedGender] = useState<GenderOption>("male");
-  const [selectedCoat, setSelectedCoat] = useState<CoatOption>("black");
+  const [selectedGender, setSelectedGender] = useState<GenderOption>("");
+  const [selectedCoat, setSelectedCoat] = useState<CoatOption>("");
   const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -694,8 +695,8 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
-    setSelectedGender("male");
-    setSelectedCoat("black");
+    setSelectedGender("");
+    setSelectedCoat("");
     setResultImageSrc("/images/silhouette.png");
   };
 
@@ -777,8 +778,8 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
-    setSelectedGender("male");
-    setSelectedCoat("black");
+    setSelectedGender("");
+    setSelectedCoat("");
     setResultImageSrc("/images/silhouette.png");
   };
 
@@ -1090,6 +1091,7 @@ export default function Home() {
                             onChange={(e) => setSelectedGender(e.target.value as GenderOption)}
                             className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-base text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
                           >
+                            <option value="">性別を選択</option>
                             <option value="male">男の子</option>
                             <option value="female">女の子</option>
                           </select>
@@ -1102,6 +1104,7 @@ export default function Home() {
                             onChange={(e) => setSelectedCoat(e.target.value as CoatOption)}
                             className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-base text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
                           >
+                            <option value="">毛色を選択</option>
                             <option value="white">白</option>
                             <option value="black">黒</option>
                             <option value="gray">グレー</option>
@@ -1113,7 +1116,8 @@ export default function Home() {
 
                         <button
                           onClick={handleAppearanceNext}
-                          className="mt-2 w-full rounded-2xl bg-[#2b2b2b] px-4 py-4 text-base font-semibold text-white transition hover:opacity-90"
+                          disabled={!selectedGender || !selectedCoat}
+                          className="mt-2 w-full rounded-2xl bg-[#2b2b2b] px-4 py-4 text-base font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           結果を見る
                         </button>
