@@ -805,11 +805,51 @@ export default function Home() {
 
   const generateResultPng = async () => {
     if (!resultCardRef.current) return null;
+
+    const waitForImages = async (root: HTMLElement) => {
+      const images = Array.from(root.querySelectorAll("img"));
+
+      await Promise.all(
+        images.map(async (img) => {
+          if (img.complete && img.naturalWidth > 0) {
+            if (typeof img.decode === "function") {
+              try {
+                await img.decode();
+              } catch {
+                // ignore decode failures and continue with the already-loaded image
+              }
+            }
+            return;
+          }
+
+          await new Promise<void>((resolve) => {
+            const done = () => {
+              img.removeEventListener("load", done);
+              img.removeEventListener("error", done);
+              resolve();
+            };
+
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          });
+        })
+      );
+    };
+
     try {
+      if (typeof document !== "undefined" && document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      await waitForImages(resultCardRef.current);
+
       return await toPng(resultCardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#ffffff",
+        useCORS: true,
+        canvasWidth: resultCardRef.current.scrollWidth,
+        canvasHeight: resultCardRef.current.scrollHeight,
       });
     } catch (error) {
       console.error(error);
@@ -1198,52 +1238,55 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   ref={resultCardRef}
-                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]"
+                  className="mb-6 overflow-hidden rounded-[36px] bg-[#f7f1eb] px-5 py-6 text-[#2f2925] ring-1 ring-[#eadfd4] sm:px-7 sm:py-8"
                 >
-                  <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
-                  <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+                  <div className="mb-5 text-center">
+                    <p className="text-[11px] font-medium tracking-[0.28em] text-[#a18472]">NEKOBTI</p>
+                    <p className="mt-2 text-[15px] text-[#7f6b5e]">うちの子はこんなタイプ。</p>
+                  </div>
+
+                  <div className="mb-6 overflow-hidden rounded-[30px] bg-[#fffdfb] p-4 ring-1 ring-[#ebe2da] sm:p-5">
                     <img
                       src={resultImageSrc}
                       alt={result.mainType}
                       onError={(e) => {
                         e.currentTarget.src = "/images/silhouette.png";
                       }}
-                      className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
+                      className="mx-auto aspect-square w-full max-w-[360px] object-contain"
                     />
                   </div>
-                  <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
-                      {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait}>・{trait}</p>
-                      ))}
-                    </div>
+                  <div className="mb-6 text-center">
+                    <p className="text-sm tracking-[0.22em] text-[#a18472]">{result.mbti}</p>
+                    <h3 className="mt-2 text-[40px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[48px]">{result.mainType}</h3>
+                  </div>
+
+                  <div className="mb-6 flex flex-wrap justify-center gap-2.5">
+                    {traitsMap[result.mainType].map((trait) => (
+                      <span
+                        key={trait}
+                        className="rounded-full border border-[#e3d4c8] bg-[#fffaf6] px-4 py-2 text-sm font-medium text-[#5a4d45]"
+                      >
+                        {trait}
+                      </span>
+                    ))}
                   </div>
 
                   {selectedAruaru && (
-                    <>
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
-                      </div>
-
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
-                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
-                        </p>
-                      </div>
-                    </>
+                    <div className="mb-6 rounded-[28px] bg-[#fffaf6] px-5 py-5 text-center ring-1 ring-[#ebe0d7] sm:px-7">
+                      <p className="mb-3 text-xs font-medium tracking-[0.24em] text-[#a18472]">ARUARU</p>
+                      <p className="mb-3 text-base leading-relaxed text-[#4c413b] sm:text-lg">{selectedAruaru.text}</p>
+                      <p className="text-lg font-semibold leading-relaxed text-[#2f2925] sm:text-[22px]">
+                        {selectedAruaru.quote.replace(/
+/g, " ")}
+                      </p>
+                    </div>
                   )}
 
-                  <div className="text-center">
-                    <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
-                    <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {bestMatchMap[result.mainType]} ★★★★★
-                    </p>
+                  <div className="border-t border-[#e5d8cd] pt-5 text-center">
+                    <p className="text-[11px] font-medium tracking-[0.24em] text-[#a18472]">BEST MATCH</p>
+                    <p className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-[#3a312c]">{bestMatchMap[result.mainType]}</p>
                   </div>
-
-                  <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
