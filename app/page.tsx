@@ -1115,14 +1115,14 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   ref={resultCardRef}
-                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 ring-1 ring-[#f3e3d8]"
+                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]"
                 >
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
                   <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-2 text-sm leading-6 text-[#4e433d] sm:text-base">
+                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <div className="space-y-0 text-left text-sm leading-tight text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
                         <p key={trait}>✔ {trait}</p>
                       ))}
@@ -1131,14 +1131,14 @@ export default function Home() {
 
                   {selectedAruaru && (
                     <>
-                      <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-3 text-sm font-semibold text-[#9a7d69]">🧠 あるある</p>
-                        <p className="text-sm leading-7 text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
+                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">🧠 あるある</p>
+                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
                       </div>
 
-                      <div className="mb-5 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="whitespace-pre-line text-base leading-8 italic sm:text-lg">
-                          「{selectedAruaru.quote}」
+                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
+                        <p className="text-left text-base font-bold leading-tight text-[#4e433d]">
+                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
                         </p>
                       </div>
                     </>
@@ -1151,7 +1151,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <p className="mt-5 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
+                  <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
