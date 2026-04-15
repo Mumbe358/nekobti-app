@@ -28,9 +28,6 @@ type QuestionOption = {
   axis: Axis;
 };
 
-type CatGender = "boy" | "girl";
-type CatCoat = "brown_tabby" | "white" | "black" | "kijitora" | "calico" | "gray" | "hachiware";
-
 type Segment = "EI" | "SN" | "TF" | "JP";
 
 type Question = {
@@ -229,53 +226,6 @@ const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = 
 
 const renderHearts = (count: number) => "❤︎".repeat(count) + "♡".repeat(5 - count);
 
-
-
-const genderOptions: { label: string; value: CatGender }[] = [
-  { label: "男の子", value: "boy" },
-  { label: "女の子", value: "girl" },
-];
-
-const coatOptions: { label: string; value: CatCoat }[] = [
-  { label: "茶トラ", value: "brown_tabby" },
-  { label: "白猫", value: "white" },
-  { label: "黒猫", value: "black" },
-  { label: "キジトラ", value: "kijitora" },
-  { label: "三毛", value: "calico" },
-  { label: "グレー", value: "gray" },
-  { label: "ハチワレ", value: "hachiware" },
-];
-
-const typeCodeMap: Record<CatType, string> = {
-  "規律番ねこ": "kiritsu_ban",
-  "よりそい守りねこ": "yorisoi_mamori",
-  "しずか哲学ねこ": "shizuka_tetsugaku",
-  "戦略きれものねこ": "senryaku_kiremono",
-  "無口クラフトねこ": "mukuchi_craft",
-  "ふわアートねこ": "fuwa_art",
-  "ゆめふわロマンねこ": "yumefuwa_roman",
-  "ひらめき遊びねこ": "hirameki_asobi",
-  "突撃アクティブねこ": "totsugeki_active",
-  "きらきらパーティーねこ": "kirakira_party",
-  "わくわく自由ねこ": "wakuwaku_jiyuu",
-  "いたずら天才ねこ": "itazura_tensai",
-  "しきり屋リーダーねこ": "shikiriya_leader",
-  "みんな大好きねこ": "minna_daisuki",
-  "導きカリスマねこ": "michibiki_charisma",
-  "覇王ボスねこ": "haou_boss",
-};
-
-const imageMap: Record<string, string> = {};
-const FALLBACK_IMAGE = "/images/cat_silhouette_black.png";
-
-function getImageCode(typeName: CatType, gender: CatGender, coat: CatCoat) {
-  return `${typeCodeMap[typeName]}_${gender}_${coat}`;
-}
-
-function getResultImage(typeName: CatType, gender: CatGender, coat: CatCoat) {
-  const code = getImageCode(typeName, gender, coat);
-  return imageMap[code] ?? FALLBACK_IMAGE;
-}
 
 type AruaruSet = {
   text: string;
@@ -665,8 +615,6 @@ export default function Home() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedAruaru, setSelectedAruaru] = useState<AruaruSet | null>(null);
-  const [catGender, setCatGender] = useState<CatGender | "">("");
-  const [catCoat, setCatCoat] = useState<CatCoat | "">("");
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const loadingMessages = useMemo(
@@ -686,7 +634,7 @@ export default function Home() {
     };
   }, [isOpen, isTypeListOpen]);
 
-  const totalSteps = currentQuestions.length + 1;
+  const totalSteps = currentQuestions.length;
   const answeredCount = answers.filter(Boolean).length;
 
   const result = useMemo(() => {
@@ -728,8 +676,6 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
-    setCatGender("");
-    setCatCoat("");
   };
 
   const closeDiagnosis = () => {
@@ -739,8 +685,6 @@ export default function Home() {
     setIsCalculating(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
-    setCatGender("");
-    setCatCoat("");
   };
 
   const openTypeList = () => {
@@ -767,40 +711,43 @@ export default function Home() {
 
       setSelectedLabel(null);
 
-      if (step < currentQuestions.length - 1) {
+      if (step < totalSteps - 1) {
         setStep((prev) => prev + 1);
         window.setTimeout(() => {
           setAnimating(false);
         }, 320);
       } else {
-        setStep(currentQuestions.length);
+        setAnimating(false);
+        setIsCalculating(true);
+        setLoadingMessageIndex(0);
+
         window.setTimeout(() => {
-          setAnimating(false);
-        }, 320);
+          setLoadingMessageIndex(1);
+        }, 700);
+
+        window.setTimeout(() => {
+          setLoadingMessageIndex(2);
+        }, 1400);
+
+        window.setTimeout(() => {
+          setIsCalculating(false);
+          setShowResult(true);
+        }, 2200);
       }
     }, 180);
   };
 
   const handlePrev = () => {
-    if (step === 0 || selectedLabel || animating || isCalculating) return;
+    if (step === 0 || selectedLabel || animating) return;
 
     setDirection("prev");
     setAnimating(true);
 
-    if (step <= currentQuestions.length) {
-      setAnswers((prev) => {
-        const next = [...prev];
-        if (step - 1 < currentQuestions.length) {
-          next[step - 1] = null;
-        }
-        return next;
-      });
-    }
-
-    if (step === currentQuestions.length) {
-      setCatGender("");
-      setCatCoat("");
-    }
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[step - 1] = null;
+      return next;
+    });
 
     setStep((prev) => prev - 1);
 
@@ -821,27 +768,6 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
-    setCatGender("");
-    setCatCoat("");
-  };
-
-  const completeFinalStep = () => {
-    if (!catGender || !catCoat) return;
-    setIsCalculating(true);
-    setLoadingMessageIndex(0);
-
-    window.setTimeout(() => {
-      setLoadingMessageIndex(1);
-    }, 700);
-
-    window.setTimeout(() => {
-      setLoadingMessageIndex(2);
-    }, 1400);
-
-    window.setTimeout(() => {
-      setIsCalculating(false);
-      setShowResult(true);
-    }, 2200);
   };
 
   const generateResultPng = async () => {
@@ -1052,7 +978,7 @@ export default function Home() {
                   <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
                     DIAGNOSIS START
                   </p>
-                  <h2 className="text-3xl font-bold">Q{step + 1}</h2>
+                  <h2 className="text-3xl font-bold">まずは{step + 1}問目</h2>
                 </div>
 
                 <button
@@ -1066,13 +992,13 @@ export default function Home() {
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-1.5">
-                    {Array.from({ length: totalSteps }).map((_, index) => (
-                      <Paw key={index} active={index < step} />
+                    {currentQuestions.map((_, index) => (
+                      <Paw key={index} active={index < answeredCount} />
                     ))}
                   </div>
 
                   <p className="text-sm text-[#9a7d69]">
-                    Q{step + 1} / {totalSteps}
+                    {step + 1} / {totalSteps} questions
                   </p>
                 </div>
 
@@ -1084,89 +1010,37 @@ export default function Home() {
                       : "animate-[slideInLeft_.28s_ease-out]"
                   }`}
                 >
-                  {step < currentQuestions.length ? (
-                    <>
-                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                        {currentQuestions[step].text}
-                      </p>
+                  <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                    {currentQuestions[step].text}
+                  </p>
 
-                      <div className="grid gap-3">
-                        {currentQuestions[step].options.map((option) => {
-                          const isSelected = selectedLabel === option.label;
-                          const isAnsweredThisStep = answers[step] !== null;
+                  <div className="grid gap-3">
+                    {currentQuestions[step].options.map((option) => {
+                      const isSelected = selectedLabel === option.label;
+                      const isAnsweredThisStep = answers[step] !== null;
 
-                          return (
-                            <button
-                              key={option.label}
-                              onClick={() => {
-                                if (!isAnsweredThisStep) {
-                                  handleAnswer(option);
-                                }
-                              }}
-                              disabled={selectedLabel !== null || animating}
-                              className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
-                                isSelected
-                                  ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
-                              }`}
-                            >
-                              <span className="block break-words leading-8">
-                                {option.label}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                        うちの子の性別と毛色は？
-                      </p>
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <select
-                          value={catGender}
-                          onChange={(e) => setCatGender(e.target.value as CatGender | "")}
-                          className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-[#2b2b2b] outline-none transition focus:border-[#c28f71] sm:px-5"
-                        >
-                          <option value="">性別</option>
-                          {genderOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-
-                        <select
-                          value={catCoat}
-                          onChange={(e) => setCatCoat(e.target.value as CatCoat | "")}
-                          className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-[#2b2b2b] outline-none transition focus:border-[#c28f71] sm:px-5"
-                        >
-                          <option value="">毛色</option>
-                          {coatOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="mt-6">
+                      return (
                         <button
-                          onClick={completeFinalStep}
-                          disabled={!catGender || !catCoat || animating}
-                          className={`w-full rounded-2xl px-4 py-4 text-center font-semibold transition sm:px-5 ${
-                            !catGender || !catCoat || animating
-                              ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                              : "bg-[#2b2b2b] text-white hover:opacity-90"
+                          key={option.label}
+                          onClick={() => {
+                            if (!isAnsweredThisStep) {
+                              handleAnswer(option);
+                            }
+                          }}
+                          disabled={selectedLabel !== null || animating}
+                          className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                            isSelected
+                              ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
+                              : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
                           }`}
                         >
-                          結果を見る
+                          <span className="block break-words leading-8">
+                            {option.label}
+                          </span>
                         </button>
-                      </div>
-                    </>
-                  )}
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1241,22 +1115,14 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   ref={resultCardRef}
-                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-6 ring-1 ring-[#f3e3d8]"
+                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]"
                 >
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
-                  {catGender && catCoat ? (
-                    <img
-                      src={getResultImage(result.mainType, catGender, catCoat)}
-                      alt={result.mainType}
-                      className="mx-auto mb-4 h-48 w-48 object-contain"
-                    />
-                  ) : (
-                    <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
-                  )}
+                  <div className="mb-4 text-center text-7xl">{resultMeta[result.mainType].emoji}</div>
                   <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-2 text-sm leading-6 text-[#4e433d] sm:text-base">
+                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
                         <p key={trait}>・{trait}</p>
                       ))}
@@ -1265,14 +1131,14 @@ export default function Home() {
 
                   {selectedAruaru && (
                     <>
-                      <div className="mb-5 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-3 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-7 text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
+                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
+                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
                       </div>
 
-                      <div className="mb-5 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="whitespace-pre-line text-base leading-8 italic sm:text-lg">
-                          「{selectedAruaru.quote}」
+                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
+                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
+                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
                         </p>
                       </div>
                     </>
@@ -1285,7 +1151,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <p className="mt-5 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
+                  <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
