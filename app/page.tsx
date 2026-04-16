@@ -1279,8 +1279,36 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   ref={resultCardRef}
-                  className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]"
+                  className="pointer-events-none fixed -left-[9999px] top-0 w-[1080px] rounded-[40px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-10 ring-1 ring-[#f3e3d8]"
                 >
+                  <p className="mb-5 text-center text-[34px] text-[#7a5c48]">うちの子は…</p>
+
+                  <div className="mb-6 overflow-hidden rounded-[32px] bg-white p-5 ring-1 ring-[#f1e4da]">
+                    <img
+                      src={resultImageSrc}
+                      alt={result.mainType}
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/silhouette.png";
+                      }}
+                      className="mx-auto aspect-square w-full max-w-[760px] rounded-[24px] object-cover"
+                    />
+                  </div>
+
+                  <h3 className="mb-6 text-center text-[68px] font-bold leading-tight text-[#2b2b2b]">
+                    {result.mainType}
+                  </h3>
+
+                  {selectedAruaru && (
+                    <div className="rounded-[28px] bg-white/80 p-8 ring-1 ring-[#f1e4da]">
+                      <p className="mb-3 text-[30px] font-semibold text-[#9a7d69]">あるある</p>
+                      <p className="text-[42px] leading-[1.55] text-[#4e433d]">{selectedAruaru.text}</p>
+                    </div>
+                  )}
+
+                  <p className="mt-6 text-center text-[28px] text-[#9a7d69]">#ねこびーてぃあい</p>
+                </div>
+
+                <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
                   <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
                     <img
@@ -1294,37 +1322,14 @@ export default function Home() {
                   </div>
                   <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
-                      {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait}>・{trait}</p>
-                      ))}
-                    </div>
-                  </div>
-
                   {selectedAruaru && (
-                    <>
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
-                      </div>
-
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
-                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
-                        </p>
-                      </div>
-                    </>
+                    <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                      <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
+                      <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
+                    </div>
                   )}
 
-                  <div className="text-center">
-                    <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
-                    <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {bestMatchMap[result.mainType]} ★★★★★
-                    </p>
-                  </div>
-
-                  <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
+                  <p className="mt-3 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
