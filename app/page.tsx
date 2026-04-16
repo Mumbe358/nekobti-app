@@ -812,11 +812,18 @@ export default function Home() {
     try {
       setIsSavingResult(true);
 
+      const ua = navigator.userAgent;
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const referrer = document.referrer;
+
       const { error } = await supabase.from("diagnosis_results").insert({
         result_type: result.mainType,
         mbti: result.mbti,
         gender: selectedGender,
         coat: selectedCoat,
+        user_agent: ua,
+        timezone,
+        referrer,
       });
 
       if (error) {
