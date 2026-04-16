@@ -614,7 +614,6 @@ export default function Home() {
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>(() => buildQuestionSet());
   const [step, setStep] = useState(0);
-  const [displayStep, setDisplayStep] = useState(0);
   const [answers, setAnswers] = useState<(QuestionOption | null)[]>(() =>
     Array(16).fill(null)
   );
@@ -632,6 +631,8 @@ export default function Home() {
   const [isSavingResult, setIsSavingResult] = useState(false);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
+  const stepTimerRef = useRef<number | null>(null);
+  const unlockTimerRef = useRef<number | null>(null);
 
   const loadingMessages = useMemo(
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
@@ -650,10 +651,17 @@ export default function Home() {
     };
   }, [isOpen, isTypeListOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+      if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
+    };
+  }, []);
+
   const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions + 1;
   const answeredCount = answers.filter(Boolean).length;
-  const isAppearanceStep = displayStep === totalQuestions;
+  const isAppearanceStep = step === totalQuestions;
 
   const result = useMemo(() => {
     if (answeredCount !== totalQuestions) return null;
@@ -690,7 +698,6 @@ export default function Home() {
   const openDiagnosis = () => {
     setIsOpen(true);
     setStep(0);
-    setDisplayStep(0);
     const nextQuestions = buildQuestionSet();
     setCurrentQuestions(nextQuestions);
     setAnswers(Array(nextQuestions.length).fill(null));
@@ -704,7 +711,6 @@ export default function Home() {
     setSelectedGender("");
     setSelectedCoat("");
     setResultImageSrc("/images/silhouette.png");
-    transitionLockRef.current = false;
   };
 
   const closeDiagnosis = () => {
@@ -747,12 +753,15 @@ export default function Home() {
   const handleAnswer = (option: QuestionOption) => {
     if (selectedLabel || animating || isCalculating || transitionLockRef.current) return;
 
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+    if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
+
     transitionLockRef.current = true;
     setSelectedLabel(option.label);
     setDirection("next");
     setAnimating(true);
 
-    window.setTimeout(() => {
+    stepTimerRef.current = window.setTimeout(() => {
       setAnswers((prev) => {
         const next = [...prev];
         next[step] = option;
@@ -761,43 +770,44 @@ export default function Home() {
 
       setSelectedLabel(null);
 
-      const nextStep = step < totalQuestions - 1 ? step + 1 : totalQuestions;
-      setStep(nextStep);
-      setDisplayStep(nextStep);
+      if (step < totalQuestions - 1) {
+        setStep((prev) => prev + 1);
+      } else {
+        setStep(totalQuestions);
+      }
 
-      window.setTimeout(() => {
+      unlockTimerRef.current = window.setTimeout(() => {
         setAnimating(false);
         transitionLockRef.current = false;
-      }, 180);
+      }, 320);
     }, 180);
   };
 
   const handlePrev = () => {
     if (step === 0 || selectedLabel || animating || transitionLockRef.current) return;
 
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+    if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
+
     transitionLockRef.current = true;
+    setSelectedLabel(null);
     setDirection("prev");
     setAnimating(true);
 
-    const prevStep = step - 1;
-
     setAnswers((prev) => {
       const next = [...prev];
-      for (let i = prevStep; i < next.length; i += 1) {
+      for (let i = step - 1; i < next.length; i += 1) {
         next[i] = null;
       }
       return next;
     });
 
-    window.setTimeout(() => {
-      setStep(prevStep);
-      setDisplayStep(prevStep);
+    setStep((prev) => prev - 1);
 
-      window.setTimeout(() => {
-        setAnimating(false);
-        transitionLockRef.current = false;
-      }, 180);
-    }, 180);
+    unlockTimerRef.current = window.setTimeout(() => {
+      setAnimating(false);
+      transitionLockRef.current = false;
+    }, 320);
   };
 
   const restartDiagnosis = () => {
@@ -1097,28 +1107,28 @@ export default function Home() {
                   </div>
 
                   <p className="text-sm text-[#9a7d69]">
-                    {displayStep + 1} / {totalSteps} questions
+                    {step + 1} / {totalSteps} questions
                   </p>
                 </div>
 
                 <div
-                  key={displayStep}
-                  className={`transition-all duration-180 ${
+                  key={step}
+                  className={`transition-all duration-300 ${
                     direction === "next"
-                      ? "animate-[slideInRight_.18s_ease-out]"
-                      : "animate-[slideInLeft_.18s_ease-out]"
+                      ? "animate-[slideInRight_.28s_ease-out]"
+                      : "animate-[slideInLeft_.28s_ease-out]"
                   }`}
                 >
                   {!isAppearanceStep ? (
                     <>
                       <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                        {currentQuestions[displayStep].text}
+                        {currentQuestions[step].text}
                       </p>
 
                       <div className="grid gap-3">
-                        {currentQuestions[displayStep].options.map((option) => {
+                        {currentQuestions[step].options.map((option) => {
                           const isSelected = selectedLabel === option.label;
-                          const isAnsweredThisStep = answers[displayStep] !== null;
+                          const isAnsweredThisStep = answers[step] !== null;
 
                           return (
                             <button
@@ -1198,8 +1208,8 @@ export default function Home() {
                     disabled={step === 0 || selectedLabel !== null || animating || transitionLockRef.current || transitionLockRef.current}
                     className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
                       step === 0 || selectedLabel !== null || animating
-                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
-                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                        ? "pointer-events-none cursor-not-allowed bg-[#f3ebe5] text-[#c0a997] shadow-none"
+                        : "bg-white text-[#7a5c48] shadow-sm md:hover:bg-[#fff3ea]"
                     }`}
                   >
                     戻る
@@ -1348,13 +1358,13 @@ export default function Home() {
       </div>
 
       <div
-        className={`fixed inset-0 z-40 overflow-y-auto overflow-x-hidden bg-black/25 px-4 transition-all duration-180 ${
+        className={`fixed inset-0 z-40 overflow-y-auto overflow-x-hidden bg-black/25 px-4 transition-all duration-300 ${
           isTypeListOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeTypeList}
       >
         <div
-          className={`mx-auto my-6 w-[min(92vw,760px)] max-w-[760px] max-h-[calc(100dvh-48px)] overflow-y-auto overflow-x-hidden rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-180 sm:my-8 sm:p-8 ${
+          className={`mx-auto my-6 w-[min(92vw,760px)] max-w-[760px] max-h-[calc(100dvh-48px)] overflow-y-auto overflow-x-hidden rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
             isTypeListOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
           }`}
           onClick={(e) => e.stopPropagation()}
