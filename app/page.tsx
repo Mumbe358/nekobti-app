@@ -780,10 +780,13 @@ export default function Home() {
 
     setAnswers((prev) => {
       const next = [...prev];
-      next[step - 1] = null;
+      for (let i = step - 1; i < next.length; i += 1) {
+        next[i] = null;
+      }
       return next;
     });
 
+    setSelectedLabel(null);
     setStep((prev) => prev - 1);
 
     window.setTimeout(() => {
@@ -1120,7 +1123,7 @@ export default function Home() {
                                   handleAnswer(option);
                                 }
                               }}
-                              disabled={selectedLabel !== null || animating}
+                              disabled={selectedLabel !== null || animating || transitionLockRef.current}
                               className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
                                 isSelected
                                   ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
@@ -1188,10 +1191,10 @@ export default function Home() {
                   <button
                     onClick={handlePrev}
                     disabled={step === 0 || selectedLabel !== null || animating || transitionLockRef.current}
-                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                    className={`rounded-full border px-5 py-3 text-sm font-semibold transition focus:outline-none ${
                       step === 0 || selectedLabel !== null || animating || transitionLockRef.current
-                        ? "pointer-events-none cursor-not-allowed bg-[#f3ebe5] text-[#c0a997] shadow-none"
-                        : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
+                        ? "pointer-events-none cursor-not-allowed border-[#efe1d6] bg-[#f7f0ea] text-[#ccb6a6] shadow-none"
+                        : "border-[#ead8ca] bg-[#fbf6f2] text-[#8a6d59] shadow-none md:hover:bg-[#fff3ea]"
                     }`}
                   >
                     戻る
