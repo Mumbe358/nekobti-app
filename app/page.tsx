@@ -630,6 +630,7 @@ export default function Home() {
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
+  const transitionLockRef = useRef(false);
 
   const loadingMessages = useMemo(
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
@@ -741,8 +742,9 @@ export default function Home() {
   };
 
   const handleAnswer = (option: QuestionOption) => {
-    if (selectedLabel || animating || isCalculating) return;
+    if (selectedLabel || animating || isCalculating || transitionLockRef.current) return;
 
+    transitionLockRef.current = true;
     setSelectedLabel(option.label);
     setDirection("next");
     setAnimating(true);
@@ -758,21 +760,21 @@ export default function Home() {
 
       if (step < totalQuestions - 1) {
         setStep((prev) => prev + 1);
-        window.setTimeout(() => {
-          setAnimating(false);
-        }, 320);
       } else {
         setStep(totalQuestions);
-        window.setTimeout(() => {
-          setAnimating(false);
-        }, 320);
       }
+
+      window.setTimeout(() => {
+        setAnimating(false);
+        transitionLockRef.current = false;
+      }, 320);
     }, 180);
   };
 
   const handlePrev = () => {
-    if (step === 0 || selectedLabel || animating) return;
+    if (step === 0 || selectedLabel || animating || transitionLockRef.current) return;
 
+    transitionLockRef.current = true;
     setDirection("prev");
     setAnimating(true);
 
@@ -786,6 +788,7 @@ export default function Home() {
 
     window.setTimeout(() => {
       setAnimating(false);
+      transitionLockRef.current = false;
     }, 320);
   };
 
@@ -1184,10 +1187,10 @@ export default function Home() {
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <button
                     onClick={handlePrev}
-                    disabled={step === 0 || selectedLabel !== null || animating}
+                    disabled={step === 0 || selectedLabel !== null || animating || transitionLockRef.current}
                     className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
-                      step === 0 || selectedLabel !== null || animating
-                        ? "cursor-not-allowed bg-[#f3ebe5] text-[#c0a997]"
+                      step === 0 || selectedLabel !== null || animating || transitionLockRef.current
+                        ? "pointer-events-none cursor-not-allowed bg-[#f3ebe5] text-[#c0a997] shadow-none"
                         : "bg-white text-[#7a5c48] shadow-sm hover:bg-[#fff3ea]"
                     }`}
                   >
