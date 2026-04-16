@@ -49,10 +49,10 @@ const questionPool: Record<Segment, Question[]> = {
     { id: 4, text: "他の猫が近くにいたら？", segment: "EI", options: [{ label: "自分から関わりに行く", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
   ],
   SN: [
-    { id: 7, text: "遊ぶときはどっちに近い？", segment: "SN", options: [{ label: "体を動かしながら試す", axis: "S" }, { label: "タイミングを考えて動く", axis: "N" }] },
-    { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "すぐ見に行く", axis: "S" }, { label: "その場で様子を見る", axis: "N" }] },
-    { id: 9, text: "高い場所に対しては？", segment: "SN", options: [{ label: "登れるなら使う", axis: "S" }, { label: "特に意味は感じない", axis: "N" }] },
-    { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動いているものに反応する", axis: "S" }, { label: "景色全体をぼんやり眺める", axis: "N" }] },
+    { id: 7, text: "遊ぶときはどっちに近い？", segment: "SN", options: [{ label: "まず動いて感覚を確かめる", axis: "S" }, { label: "作戦や流れを考えてから動く", axis: "N" }] },
+    { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "現場を見に行って確かめる", axis: "S" }, { label: "何の音か想像しながら様子を見る", axis: "N" }] },
+    { id: 9, text: "高い場所に対しては？", segment: "SN", options: [{ label: "使えそうなら登って確かめる", axis: "S" }, { label: "上から全体を眺めたくなる", axis: "N" }] },
+    { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動いているものを目で追う", axis: "S" }, { label: "景色や空気感を味わう", axis: "N" }] },
   ],
   TF: [
     { id: 13, text: "飼い主との距離感は？", segment: "TF", options: [{ label: "よくそばにいる", axis: "F" }, { label: "気が向いたときだけ近づく", axis: "T" }] },
