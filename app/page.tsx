@@ -1099,6 +1099,9 @@ export default function Home() {
                 <div
                   key={step}
                   className="transition-all duration-200"
+                  style={{
+                    animation: `${direction === "next" ? "questionSlideInNext" : "questionSlideInPrev"} 180ms ease-out`,
+                  }}
                 >
                   {!isAppearanceStep ? (
                     <>
@@ -1386,6 +1389,30 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes questionSlideInNext {
+          from {
+            opacity: 0;
+            transform: translateX(14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes questionSlideInPrev {
+          from {
+            opacity: 0;
+            transform: translateX(-14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </main>
   );
 }
