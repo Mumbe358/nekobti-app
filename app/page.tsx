@@ -1098,11 +1098,7 @@ export default function Home() {
 
                 <div
                   key={step}
-                  className={`transition-all duration-300 ${
-                    direction === "next"
-                      ? "animate-[slideInRight_.28s_ease-out]"
-                      : "animate-[slideInLeft_.28s_ease-out]"
-                  }`}
+                  className="transition-all duration-200"
                 >
                   {!isAppearanceStep ? (
                     <>
@@ -1127,7 +1123,7 @@ export default function Home() {
                               className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
                                 isSelected
                                   ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                                  : "border-[#ead8ca] bg-[#fffdfb] md:hover:bg-[#fff3ea]"
                               }`}
                             >
                               <span className="block break-words leading-8">
