@@ -44,12 +44,12 @@ type CoatOption = "" | "white" | "black" | "gray" | "tabby" | "calico" | "brown"
 const questionPool: Record<Segment, Question[]> = {
   EI: [
     { id: 1, text: "知らない人が来たら？", segment: "EI", options: [{ label: "近づいて様子を見る", axis: "E" }, { label: "物陰から観察する", axis: "I" }] },
-    { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ飛びつく", axis: "E" }, { label: "しばらく様子を見る", axis: "I" }] },
+    { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ触って反応を見る", axis: "E" }, { label: "しばらく見て安全そうなら触る", axis: "I" }] },
     { id: 3, text: "お気に入りの場所は？", segment: "EI", options: [{ label: "みんながいる場所", axis: "E" }, { label: "静かで落ち着く場所", axis: "I" }] },
     { id: 4, text: "他の猫がいたら？", segment: "EI", options: [{ label: "関わろうとする", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
   ],
   SN: [
-    { id: 7, text: "遊び方は？", segment: "SN", options: [{ label: "全力で追いかける", axis: "S" }, { label: "タイミングを見て狙う", axis: "N" }] },
+    { id: 7, text: "遊ぶときはどっちに近い？", segment: "SN", options: [{ label: "体を動かしながら勢いで遊ぶ", axis: "S" }, { label: "タイミングを見て狙いを定める", axis: "N" }] },
     { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "すぐ確認しに行く", axis: "S" }, { label: "じっと様子を見る", axis: "N" }] },
     { id: 9, text: "高い場所は？", segment: "SN", options: [{ label: "特にこだわらない", axis: "S" }, { label: "好き", axis: "N" }] },
     { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動くものを追う", axis: "S" }, { label: "ぼんやり景色に浸る", axis: "N" }] },
