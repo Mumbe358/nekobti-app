@@ -633,6 +633,7 @@ export default function Home() {
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
+  const justWentBackRef = useRef(false);
 
   const loadingMessages = useMemo(
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
@@ -761,6 +762,9 @@ export default function Home() {
     setDirection("next");
     setAnimating(true);
 
+    const advanceDelay = justWentBackRef.current ? 0 : 180;
+    justWentBackRef.current = false;
+
     stepTimerRef.current = window.setTimeout(() => {
       setAnswers((prev) => {
         const next = [...prev];
@@ -780,7 +784,7 @@ export default function Home() {
         setAnimating(false);
         transitionLockRef.current = false;
       }, 320);
-    }, 180);
+    }, advanceDelay);
   };
 
   const handlePrev = () => {
@@ -790,6 +794,7 @@ export default function Home() {
     if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
 
     transitionLockRef.current = true;
+    justWentBackRef.current = true;
     setSelectedLabel(null);
     setDirection("prev");
     setAnimating(true);
@@ -1142,7 +1147,7 @@ export default function Home() {
                               className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
                                 isSelected
                                   ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
-                                  : "border-[#ead8ca] bg-[#fffdfb] hover:bg-[#fff3ea]"
+                                  : "border-[#ead8ca] bg-[#fffdfb] md:hover:bg-[#fff3ea]"
                               }`}
                             >
                               <span className="block break-words leading-8">
@@ -1206,12 +1211,12 @@ export default function Home() {
                   <button
                     onClick={handlePrev}
                     disabled={step === 0 || selectedLabel !== null || animating || transitionLockRef.current || transitionLockRef.current}
-                    className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                    className={`rounded-full px-5 py-3 text-sm font-semibold transition focus:outline-none ${
                       step === 0 || selectedLabel !== null || animating
                         ? "pointer-events-none cursor-not-allowed bg-[#f3ebe5] text-[#c0a997] shadow-none"
                         : "bg-white text-[#7a5c48] shadow-sm md:hover:bg-[#fff3ea]"
                     }`}
-                  >
+                                      style={{ WebkitTapHighlightColor: "transparent" }}>
                     戻る
                   </button>
 
