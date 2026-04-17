@@ -609,6 +609,42 @@ function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
 }
 
+
+const SESSION_STORAGE_KEY = "nekobti_session_id";
+
+function getOrCreateSessionId() {
+  if (typeof window === "undefined") return "";
+
+  const existing = window.localStorage.getItem(SESSION_STORAGE_KEY);
+  if (existing) return existing;
+
+  const next =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+  window.localStorage.setItem(SESSION_STORAGE_KEY, next);
+  return next;
+}
+
+function getUtmParams() {
+  if (typeof window === "undefined") {
+    return {
+      utm_source: null,
+      utm_medium: null,
+      utm_campaign: null,
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+
+  return {
+    utm_source: params.get("utm_source"),
+    utm_medium: params.get("utm_medium"),
+    utm_campaign: params.get("utm_campaign"),
+  };
+}
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
@@ -659,6 +695,38 @@ export default function Home() {
     };
   }, []);
 
+  const trackEvent = async (
+    eventName: string,
+    extra: Record<string, unknown> = {}
+  ) => {
+    try {
+      const sessionId = getOrCreateSessionId();
+      const { utm_source, utm_medium, utm_campaign } = getUtmParams();
+
+      const { error } = await supabase.from("events").insert({
+        event_name: eventName,
+        session_id: sessionId,
+        page_path: typeof window !== "undefined" ? window.location.pathname : null,
+        page_url: typeof window !== "undefined" ? window.location.href : null,
+        referrer: typeof document !== "undefined" ? document.referrer : null,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        ...extra,
+      });
+
+      if (error) {
+        console.error(`track ${eventName} failed:`, error);
+      }
+    } catch (error) {
+      console.error(`track ${eventName} exception:`, error);
+    }
+  };
+
+  useEffect(() => {
+    void trackEvent("page_view");
+  }, []);
+
   const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions + 1;
   const answeredCount = answers.filter(Boolean).length;
@@ -697,6 +765,7 @@ export default function Home() {
   }, [result, selectedGender, selectedCoat]);
 
   const openDiagnosis = () => {
+    void trackEvent("diagnosis_started");
     setIsOpen(true);
     setStep(0);
     const nextQuestions = buildQuestionSet();
@@ -743,6 +812,7 @@ export default function Home() {
   };
 
   const openTypeList = async () => {
+    void trackEvent("type_list_opened");
     setIsTypeListOpen(true);
     await fetchTypeShares();
   };
@@ -841,8 +911,11 @@ export default function Home() {
       const ua = navigator.userAgent;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const referrer = document.referrer;
+      const sessionId = getOrCreateSessionId();
+      const { utm_source, utm_medium, utm_campaign } = getUtmParams();
 
       const { error } = await supabase.from("diagnosis_results").insert({
+        session_id: sessionId,
         result_type: result.mainType,
         mbti: result.mbti,
         gender: selectedGender,
@@ -850,12 +923,22 @@ export default function Home() {
         user_agent: ua,
         timezone,
         referrer,
+        utm_source,
+        utm_medium,
+        utm_campaign,
       });
 
       if (error) {
         console.error("result save failed:", error);
         return;
       }
+
+      await trackEvent("diagnosis_completed", {
+        result_type: result.mainType,
+        mbti: result.mbti,
+        gender: selectedGender,
+        coat: selectedCoat,
+      });
 
       await fetchTypeShares();
     } finally {
@@ -909,6 +992,10 @@ export default function Home() {
   };
 
   const handleShare = async () => {
+    await trackEvent("share_clicked", {
+      result_type: result?.mainType ?? null,
+      mbti: result?.mbti ?? null,
+    });
     const dataUrl = await generateResultPng();
     const shareText = result
       ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
