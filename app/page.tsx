@@ -1467,8 +1467,7 @@ export default function Home() {
                   <p className="mb-3 text-center text-[38px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
                   <div className="mb-5 text-center text-[#2b2b2b]">
-                    {cardCopy.split("
-").map((line, index) => (
+                    {cardCopy.split("\n").map((line, index) => (
                       <p
                         key={`${line}-${index}`}
                         className={index === 1 ? "text-[94px] font-black leading-[1.02] tracking-[-0.05em]" : "text-[72px] font-bold leading-[1.06] tracking-[-0.04em]"}
