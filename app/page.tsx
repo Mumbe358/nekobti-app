@@ -807,7 +807,7 @@ export default function Home() {
   const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
-  const resultCardRef = useRef<HTMLDivElement | null>(null);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
@@ -1067,13 +1067,57 @@ export default function Home() {
     }, 2200);
   };
 
-  const generateResultPng = async () => {
-    if (!resultCardRef.current) return null;
+  const waitForShareCardReady = async () => {
+    const node = shareCardRef.current;
+    if (!node) return false;
+
     try {
-      return await toPng(resultCardRef.current, {
+      if (typeof document !== "undefined" && "fonts" in document) {
+        await document.fonts.ready;
+      }
+
+      const images = Array.from(node.querySelectorAll("img"));
+      await Promise.all(
+        images.map((img) => {
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+
+          return new Promise<void>((resolve) => {
+            const done = () => {
+              img.removeEventListener("load", done);
+              img.removeEventListener("error", done);
+              resolve();
+            };
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          });
+        })
+      );
+
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
+
+  const generateResultPng = async () => {
+    const node = shareCardRef.current;
+    if (!node) return null;
+
+    const ready = await waitForShareCardReady();
+    if (!ready) return null;
+
+    try {
+      return await toPng(node, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: "#ffffff",
+        backgroundColor: "#fffdfb",
+        width: 1080,
+        height: node.scrollHeight,
+        canvasWidth: 1080 * 2,
+        canvasHeight: node.scrollHeight * 2,
       });
     } catch (error) {
       console.error(error);
@@ -1081,22 +1125,12 @@ export default function Home() {
     }
   };
 
-  const handleSaveImage = async () => {
-    const dataUrl = await generateResultPng();
-    if (!dataUrl) return;
-
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = "nekobti-result.png";
-    link.click();
-  };
-
   const handleShare = async () => {
-    const dataUrl = await generateResultPng();
     const shareText = result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみてね`
       : "うちの猫のタイプ診断をやってみた🐱";
     const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const dataUrl = await generateResultPng();
 
     if (dataUrl) {
       try {
@@ -1110,7 +1144,8 @@ export default function Home() {
           navigator.canShare({ files: [file] })
         ) {
           await navigator.share({
-            text: `${shareText}\n${shareUrl}`,
+            title: `${result?.mainType ?? "ねこびーてぃあい"}｜ねこびーてぃあい`,
+            text: shareText,
             files: [file],
           });
           return;
@@ -1123,12 +1158,22 @@ export default function Home() {
     if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
         await navigator.share({
-          text: `${shareText}\n${shareUrl}`,
+          title: `${result?.mainType ?? "ねこびーてぃあい"}｜ねこびーてぃあい`,
+          text: shareText,
+          url: shareUrl,
         });
         return;
       } catch (error) {
         console.error(error);
       }
+    }
+
+    if (dataUrl) {
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "nekobti-result.png";
+      link.click();
+      return;
     }
 
     const fallbackText = `${shareText}\n${shareUrl}`;
@@ -1139,11 +1184,6 @@ export default function Home() {
         console.error(error);
       }
     }
-
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(fallbackText)}`,
-      "_blank"
-    );
   };
 
   return (
@@ -1425,7 +1465,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <div ref={resultCardRef} className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
                   <p className="text-lg font-semibold text-[#2b2b2b]">
@@ -1461,8 +1501,8 @@ export default function Home() {
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
-                  ref={resultCardRef}
-                  className={`${notoSans.className} pointer-events-none fixed -left-[9999px] top-0 w-[1080px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b]`}
+                  ref={shareCardRef}
+                  className={`${notoSans.className} pointer-events-none fixed left-0 top-0 -z-10 w-[1080px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b] opacity-0`}
                 >
                   <p className="mb-3 text-center text-[38px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
@@ -1557,18 +1597,12 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    onClick={handleSaveImage}
-                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
-                  >
-                    画像を保存
-                  </button>
+                <div className="mt-3">
                   <button
                     onClick={handleShare}
-                    className="rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
+                    className="w-full rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
                   >
-                    SNSで共有
+                    シェア
                   </button>
                 </div>
               </div>
