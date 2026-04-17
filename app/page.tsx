@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
+import { Noto_Sans_JP } from "next/font/google";
 
 type Axis = "E" | "I" | "S" | "N" | "T" | "F" | "J" | "P";
 
@@ -40,6 +41,11 @@ type Question = {
 
 type GenderOption = "" | "male" | "female";
 type CoatOption = "" | "white" | "black" | "gray" | "tabby" | "calico" | "brown";
+
+const notoSans = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
+});
 
 const questionPool: Record<Segment, Question[]> = {
   EI: [
@@ -437,6 +443,113 @@ const aruaruMap: Record<CatType, AruaruSet[]> = {
   ],
 };
 
+const cardCopyMap: Record<CatType, string[]> = {
+  "しずか哲学ねこ": [
+    "夜だけ急に\n動き出すやつ",
+    "何もないとこ\nずっと見てるやつ",
+    "静かになったら\n近くに来るやつ",
+    "いつもの隅っこ\nちゃんとキープするやつ",
+  ],
+  "よりそい守りねこ": [
+    "気づいたら\nそばにいるやつ",
+    "元気ない人にだけ\n寄ってくるやつ",
+    "足元のベスト位置\n分かってるやつ",
+    "怒られても\n同じ部屋にいるやつ",
+  ],
+  "規律番ねこ": [
+    "ごはんの時間\n一番正確なやつ",
+    "配置変わると\nすぐ気づくやつ",
+    "通るルート\n毎回だいたい同じやつ",
+    "新しいものは\nまず確認するやつ",
+  ],
+  "戦略きれものねこ": [
+    "一回見たら\n最短で決めるやつ",
+    "人のやり方\n見て覚えてるやつ",
+    "今じゃないって\n待てるやつ",
+    "先に様子見てから\n必要な時だけ動くやつ",
+  ],
+  "無口クラフトねこ": [
+    "箱に入ったあと\n中を整えるやつ",
+    "ヒモだけ急に\n職人になるやつ",
+    "壊れたおもちゃも\n使いこなすやつ",
+    "すき間ずっと\n触ってるやつ",
+  ],
+  "ふわアートねこ": [
+    "光とか影とか\n急に追いかけるやつ",
+    "触り心地で\n寝床決めるやつ",
+    "急に走って\n急に止まるやつ",
+    "小さい音だけ\nちゃんと聞いてるやつ",
+  ],
+  "ゆめふわロマンねこ": [
+    "何もないとこ\n見つめてるやつ",
+    "お気に入りの場所で\nずっとぼんやりしてるやつ",
+    "甘えに来たのに\n急に戻るやつ",
+    "近すぎず遠すぎず\n同じ空間にいるやつ",
+  ],
+  "ひらめき遊びねこ": [
+    "普通のおもちゃを\n違う遊び方するやつ",
+    "同じ動き\n延々試してるやつ",
+    "誰も見ないものに\n夢中なやつ",
+    "おもちゃ壊して\n中見たいだけのやつ",
+  ],
+  "突撃アクティブねこ": [
+    "閉まりかけでも\nそのまま行くやつ",
+    "飛んでから考える\nタイプのやつ",
+    "危なそうな場所ほど\n先に行くやつ",
+    "急に部屋中\n走り出すやつ",
+  ],
+  "きらきらパーティーねこ": [
+    "人が集まるとこ\n絶対行くやつ",
+    "にぎやかな音で\nすぐ来るやつ",
+    "楽しそうだと\nすぐ混ざるやつ",
+    "静かな場所より\n人のいる方行くやつ",
+  ],
+  "わくわく自由ねこ": [
+    "飛びついて\nすぐ次行くやつ",
+    "ついてきたのに\n途中で寄り道するやつ",
+    "全力で遊んで\n急に終わるやつ",
+    "全部気になって\n全部触りたいやつ",
+  ],
+  "いたずら天才ねこ": [
+    "落とす前に\nこっち見てくるやつ",
+    "ダメな場所ほど\n乗りたがるやつ",
+    "反応見たくて\nちょっかい出すやつ",
+    "遊び方を\n勝手に発明するやつ",
+  ],
+  "しきり屋リーダーねこ": [
+    "落ち着いてないと\n止めに入るやつ",
+    "場所のルール\n先に決めるやつ",
+    "騒がしいと\n確認しに来るやつ",
+    "乱れてる空気\n整えに行くやつ",
+  ],
+  "みんな大好きねこ": [
+    "来客あると\n最初に見に行くやつ",
+    "全員に順番に\n甘えるやつ",
+    "優しそうな人\n見つけるの早いやつ",
+    "帰る人の後ろ\nついていくやつ",
+  ],
+  "導きカリスマねこ": [
+    "元気ない人にだけ\n寄りそうやつ",
+    "空気変わると\nすぐ気づくやつ",
+    "その場の全員\nちゃんと見てるやつ",
+    "ちょい後ろから\nついてくるやつ",
+  ],
+  "覇王ボスねこ": [
+    "そこ使うって顔で\n取りにくるやつ",
+    "一番上から\n見渡してるやつ",
+    "道あける前提で\nまっすぐ来るやつ",
+    "気づいたら\n一番いい場所取ってるやつ",
+  ],
+};
+
+function getCardCopy(type: CatType, aruaru: AruaruSet | null) {
+  if (!aruaru) return `${type}タイプ`;
+  const aruaruIndex = aruaruMap[type].findIndex((item) => item.text === aruaru.text);
+  if (aruaruIndex >= 0) {
+    return cardCopyMap[type][aruaruIndex] ?? `${type}タイプ`;
+  }
+  return cardCopyMap[type][0] ?? `${type}タイプ`;
+}
 function getRandomAruaru(type: CatType) {
   const list = aruaruMap[type];
   return list[Math.floor(Math.random() * list.length)];
@@ -609,42 +722,6 @@ function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
 }
 
-
-const SESSION_STORAGE_KEY = "nekobti_session_id";
-
-function getOrCreateSessionId() {
-  if (typeof window === "undefined") return "";
-
-  const existing = window.localStorage.getItem(SESSION_STORAGE_KEY);
-  if (existing) return existing;
-
-  const next =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-  window.localStorage.setItem(SESSION_STORAGE_KEY, next);
-  return next;
-}
-
-function getUtmParams() {
-  if (typeof window === "undefined") {
-    return {
-      utm_source: null,
-      utm_medium: null,
-      utm_campaign: null,
-    };
-  }
-
-  const params = new URLSearchParams(window.location.search);
-
-  return {
-    utm_source: params.get("utm_source"),
-    utm_medium: params.get("utm_medium"),
-    utm_campaign: params.get("utm_campaign"),
-  };
-}
-
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
@@ -695,38 +772,6 @@ export default function Home() {
     };
   }, []);
 
-  const trackEvent = async (
-    eventName: string,
-    extra: Record<string, unknown> = {}
-  ) => {
-    try {
-      const sessionId = getOrCreateSessionId();
-      const { utm_source, utm_medium, utm_campaign } = getUtmParams();
-
-      const { error } = await supabase.from("events").insert({
-        event_name: eventName,
-        session_id: sessionId,
-        page_path: typeof window !== "undefined" ? window.location.pathname : null,
-        page_url: typeof window !== "undefined" ? window.location.href : null,
-        referrer: typeof document !== "undefined" ? document.referrer : null,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        ...extra,
-      });
-
-      if (error) {
-        console.error(`track ${eventName} failed:`, error);
-      }
-    } catch (error) {
-      console.error(`track ${eventName} exception:`, error);
-    }
-  };
-
-  useEffect(() => {
-    void trackEvent("page_view");
-  }, []);
-
   const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions + 1;
   const answeredCount = answers.filter(Boolean).length;
@@ -752,6 +797,11 @@ export default function Home() {
     };
   }, [answers, answeredCount, totalQuestions]);
 
+  const cardCopy = useMemo(() => {
+    if (!result) return "";
+    return getCardCopy(result.mainType, selectedAruaru);
+  }, [result, selectedAruaru]);
+
   useEffect(() => {
     if (showResult && result) {
       setSelectedAruaru(getRandomAruaru(result.mainType));
@@ -765,7 +815,6 @@ export default function Home() {
   }, [result, selectedGender, selectedCoat]);
 
   const openDiagnosis = () => {
-    void trackEvent("diagnosis_started");
     setIsOpen(true);
     setStep(0);
     const nextQuestions = buildQuestionSet();
@@ -812,7 +861,6 @@ export default function Home() {
   };
 
   const openTypeList = async () => {
-    void trackEvent("type_list_opened");
     setIsTypeListOpen(true);
     await fetchTypeShares();
   };
@@ -911,11 +959,8 @@ export default function Home() {
       const ua = navigator.userAgent;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const referrer = document.referrer;
-      const sessionId = getOrCreateSessionId();
-      const { utm_source, utm_medium, utm_campaign } = getUtmParams();
 
       const { error } = await supabase.from("diagnosis_results").insert({
-        session_id: sessionId,
         result_type: result.mainType,
         mbti: result.mbti,
         gender: selectedGender,
@@ -923,22 +968,12 @@ export default function Home() {
         user_agent: ua,
         timezone,
         referrer,
-        utm_source,
-        utm_medium,
-        utm_campaign,
       });
 
       if (error) {
         console.error("result save failed:", error);
         return;
       }
-
-      await trackEvent("diagnosis_completed", {
-        result_type: result.mainType,
-        mbti: result.mbti,
-        gender: selectedGender,
-        coat: selectedCoat,
-      });
 
       await fetchTypeShares();
     } finally {
@@ -992,10 +1027,6 @@ export default function Home() {
   };
 
   const handleShare = async () => {
-    await trackEvent("share_clicked", {
-      result_type: result?.mainType ?? null,
-      mbti: result?.mbti ?? null,
-    });
     const dataUrl = await generateResultPng();
     const shareText = result
       ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみて👇`
@@ -1366,80 +1397,101 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   ref={resultCardRef}
-                  className="pointer-events-none fixed -left-[9999px] top-0 w-[1080px] rounded-[40px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-10 ring-1 ring-[#f3e3d8]"
+                  className={`${notoSans.className} pointer-events-none fixed -left-[9999px] top-0 w-[1080px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b]`}
                 >
-                  <p className="mb-5 text-center text-[34px] text-[#7a5c48]">うちの子は…</p>
+                  <p className="mb-4 text-center text-[42px] font-medium tracking-[0.02em] text-[#8a6a57]">うちの子は…</p>
 
-                  <div className="mb-6 overflow-hidden rounded-[32px] bg-white p-5 ring-1 ring-[#f1e4da]">
+                  <div className="mb-5 text-center text-[#2b2b2b]">
+                    {cardCopy.split("\n").map((line, index) => (
+                      <p
+                        key={`${line}-${index}`}
+                        className={index === 1 ? "text-[112px] font-black leading-[1.02] tracking-[-0.05em]" : "text-[86px] font-bold leading-[1.06] tracking-[-0.04em]"}
+                      >
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+
+                  <div className="mb-3 flex justify-center">
                     <img
                       src={resultImageSrc}
                       alt={result.mainType}
                       onError={(e) => {
                         e.currentTarget.src = "/images/silhouette.png";
                       }}
-                      className="mx-auto aspect-square w-full max-w-[760px] rounded-[24px] object-cover"
+                      className="aspect-square w-full max-w-[700px] object-contain"
                     />
                   </div>
 
-                  <h3 className="mb-6 text-center text-[68px] font-bold leading-tight text-[#2b2b2b]">
-                    {result.mainType}
-                  </h3>
+                  <p className="text-center text-[44px] font-medium tracking-[-0.02em] text-[#7a5c48]">
+                    {result.mainType}タイプ
+                  </p>
 
-                  {selectedAruaru && (
-                    <div className="rounded-[28px] bg-white/80 p-8 ring-1 ring-[#f1e4da]">
-                      <p className="mb-3 text-[30px] font-semibold text-[#9a7d69]">あるある</p>
-                      <p className="text-[42px] leading-[1.55] text-[#4e433d]">{selectedAruaru.text}</p>
-                    </div>
-                  )}
-
-                  <p className="mt-6 text-center text-[28px] text-[#9a7d69]">#ねこびーてぃあい</p>
+                  <p className="mt-8 text-right text-[28px] text-[#9a7d69]">©ねこびーてぃあい</p>
                 </div>
 
-                <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
-                  <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
-                  <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+                <div className="mb-2 text-center">
+                <p className="text-xs font-semibold tracking-[0.18em] text-[#b07d62]">SHARE CARD</p>
+                <p className="mt-1 text-sm text-[#8a6a57]">シェア用カード</p>
+              </div>
+
+              <div className={`mb-6 rounded-[32px] bg-[#fffdfb] p-5 ring-1 ring-[#f3e3d8] ${notoSans.className}`}>
+                  <p className="mb-3 text-center text-base font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
+
+                  <div className="mb-3 text-center text-[#2b2b2b]">
+                    {cardCopy.split("\n").map((line, index) => (
+                      <p
+                        key={`${line}-${index}`}
+                        className={index === 1 ? "text-[44px] font-black leading-[1.02] tracking-[-0.05em] sm:text-[56px]" : "text-[34px] font-bold leading-[1.08] tracking-[-0.04em] sm:text-[42px]"}
+                      >
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+
+                  <div className="mb-2 flex justify-center">
                     <img
                       src={resultImageSrc}
                       alt={result.mainType}
                       onError={(e) => {
                         e.currentTarget.src = "/images/silhouette.png";
                       }}
-                      className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
+                      className="aspect-square w-full max-w-[360px] object-contain sm:max-w-[420px]"
                     />
                   </div>
-                  <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
-                      {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait}>・{trait}</p>
-                      ))}
+                  <p className="text-center text-xl font-medium text-[#7a5c48] sm:text-2xl">{result.mainType}タイプ</p>
+                  <p className="mt-3 text-right text-xs text-[#9a7d69] sm:text-sm">©ねこびーてぃあい</p>
+                </div>
+
+                <div className="mb-3 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                  <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
+                    {traitsMap[result.mainType].map((trait) => (
+                      <p key={trait}>・{trait}</p>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedAruaru && (
+                  <>
+                    <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                      <p className="mb-1 text-sm font-semibold text-[#9a7d69]">元あるある</p>
+                      <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
                     </div>
-                  </div>
 
-                  {selectedAruaru && (
-                    <>
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
-                      </div>
+                    <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
+                      <p className="text-left text-base font-bold not-italic text-[#4e433d]">
+                        🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
+                      </p>
+                    </div>
+                  </>
+                )}
 
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
-                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
-                        </p>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="text-center">
-                    <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
-                    <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {bestMatchMap[result.mainType]} ★★★★★
-                    </p>
-                  </div>
-
-                  <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
+                <div className="text-center">
+                  <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
+                  <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
+                    {bestMatchMap[result.mainType]} ★★★★★
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
