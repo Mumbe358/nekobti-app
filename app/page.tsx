@@ -1199,27 +1199,10 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // title
-      ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 52);
-
-      // copy
-      ctx.fillStyle = "#2b2b2b";
-      ctx.font = "200 88px 'Kiwami'";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
-      let copyY = 170;
-      copyLines.forEach((line) => {
-        ctx.font = "200 88px 'Kiwami'";
-        ctx.fillText(line, width / 2, copyY);
-        copyY += 102;
-      });
-
-      // image
+      // layout: illustration → type name → space → copy
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = Math.round(width * 0.82);
-      const imgX = width / 2 - imgBox / 2;
-      const imgY = copyY + 12;
+      const imgBox = Math.round(width * 0.72);
+      const imgY = 92;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1236,13 +1219,29 @@ export default function Home() {
         typeFontSize -= 2;
         ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
       }
-      const typeY = imgY + imgBox - 4;
+      const typeY = imgY + imgBox - 18;
       ctx.fillText(typeNameText, width / 2, typeY);
+
+      // copy block
+      const copyTitleY = typeY + typeFontSize + 96;
+      ctx.fillStyle = "#8a6a57";
+      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
+      ctx.fillText("うちの子は…", width / 2, copyTitleY);
+
+      ctx.fillStyle = "#2b2b2b";
+      ctx.font = "200 78px 'Kiwami'";
+      const copyLines = wrapCanvasText(ctx, cardCopy, 900).slice(0, 3);
+      let copyY = copyTitleY + 72;
+      copyLines.forEach((line) => {
+        ctx.font = "200 78px 'Kiwami'";
+        ctx.fillText(line, width / 2, copyY);
+        copyY += 90;
+      });
 
       // copyright / brand
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 108);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
