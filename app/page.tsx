@@ -1166,7 +1166,7 @@ export default function Home() {
         try {
           await document.fonts.ready;
           try {
-            await document.fonts.load("200 88px 'Kiwami'");
+            await document.fonts.load("900 88px 'Kiwami'");
           } catch {}
         } catch {}
       }
@@ -1180,92 +1180,48 @@ export default function Home() {
       canvas.width = width;
       canvas.height = height;
 
-      const layout = {
-        titleY: 52,
-        copyTop: 150,
-        copyHeight: 240,
-        copyWidth: 880,
-        imageY: 420,
-        imageBox: Math.round(width * 0.62),
-        typeY: 1110,
-        typeWidth: 860,
-        copyrightY: 1268,
-      };
-
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
+      // title
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, layout.titleY);
+      ctx.fillText("うちの子は…", width / 2, 52);
 
-      const fitCopy = () => {
-        for (let size = 88; size >= 64; size -= 2) {
-          ctx.font = `200 ${size}px 'Kiwami'`;
-          const lines = wrapCanvasText(ctx, cardCopy, layout.copyWidth);
-
-          if (lines.length > 3) continue;
-
-          const lineHeight = Math.round(size * 1.15);
-          if (lines.length * lineHeight <= layout.copyHeight) {
-            return { size, lineHeight, lines };
-          }
-        }
-
-        ctx.font = "200 64px 'Kiwami'";
-        return {
-          size: 64,
-          lineHeight: 74,
-          lines: wrapCanvasText(ctx, cardCopy, layout.copyWidth).slice(0, 3),
-        };
-      };
-
-      const fitted = fitCopy();
-
+      // copy
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = `200 ${fitted.size}px 'Kiwami'`;
-
-      const totalCopyHeight = fitted.lines.length * fitted.lineHeight;
-      let copyY = layout.copyTop + (layout.copyHeight - totalCopyHeight) / 2;
-
-      fitted.lines.forEach((line) => {
+      ctx.font = "900 88px 'Kiwami'";
+      const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
+      let copyY = 170;
+      copyLines.forEach((line) => {
+        ctx.font = "900 88px 'Kiwami'";
         ctx.fillText(line, width / 2, copyY);
-        copyY += fitted.lineHeight;
+        copyY += 102;
       });
 
+      // image
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = layout.imageBox;
-
+      const imgBox = Math.round(width * 0.82);
+      const imgX = width / 2 - imgBox / 2;
+      const imgY = copyY + 12;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
         const drawH = img.naturalHeight * scale;
-
-        ctx.drawImage(
-          img,
-          width / 2 - drawW / 2,
-          layout.imageY + (imgBox - drawH) / 2,
-          drawW,
-          drawH
-        );
+        ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
       }
 
-      let typeFontSize = 54;
-      while (typeFontSize > 28) {
-        ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
-        if (ctx.measureText(result.mainType).width <= layout.typeWidth) break;
-        typeFontSize -= 2;
-      }
+      // type name
+      ctx.fillStyle = "#7a5c48";
+      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 20);
 
-      ctx.fillStyle = "#2b2b2b";
-      ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
-      ctx.fillText(result.mainType, width / 2, layout.typeY);
-
+      // copyright / brand
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, layout.copyrightY);
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
@@ -1687,10 +1643,10 @@ ${shareUrl}`);
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
-                  <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
-                  <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+              <div className="rounded-3xl bg-white px-3 py-3 ring-1 ring-[#f2e5dc] sm:px-4 sm:py-4">
+                <div className="mb-3 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-3 py-3 ring-1 ring-[#f3e3d8]">
+                  <p className="mb-2 text-center text-sm text-[#7a5c48]">うちの子は…</p>
+                  <div className="mb-3 overflow-hidden rounded-[24px] bg-white p-2 ring-1 ring-[#f1e4da]">
                     <img
                       src={resultImageSrc}
                       alt={result.mainType}
@@ -1700,67 +1656,61 @@ ${shareUrl}`);
                       className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
                     />
                   </div>
-                  <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                    <div className="space-y-0 text-[14px] font-bold leading-relaxed text-[#4e433d] sm:text-base">
+                  <div className="mb-3 flex min-h-[52px] items-center justify-center overflow-hidden">
+                    <h3
+                      className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-[36px] leading-none tracking-tight text-[#2b2b2b] sm:text-[42px]"
+                      style={{ fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif", fontWeight: 200 }}
+                    >
+                      {result.mainType}
+                    </h3>
+                  </div>
+
+                  <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
+                    <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
+                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait} className="font-bold">・{trait}</p>
+                        <p key={trait}>・{trait}</p>
                       ))}
                     </div>
                   </div>
 
                   {selectedAruaru && (
-                    <>
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
-                      </div>
-
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
-                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
-                        </p>
-                      </div>
-                    </>
+                    <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
+                      <p className="mb-2 text-sm font-bold text-[#9a7d69]">あるある</p>
+                      <p className="text-sm font-bold leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
+                    </div>
                   )}
 
                   <div className="text-center">
-                    <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
+                    <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
                     <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {ownerCompatibility[result.mainType][0].type}
-                      （{ownerMbtiLabelMap[ownerCompatibility[result.mainType][0].type]}）
-                    </p>
-                    <p className="text-base text-[#4e433d]">
-                      {renderHearts(ownerCompatibility[result.mainType][0].hearts)}
+                      {bestMatchMap[result.mainType]} ★★★★★
                     </p>
                   </div>
 
                   <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
                 </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-col gap-2">
                   <button
                     onClick={restartDiagnosis}
-                    className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
+                    className="rounded-full bg-[#2b2b2b] px-5 py-3 text-base font-semibold text-white transition hover:opacity-90"
                   >
                     もう一度診断する
                   </button>
                   <button
                     onClick={closeDiagnosis}
-                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                    className="rounded-full border border-[#d8c1b1] bg-white px-5 py-3 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
                   >
                     閉じる
                   </button>
-                </div>
-
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={() => {
                       void openSharePreview();
                     }}
                     disabled={!isMobileClient || isOpeningSharePreview || isPreparingShareImage}
-                    className={`rounded-full px-6 py-4 text-base font-semibold transition ${
+                    className={`rounded-full px-5 py-3 text-base font-semibold transition ${
                       isMobileClient
                         ? "bg-[#f1e3d6] text-[#7a5c48] hover:opacity-90"
                         : "cursor-not-allowed border border-[#e7d8cc] bg-[#f7f1ec] text-[#b59a88]"
