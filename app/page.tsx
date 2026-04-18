@@ -1727,8 +1727,7 @@ ${shareUrl}`);
       {result && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed left-1/2 top-1/2 z-[-1]"
-          style={{ transform: "translate(-50%, -50%)", visibility: "hidden" }}
+          className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center p-4 opacity-[0.01]"
         >
           <div
             ref={shareCardRef}
