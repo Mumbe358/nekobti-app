@@ -1502,7 +1502,7 @@ export default function Home() {
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div
                   ref={shareCardRef}
-                  className={`${notoSans.className} pointer-events-none fixed left-0 top-0 -z-10 w-[1080px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b] opacity-0`}
+                  className={`${notoSans.className} pointer-events-none fixed left-[-200vw] top-0 w-[1080px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b] opacity-100`}
                 >
                   <p className="mb-3 text-center text-[38px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
