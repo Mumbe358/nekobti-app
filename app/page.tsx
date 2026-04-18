@@ -1165,10 +1165,6 @@ export default function Home() {
       if (typeof document !== "undefined" && "fonts" in document) {
         try {
           await document.fonts.ready;
-          try {
-            await document.fonts.load("900 72px 'KillGothic'");
-            await document.fonts.load("900 90px 'KillGothic'");
-          } catch {}
         } catch {}
       }
 
@@ -1217,7 +1213,7 @@ export default function Home() {
       const copyLines = wrapCanvasText(ctx, cardCopy, 760).slice(0, 3);
       let copyY = 180;
       copyLines.forEach((line, index) => {
-        ctx.font = index === 1 ? "900 90px 'KillGothic', 'Noto Sans JP', sans-serif" : "900 72px 'KillGothic', 'Noto Sans JP', sans-serif";
+        ctx.font = index === 1 ? "900 90px 'Noto Sans JP', sans-serif" : "900 72px 'Noto Sans JP', sans-serif";
         ctx.fillText(line, width / 2, copyY);
         copyY += index === 1 ? 102 : 84;
       });
