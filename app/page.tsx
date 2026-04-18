@@ -1162,16 +1162,6 @@ export default function Home() {
       setIsPreparingShareImage(true);
       setShareImageError(null);
 
-      if (typeof document !== "undefined" && "fonts" in document) {
-        try {
-          await document.fonts.ready;
-          try {
-            await document.fonts.load("900 72px 'Kiwami'");
-            await document.fonts.load("900 90px 'Kiwami'");
-          } catch {}
-        } catch {}
-      }
-
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
@@ -1186,41 +1176,43 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // title
+      // うちの子は（上だけ）
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 52);
+      ctx.fillText("うちの子は…", width / 2, 40);
 
-      // copy
+      // コピー（幅を狭く）
       ctx.fillStyle = "#2b2b2b";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 700).slice(0, 3);
-      let copyY = 170;
-      copyLines.forEach((line, index) => {
-        ctx.font = index === 1 ? "200 96px 'Kiwami', 'Noto Sans JP', sans-serif" : "200 82px 'Kiwami', 'Noto Sans JP', sans-serif";
+      const copyLines = wrapCanvasText(ctx, cardCopy, 600).slice(0, 3);
+
+      let copyY = 200;
+      copyLines.forEach((line) => {
+        ctx.font = "200 96px 'Kiwami', 'Noto Sans JP', sans-serif";
         ctx.fillText(line, width / 2, copyY);
-        copyY += index === 1 ? 106 : 92;
+        copyY += 110;
       });
 
-      // image
+      // 猫（デカくする）
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = 560;
-      const imgY = 430;
+      const imgBox = width * 0.85;
+      const imgY = copyY + 20;
+
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
         const drawH = img.naturalHeight * scale;
-        ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
+        ctx.drawImage(img, width / 2 - drawW / 2, imgY, drawW, drawH);
       }
 
-      // type name
+      // タイプ名（もっと下）
       ctx.fillStyle = "#7a5c48";
       ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1108);
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 40);
 
-      // copyright
+      // ねこびーてぃあい（大きく）
       ctx.fillStyle = "#9a7d69";
-      ctx.font = "500 34px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, 1212);
+      ctx.font = "700 42px 'Noto Sans JP', sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 60);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
