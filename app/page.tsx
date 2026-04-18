@@ -807,6 +807,8 @@ export default function Home() {
   const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const resultCardRef = useRef<HTMLDivElement | null>(null);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
@@ -1068,69 +1070,65 @@ export default function Home() {
   };
 
   const waitForShareCardReady = async () => {
-    const node = shareCardRef.current;
-    if (!node) return false;
-
-    try {
-      if (typeof document !== "undefined" && "fonts" in document) {
+    if (typeof document !== "undefined" && "fonts" in document) {
+      try {
         await document.fonts.ready;
-      }
+      } catch {}
+    }
 
-      const images = Array.from(node.querySelectorAll("img"));
-      await Promise.all(
-        images.map((img) => {
-          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
 
-          return new Promise<void>((resolve) => {
-            const done = () => {
-              img.removeEventListener("load", done);
-              img.removeEventListener("error", done);
+    const root = shareCardRef.current;
+    if (!root) return;
+
+    const images = Array.from(root.querySelectorAll("img"));
+    await Promise.all(
+      images.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            if (img.complete) {
               resolve();
-            };
+              return;
+            }
+            const done = () => resolve();
             img.addEventListener("load", done, { once: true });
             img.addEventListener("error", done, { once: true });
-          });
-        })
-      );
+          }),
+      ),
+    );
 
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-      return true;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
+    await new Promise((resolve) =>
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve(undefined))),
+    );
   };
 
   const generateResultPng = async () => {
-    const node = shareCardRef.current;
-    if (!node) return null;
-
-    const ready = await waitForShareCardReady();
-    if (!ready) return null;
+    setIsSharing(true);
 
     try {
-      return await toPng(node, {
+      await waitForShareCardReady();
+
+      if (!shareCardRef.current) return null;
+
+      return await toPng(shareCardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#fffdfb",
-        width: 1080,
-        height: node.scrollHeight,
-        canvasWidth: 1080 * 2,
-        canvasHeight: node.scrollHeight * 2,
       });
     } catch (error) {
       console.error(error);
       return null;
+    } finally {
+      setIsSharing(false);
     }
   };
 
   const handleShare = async () => {
+    const dataUrl = await generateResultPng();
     const shareText = result
       ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみてね`
       : "うちの猫のタイプ診断をやってみた🐱";
     const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-    const dataUrl = await generateResultPng();
 
     if (dataUrl) {
       try {
@@ -1144,12 +1142,17 @@ export default function Home() {
           navigator.canShare({ files: [file] })
         ) {
           await navigator.share({
-            title: `${result?.mainType ?? "ねこびーてぃあい"}｜ねこびーてぃあい`,
-            text: shareText,
+            text: `${shareText}\n${shareUrl}`,
             files: [file],
           });
           return;
         }
+
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "nekobti-result.png";
+        link.click();
+        return;
       } catch (error) {
         console.error(error);
       }
@@ -1158,9 +1161,7 @@ export default function Home() {
     if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
         await navigator.share({
-          title: `${result?.mainType ?? "ねこびーてぃあい"}｜ねこびーてぃあい`,
-          text: shareText,
-          url: shareUrl,
+          text: `${shareText}\n${shareUrl}`,
         });
         return;
       } catch (error) {
@@ -1168,21 +1169,12 @@ export default function Home() {
       }
     }
 
-    if (dataUrl) {
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = "nekobti-result.png";
-      link.click();
-      return;
-    }
-
-    const fallbackText = `${shareText}\n${shareUrl}`;
-    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(fallbackText);
-      } catch (error) {
-        console.error(error);
-      }
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      alert("共有テキストをコピーしました");
+    } catch (error) {
+      console.error(error);
+      alert("共有に失敗しました");
     }
   };
 
@@ -1465,7 +1457,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+              <div ref={resultCardRef} className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
                   <p className="text-lg font-semibold text-[#2b2b2b]">
@@ -1500,40 +1492,44 @@ export default function Home() {
               </div>
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                <div
-                  ref={shareCardRef}
-                  className={`${notoSans.className} pointer-events-none fixed left-[-200vw] top-0 w-[1080px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b] opacity-100`}
-                >
-                  <p className="mb-3 text-center text-[38px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
+                {isSharing ? (
+                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(255,253,251,0.96)] p-4">
+                    <div
+                      ref={shareCardRef}
+                      className={`${notoSans.className} w-full max-w-[1080px] rounded-[48px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)]`}
+                    >
+                      <p className="mb-3 text-center text-[38px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
-                  <div className="mb-5 text-center text-[#2b2b2b]">
-                    {cardCopy.split("\n").map((line, index) => (
-                      <p
-                        key={`${line}-${index}`}
-                        className={index === 1 ? "text-[94px] font-black leading-[1.02] tracking-[-0.05em]" : "text-[72px] font-bold leading-[1.06] tracking-[-0.04em]"}
-                      >
-                        {line}
+                      <div className="mb-5 text-center text-[#2b2b2b]">
+                        {cardCopy.split("\n").map((line, index) => (
+                          <p
+                            key={`${line}-${index}`}
+                            className={index === 1 ? "text-[94px] font-black leading-[1.02] tracking-[-0.05em]" : "text-[72px] font-bold leading-[1.06] tracking-[-0.04em]"}
+                          >
+                            {line}
+                          </p>
+                        ))}
+                      </div>
+
+                      <div className="mb-4 flex justify-center">
+                        <img
+                          src={resultImageSrc}
+                          alt={result.mainType}
+                          onError={(e) => {
+                            e.currentTarget.src = "/images/silhouette.png";
+                          }}
+                          className="aspect-square w-full max-w-[760px] object-contain"
+                        />
+                      </div>
+
+                      <p className="text-center text-[42px] font-medium tracking-[-0.02em] text-[#7a5c48]">
+                        {result.mainType}タイプ
                       </p>
-                    ))}
+
+                      <p className="mt-8 text-right text-[26px] text-[#9a7d69]">©ねこびーてぃあい</p>
+                    </div>
                   </div>
-
-                  <div className="mb-4 flex justify-center">
-                    <img
-                      src={resultImageSrc}
-                      alt={result.mainType}
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/silhouette.png";
-                      }}
-                      className="aspect-square w-full max-w-[760px] object-contain"
-                    />
-                  </div>
-
-                  <p className="text-center text-[42px] font-medium tracking-[-0.02em] text-[#7a5c48]">
-                    {result.mainType}タイプ
-                  </p>
-
-                  <p className="mt-8 text-right text-[26px] text-[#9a7d69]">©ねこびーてぃあい</p>
-                </div>
+                ) : null}
 
                 <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
@@ -1597,10 +1593,10 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="mt-3">
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={handleShare}
-                    className="w-full rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
+                    className="rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
                   >
                     シェア
                   </button>
