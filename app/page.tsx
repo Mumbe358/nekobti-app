@@ -1161,25 +1161,7 @@ export default function Home() {
     setIsSharePreviewOpen(false);
   };
 
-  const handleShareToX = () => {
-    if (!result || typeof window === "undefined") return;
-    const shareText = getShareText();
-    const shareUrl = getShareUrl();
-    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-    setIsSharePreviewOpen(false);
-    window.open(xUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareToLine = () => {
-    if (typeof window === "undefined") return;
-    const shareText = getShareText();
-    const shareUrl = getShareUrl();
-    const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
-    setIsSharePreviewOpen(false);
-    window.open(lineUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareOther = async () => {
+  const handleNativeShare = async () => {
     if (isPreparingShareImage || isNativeSharing) return;
 
     setIsNativeSharing(true);
@@ -1693,7 +1675,7 @@ export default function Home() {
                     void handleNativeShare();
                   }}
                   disabled={isPreparingShareImage || isNativeSharing}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#2b2b2b] px-3 py-4 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="text-2xl">↗</span>
                   <span className="text-xs font-semibold">navigator.share</span>
@@ -1702,9 +1684,9 @@ export default function Home() {
                 <button
                   onClick={closeSharePreview}
                   disabled={isPreparingShareImage || isNativeSharing}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <span className="text-2xl">✕</span>
+                  <span className="text-2xl">×</span>
                   <span className="text-xs font-semibold">閉じる</span>
                 </button>
               </div>
