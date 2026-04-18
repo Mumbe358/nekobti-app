@@ -1180,32 +1180,38 @@ export default function Home() {
       canvas.width = width;
       canvas.height = height;
 
+      const layout = {
+        titleY: 52,
+        copyTop: 150,
+        copyHeight: 240,
+        copyWidth: 880,
+        imageY: 420,
+        imageBox: Math.round(width * 0.82),
+        typeY: 1080,
+        typeWidth: 860,
+        copyrightY: 1268,
+      };
+
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // title
+      // うちの子は…
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 52);
+      ctx.fillText("うちの子は…", width / 2, layout.titleY);
 
-      // copy fixed box
-      const copyBox = {
-        top: 150,
-        height: 240,
-        width: 880,
-      };
-
+      // コピー固定枠（2行 / 長ければ3行）
       const fitCopy = () => {
         for (let size = 88; size >= 64; size -= 2) {
           ctx.font = `200 ${size}px 'Kiwami'`;
-          const lines = wrapCanvasText(ctx, cardCopy, copyBox.width);
+          const lines = wrapCanvasText(ctx, cardCopy, layout.copyWidth);
 
           if (lines.length > 3) continue;
 
           const lineHeight = Math.round(size * 1.15);
-          if (lines.length * lineHeight <= copyBox.height) {
+          if (lines.length * lineHeight <= layout.copyHeight) {
             return { size, lineHeight, lines };
           }
         }
@@ -1214,7 +1220,7 @@ export default function Home() {
         return {
           size: 64,
           lineHeight: 74,
-          lines: wrapCanvasText(ctx, cardCopy, copyBox.width).slice(0, 3),
+          lines: wrapCanvasText(ctx, cardCopy, layout.copyWidth).slice(0, 3),
         };
       };
 
@@ -1223,19 +1229,17 @@ export default function Home() {
       ctx.fillStyle = "#2b2b2b";
       ctx.font = `200 ${fitted.size}px 'Kiwami'`;
 
-      const totalHeight = fitted.lines.length * fitted.lineHeight;
-      let copyY = copyBox.top + (copyBox.height - totalHeight) / 2;
+      const totalCopyHeight = fitted.lines.length * fitted.lineHeight;
+      let copyY = layout.copyTop + (layout.copyHeight - totalCopyHeight) / 2;
 
       fitted.lines.forEach((line) => {
         ctx.fillText(line, width / 2, copyY);
         copyY += fitted.lineHeight;
       });
 
-      // image fixed
+      // イラスト固定
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = Math.round(width * 0.82);
-      const imgY = 420;
-
+      const imgBox = layout.imageBox;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1244,31 +1248,28 @@ export default function Home() {
         ctx.drawImage(
           img,
           width / 2 - drawW / 2,
-          imgY + (imgBox - drawH) / 2,
+          layout.imageY + (imgBox - drawH) / 2,
           drawW,
           drawH
         );
       }
 
-      // type name: 1 line + auto shrink + black
-      const typeY = imgY + imgBox + 40;
-      const typeMaxWidth = 860;
-      let fontSize = 54;
-
-      while (fontSize > 28) {
-        ctx.font = `200 ${fontSize}px 'Kiwami'`;
-        if (ctx.measureText(result.mainType).width <= typeMaxWidth) break;
-        fontSize -= 2;
+      // タイプ名固定・1行自動調整・黒固定
+      let typeFontSize = 54;
+      while (typeFontSize > 28) {
+        ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
+        if (ctx.measureText(result.mainType).width <= layout.typeWidth) break;
+        typeFontSize -= 2;
       }
 
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = `200 ${fontSize}px 'Kiwami'`;
-      ctx.fillText(result.mainType, width / 2, typeY);
+      ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
+      ctx.fillText(result.mainType, width / 2, layout.typeY);
 
-      // copyright
+      // コピーライト固定
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
+      ctx.fillText("©ねこびーてぃあい", width / 2, layout.copyrightY);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
@@ -1710,7 +1711,7 @@ ${shareUrl}`);
                       style={{
                         fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif",
                         fontWeight: 200,
-                        fontSize: `clamp(20px, calc(32px - ${result.mainType.length * 1.2}px), 32px)`,
+                        fontSize: `clamp(20px, ${Math.max(20, 34 - result.mainType.length * 1.2)}px, 32px)`,
                       }}
                     >
                       {result.mainType}
@@ -1719,9 +1720,9 @@ ${shareUrl}`);
 
                   <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
                     <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
-                    <div className="space-y-0 text-[14px] font-normal leading-relaxed text-[#4e433d] sm:text-base">
+                    <div className="space-y-0 text-[14px] font-bold leading-relaxed text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait}>・{trait}</p>
+                        <p key={trait} className="font-bold">・{trait}</p>
                       ))}
                     </div>
                   </div>
