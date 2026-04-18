@@ -1166,7 +1166,7 @@ export default function Home() {
         try {
           await document.fonts.ready;
           try {
-            await document.fonts.load("900 88px 'Kiwami'");
+            await document.fonts.load("200 88px 'Kiwami'");
           } catch {}
         } catch {}
       }
@@ -1185,40 +1185,79 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // title
+      const copyBox = {
+        top: 150,
+        height: 240,
+        width: 880,
+      };
+
+      const fitCopy = () => {
+        for (let size = 88; size >= 64; size -= 2) {
+          ctx.font = `200 ${size}px 'Kiwami'`;
+          const lines = wrapCanvasText(ctx, cardCopy, copyBox.width);
+
+          if (lines.length > 3) continue;
+
+          const lineHeight = Math.round(size * 1.15);
+          if (lines.length * lineHeight <= copyBox.height) {
+            return { size, lineHeight, lines };
+          }
+        }
+
+        ctx.font = "200 64px 'Kiwami'";
+        return {
+          size: 64,
+          lineHeight: 74,
+          lines: wrapCanvasText(ctx, cardCopy, copyBox.width).slice(0, 3),
+        };
+      };
+
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
       ctx.fillText("うちの子は…", width / 2, 52);
 
-      // copy
+      const fitted = fitCopy();
+
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = "900 88px 'Kiwami'";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
-      let copyY = 170;
-      copyLines.forEach((line) => {
-        ctx.font = "900 88px 'Kiwami'";
+      ctx.font = `200 ${fitted.size}px 'Kiwami'`;
+
+      const totalHeight = fitted.lines.length * fitted.lineHeight;
+      let copyY = copyBox.top + (copyBox.height - totalHeight) / 2;
+
+      fitted.lines.forEach((line) => {
         ctx.fillText(line, width / 2, copyY);
-        copyY += 102;
+        copyY += fitted.lineHeight;
       });
 
-      // image
       const img = await loadImageForCanvas(resultImageSrc);
       const imgBox = Math.round(width * 0.82);
-      const imgX = width / 2 - imgBox / 2;
-      const imgY = copyY + 12;
+      const imgY = 420;
+
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
         const drawH = img.naturalHeight * scale;
-        ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
+        ctx.drawImage(
+          img,
+          width / 2 - drawW / 2,
+          imgY + (imgBox - drawH) / 2,
+          drawW,
+          drawH
+        );
       }
 
-      // type name
-      ctx.fillStyle = "#7a5c48";
-      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 20);
+      const typeMaxWidth = 880;
+      let fontSize = 54;
+      while (fontSize > 28) {
+        ctx.font = `200 ${fontSize}px 'Kiwami'`;
+        if (ctx.measureText(result.mainType).width <= typeMaxWidth) break;
+        fontSize -= 2;
+      }
 
-      // copyright / brand
+      ctx.fillStyle = "#7a5c48";
+      ctx.font = `200 ${fontSize}px 'Kiwami'`;
+      ctx.fillText(result.mainType, width / 2, 1080);
+
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
       ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
@@ -1359,14 +1398,14 @@ ${shareUrl}`);
             <div className="flex flex-col gap-4 sm:flex-row">
               <button
                 onClick={openDiagnosis}
-                className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
+                className="rounded-full bg-[#2b2b2b] px-6 py-3 text-base font-semibold text-white transition hover:opacity-90"
               >
                 診断をはじめる
               </button>
 
               <button
                 onClick={openTypeList}
-                className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                className="rounded-full border border-[#d8c1b1] bg-white px-6 py-3 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
               >
                 タイプ一覧を見る
               </button>
@@ -1609,7 +1648,7 @@ ${shareUrl}`);
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+              <div className="rounded-3xl bg-white px-3 py-4 ring-1 ring-[#f2e5dc] sm:px-4 sm:py-5">
                 <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
                   <p className="text-lg font-semibold text-[#2b2b2b]">
@@ -1657,10 +1696,14 @@ ${shareUrl}`);
                     />
                   </div>
 
-                  <div className="mb-3 flex min-h-[52px] items-center justify-center overflow-hidden">
+                  <div className="mx-auto mb-3 flex min-h-[52px] w-full max-w-[92%] items-center justify-center">
                     <h3
-                      className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-[36px] leading-none tracking-tight text-[#2b2b2b] sm:text-[42px]"
-                      style={{ fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif", fontWeight: 200 }}
+                      className="text-center leading-tight whitespace-nowrap text-[#2b2b2b]"
+                      style={{
+                        fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif",
+                        fontWeight: 200,
+                        fontSize: `clamp(22px, calc(100vw / ${Math.max(10, result.mainType.length)}), 32px)`,
+                      }}
                     >
                       {result.mainType}
                     </h3>
@@ -1668,7 +1711,7 @@ ${shareUrl}`);
 
                   <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
                     <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
-                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
+                    <div className="space-y-0 text-[14px] font-normal leading-relaxed text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
                         <p key={trait}>・{trait}</p>
                       ))}
@@ -1685,7 +1728,9 @@ ${shareUrl}`);
                   <div className="text-center">
                     <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
                     <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {bestMatchMap[result.mainType]} ★★★★★
+                      {ownerCompatibility[result.mainType][0].type}
+                      （{ownerMbtiLabelMap[ownerCompatibility[result.mainType][0].type]}）{" "}
+                      {renderHearts(ownerCompatibility[result.mainType][0].hearts)}
                     </p>
                   </div>
 
