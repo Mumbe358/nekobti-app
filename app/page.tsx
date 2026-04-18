@@ -809,6 +809,7 @@ export default function Home() {
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [isSharePreviewOpen, setIsSharePreviewOpen] = useState(false);
   const [isNativeSharing, setIsNativeSharing] = useState(false);
+  const [isPreparingShareImage, setIsPreparingShareImage] = useState(false);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
   const sharePreviewCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
@@ -1107,7 +1108,7 @@ export default function Home() {
     if (!sharePreviewCardRef.current) return null;
 
     try {
-
+      setIsPreparingShareImage(true);
       await waitForShareCardReady();
       return await toPng(sharePreviewCardRef.current, {
         cacheBust: true,
@@ -1118,22 +1119,22 @@ export default function Home() {
       console.error(error);
       return null;
     } finally {
-
+      setIsPreparingShareImage(false);
     }
   };
 
   const openSharePreview = () => {
-    if (isSharing || isNativeSharing) return;
+    if (isPreparingShareImage || isNativeSharing) return;
     setIsSharePreviewOpen(true);
   };
 
   const closeSharePreview = () => {
-    if (isSharing || isNativeSharing) return;
+    if (isPreparingShareImage || isNativeSharing) return;
     setIsSharePreviewOpen(false);
   };
 
   const handleShareCardTap = async () => {
-    if (isSharing || isNativeSharing) return;
+    if (isPreparingShareImage || isNativeSharing) return;
 
     setIsNativeSharing(true);
 
@@ -1635,9 +1636,13 @@ ${shareUrl}`);
 
       {isSharePreviewOpen && result && (
         <div
-          className="fixed inset-0 z-[120] flex min-h-[100dvh] items-center justify-center bg-black/45 p-4"
+          className="fixed inset-0 z-[120] grid min-h-[100dvh] place-items-center bg-black/45 p-4"
+          style={{
+            paddingTop: "max(16px, env(safe-area-inset-top))",
+            paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+          }}
           onClick={(e) => {
-            if (isSharing || isNativeSharing) return;
+            if (isPreparingShareImage || isNativeSharing) return;
             if (e.target === e.currentTarget) closeSharePreview();
           }}
         >
