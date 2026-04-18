@@ -1248,18 +1248,6 @@ export default function Home() {
     }
   };
 
-  return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, isTypeListOpen, isSharePreviewOpen]);
-
-  useEffect(() => {
-    return () => {
-      if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
-      if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
-    };
-  }, []);
-
   const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions + 1;
   const answeredCount = answers.filter(Boolean).length;
