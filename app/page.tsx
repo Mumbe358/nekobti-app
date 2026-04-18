@@ -1185,6 +1185,12 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
+      // うちの子は…
+      ctx.fillStyle = "#8a6a57";
+      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
+      ctx.fillText("うちの子は…", width / 2, 52);
+
+      // コピー固定枠
       const copyBox = {
         top: 150,
         height: 240,
@@ -1212,10 +1218,6 @@ export default function Home() {
         };
       };
 
-      ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 52);
-
       const fitted = fitCopy();
 
       ctx.fillStyle = "#2b2b2b";
@@ -1229,6 +1231,7 @@ export default function Home() {
         copyY += fitted.lineHeight;
       });
 
+      // イラスト固定
       const img = await loadImageForCanvas(resultImageSrc);
       const imgBox = Math.round(width * 0.82);
       const imgY = 420;
@@ -1237,6 +1240,7 @@ export default function Home() {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
         const drawH = img.naturalHeight * scale;
+
         ctx.drawImage(
           img,
           width / 2 - drawW / 2,
@@ -1246,8 +1250,11 @@ export default function Home() {
         );
       }
 
-      const typeMaxWidth = 880;
+      // タイプ名（1行固定 + 自動縮小）
+      const typeY = 1120;
+      const typeMaxWidth = 860;
       let fontSize = 54;
+
       while (fontSize > 28) {
         ctx.font = `200 ${fontSize}px 'Kiwami'`;
         if (ctx.measureText(result.mainType).width <= typeMaxWidth) break;
@@ -1256,8 +1263,9 @@ export default function Home() {
 
       ctx.fillStyle = "#7a5c48";
       ctx.font = `200 ${fontSize}px 'Kiwami'`;
-      ctx.fillText(result.mainType, width / 2, 1080);
+      ctx.fillText(result.mainType, width / 2, typeY);
 
+      // コピーライト
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
       ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
@@ -1398,14 +1406,14 @@ ${shareUrl}`);
             <div className="flex flex-col gap-4 sm:flex-row">
               <button
                 onClick={openDiagnosis}
-                className="rounded-full bg-[#2b2b2b] px-6 py-3 text-base font-semibold text-white transition hover:opacity-90"
+                className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
               >
                 診断をはじめる
               </button>
 
               <button
                 onClick={openTypeList}
-                className="rounded-full border border-[#d8c1b1] bg-white px-6 py-3 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
               >
                 タイプ一覧を見る
               </button>
@@ -1648,7 +1656,7 @@ ${shareUrl}`);
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white px-3 py-4 ring-1 ring-[#f2e5dc] sm:px-4 sm:py-5">
+              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
                   <p className="text-lg font-semibold text-[#2b2b2b]">
@@ -1696,13 +1704,13 @@ ${shareUrl}`);
                     />
                   </div>
 
-                  <div className="mx-auto mb-3 flex min-h-[52px] w-full max-w-[92%] items-center justify-center">
+                  <div className="mx-auto mb-3 flex min-h-[52px] w-full max-w-[92%] items-center justify-center overflow-hidden">
                     <h3
                       className="text-center leading-tight whitespace-nowrap text-[#2b2b2b]"
                       style={{
                         fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif",
                         fontWeight: 200,
-                        fontSize: `clamp(22px, calc(100vw / ${Math.max(10, result.mainType.length)}), 32px)`,
+                        fontSize: `clamp(20px, calc(32px - ${result.mainType.length * 1.2}px), 32px)`,
                       }}
                     >
                       {result.mainType}
