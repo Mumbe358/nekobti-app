@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
@@ -808,10 +807,10 @@ export default function Home() {
   const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
-  const [showSharePreview, setShowSharePreview] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
+  const [isSharePreviewOpen, setIsSharePreviewOpen] = useState(false);
+  const [isNativeSharing, setIsNativeSharing] = useState(false);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
-  const shareCardRef = useRef<HTMLDivElement | null>(null);
+  const sharePreviewCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
@@ -823,7 +822,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (isOpen || isTypeListOpen) {
+    if (isOpen || isTypeListOpen || isSharePreviewOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -832,7 +831,7 @@ export default function Home() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, isTypeListOpen]);
+  }, [isOpen, isTypeListOpen, isSharePreviewOpen]);
 
   useEffect(() => {
     return () => {
@@ -1080,7 +1079,7 @@ export default function Home() {
 
     await new Promise((resolve) => window.setTimeout(resolve, 120));
 
-    const root = shareCardRef.current;
+    const root = sharePreviewCardRef.current;
     if (!root) return;
 
     const images = Array.from(root.querySelectorAll("img"));
@@ -1105,12 +1104,12 @@ export default function Home() {
   };
 
   const generateResultPng = async () => {
+    if (!sharePreviewCardRef.current) return null;
+
     try {
+      setIsSharing(true);
       await waitForShareCardReady();
-
-      if (!shareCardRef.current) return null;
-
-      return await toPng(shareCardRef.current, {
+      return await toPng(sharePreviewCardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#fffdfb",
@@ -1118,86 +1117,80 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       return null;
+    } finally {
+      setIsSharing(false);
     }
   };
 
   const openSharePreview = () => {
-    if (isSharing) return;
-    setShowSharePreview(true);
+    if (isSharing || isNativeSharing) return;
+    setIsSharePreviewOpen(true);
   };
 
   const closeSharePreview = () => {
-    if (isSharing) return;
-    setShowSharePreview(false);
+    if (isSharing || isNativeSharing) return;
+    setIsSharePreviewOpen(false);
   };
 
-  const handleShare = async () => {
-    if (isSharing) return;
+  const handleShareCardTap = async () => {
+    if (isSharing || isNativeSharing) return;
 
-    setIsSharing(true);
+    setIsNativeSharing(true);
+
+    const dataUrl = await generateResultPng();
+    const shareText = result
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱
+診断してみてね`
+      : "うちの猫のタイプ診断をやってみた🐱";
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+    setIsSharePreviewOpen(false);
+    await new Promise((resolve) => window.setTimeout(resolve, 80));
 
     try {
-      const dataUrl = await generateResultPng();
-      const shareText = result
-        ? `うちの猫のタイプは「${result.mainType}」でした🐱
-診断してみてね`
-        : "うちの猫のタイプ診断をやってみた🐱";
-      const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-
-      setShowSharePreview(false);
-      await new Promise((resolve) => window.setTimeout(resolve, 60));
-
       if (dataUrl) {
-        try {
-          const blob = await (await fetch(dataUrl)).blob();
-          const file = new File([blob], "nekobti-result.png", { type: "image/png" });
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], "nekobti-result.png", { type: "image/png" });
 
-          if (
-            typeof navigator !== "undefined" &&
-            "share" in navigator &&
-            "canShare" in navigator &&
-            navigator.canShare({ files: [file] })
-          ) {
-            await navigator.share({
-              text: `${shareText}
-${shareUrl}`,
-              files: [file],
-            });
-            return;
-          }
-
-          const link = document.createElement("a");
-          link.href = dataUrl;
-          link.download = "nekobti-result.png";
-          link.click();
-          return;
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      if (typeof navigator !== "undefined" && "share" in navigator) {
-        try {
+        if (
+          typeof navigator !== "undefined" &&
+          "share" in navigator &&
+          "canShare" in navigator &&
+          navigator.canShare({ files: [file] })
+        ) {
           await navigator.share({
             text: `${shareText}
 ${shareUrl}`,
+            files: [file],
           });
           return;
-        } catch (error) {
-          console.error(error);
         }
+
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "nekobti-result.png";
+        link.click();
+        return;
       }
 
-      try {
-        await navigator.clipboard.writeText(`${shareText}
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await navigator.share({
+          text: `${shareText}
+${shareUrl}`,
+        });
+        return;
+      }
+
+      await navigator.clipboard.writeText(`${shareText}
 ${shareUrl}`);
-        alert("共有テキストをコピーしました");
-      } catch (error) {
+      alert("共有テキストをコピーしました");
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
         console.error(error);
         alert("共有に失敗しました");
       }
     } finally {
-      setIsSharing(false);
+      setIsNativeSharing(false);
     }
   };
 
@@ -1515,72 +1508,6 @@ ${shareUrl}`);
               </div>
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                {showSharePreview && typeof document !== "undefined"
-                  ? createPortal(
-                      <div
-                        className="fixed inset-0 z-[9999] flex min-h-[100dvh] items-center justify-center bg-[rgba(43,43,43,0.35)] p-4"
-                        onClick={(e) => {
-                          if (isSharing) return;
-                          if (e.target === e.currentTarget) {
-                            closeSharePreview();
-                          }
-                        }}
-                      >
-                        <div className="flex w-full max-w-[420px] items-center justify-center">
-                          <div
-                            ref={shareCardRef}
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              void handleShare();
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                void handleShare();
-                              }
-                            }}
-                            className={`${notoSans.className} mx-auto w-[360px] max-w-full cursor-pointer rounded-[28px] bg-[#fffdfb] px-6 pb-6 pt-6 text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)] transition ${isSharing ? "opacity-90" : "hover:scale-[1.01]"}`}
-                            style={{ width: 360, maxWidth: "100%" }}
-                          >
-                            <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
-
-                            <div className="mb-4 text-center text-[#2b2b2b]">
-                              {cardCopy.split("\n").map((line, index) => (
-                                <p
-                                  key={`${line}-${index}`}
-                                  className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
-                                >
-                                  {line}
-                                </p>
-                              ))}
-                            </div>
-
-                            <div className="mb-3 flex justify-center">
-                              <img
-                                src={resultImageSrc}
-                                alt={result.mainType}
-                                onError={(e) => {
-                                  e.currentTarget.src = "/images/silhouette.png";
-                                }}
-                                className="aspect-square w-full max-w-[240px] object-contain"
-                              />
-                            </div>
-
-                            <p className="text-center text-[24px] font-medium leading-[1.25] tracking-[-0.02em] text-[#7a5c48] break-keep">
-                              {result.mainType}タイプ
-                            </p>
-
-                            <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
-                          </div>
-                        </div>
-                      </div>,
-                      document.body,
-                    )
-                  : null}
-
                 <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
                   <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
@@ -1705,6 +1632,55 @@ ${shareUrl}`);
           </div>
         </div>
       </div>
+
+      {isSharePreviewOpen && result && (
+        <div
+          className="fixed inset-0 z-[120] flex min-h-[100dvh] items-center justify-center bg-black/45 p-4"
+          onClick={(e) => {
+            if (isSharing || isNativeSharing) return;
+            if (e.target === e.currentTarget) closeSharePreview();
+          }}
+        >
+          <div
+            ref={sharePreviewCardRef}
+            className={`${notoSans.className} w-[360px] max-w-[calc(100vw-32px)] rounded-[32px] bg-[#fffdfb] px-6 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
+            onClick={(e) => {
+              e.stopPropagation();
+              void handleShareCardTap();
+            }}
+          >
+            <p className="mb-3 text-center text-[20px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
+
+            <div className="mb-4 text-center text-[#2b2b2b]">
+              {cardCopy.split("\n").map((line, index) => (
+                <p
+                  key={`${line}-${index}`}
+                  className={index === 1 ? "text-[28px] font-black leading-[1.06] tracking-[-0.04em]" : "text-[22px] font-bold leading-[1.12] tracking-[-0.03em]"}
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+
+            <div className="mb-4 flex justify-center">
+              <img
+                src={resultImageSrc}
+                alt={result.mainType}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/silhouette.png";
+                }}
+                className="aspect-square w-full max-w-[260px] object-contain"
+              />
+            </div>
+
+            <p className="text-center text-[22px] font-medium tracking-[-0.02em] text-[#7a5c48]">
+              {result.mainType}タイプ
+            </p>
+
+            <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
