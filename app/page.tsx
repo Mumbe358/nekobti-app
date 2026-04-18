@@ -1496,37 +1496,38 @@ export default function Home() {
                   <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(255,253,251,0.96)] p-4">
                     <div
                       ref={shareCardRef}
-                      className={`${notoSans.className} w-full max-w-[1080px] rounded-[48px] bg-[#fffdfb] px-[84px] pb-[56px] pt-[62px] text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)]`}
+                      className={`${notoSans.className} rounded-[28px] bg-[#fffdfb] px-6 pb-6 pt-6 text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)]`}
+                      style={{ width: 360, maxWidth: 360 }}
                     >
-                      <p className="mb-3 text-center text-[38px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
+                      <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
-                      <div className="mb-5 text-center text-[#2b2b2b]">
+                      <div className="mb-4 text-center text-[#2b2b2b]">
                         {cardCopy.split("\n").map((line, index) => (
                           <p
                             key={`${line}-${index}`}
-                            className={index === 1 ? "text-[94px] font-black leading-[1.02] tracking-[-0.05em]" : "text-[72px] font-bold leading-[1.06] tracking-[-0.04em]"}
+                            className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
                           >
                             {line}
                           </p>
                         ))}
                       </div>
 
-                      <div className="mb-4 flex justify-center">
+                      <div className="mb-3 flex justify-center">
                         <img
                           src={resultImageSrc}
                           alt={result.mainType}
                           onError={(e) => {
                             e.currentTarget.src = "/images/silhouette.png";
                           }}
-                          className="aspect-square w-full max-w-[760px] object-contain"
+                          className="aspect-square w-full max-w-[240px] object-contain"
                         />
                       </div>
 
-                      <p className="text-center text-[42px] font-medium tracking-[-0.02em] text-[#7a5c48]">
+                      <p className="text-center text-[24px] font-medium leading-[1.25] tracking-[-0.02em] text-[#7a5c48] break-keep">
                         {result.mainType}タイプ
                       </p>
 
-                      <p className="mt-8 text-right text-[26px] text-[#9a7d69]">©ねこびーてぃあい</p>
+                      <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
                     </div>
                   </div>
                 ) : null}
