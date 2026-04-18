@@ -808,6 +808,7 @@ export default function Home() {
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [isSharePreviewOpen, setIsSharePreviewOpen] = useState(false);
+  const [isOpeningSharePreview, setIsOpeningSharePreview] = useState(false);
   const [isMobileClient, setIsMobileClient] = useState(false);
   const [isPreparingShareImage, setIsPreparingShareImage] = useState(false);
   const [isNativeSharing, setIsNativeSharing] = useState(false);
@@ -826,7 +827,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (isOpen || isTypeListOpen || isSharePreviewOpen) {
+    if (isOpen || isTypeListOpen || isSharePreviewOpen || isOpeningSharePreview) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -835,7 +836,7 @@ export default function Home() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, isTypeListOpen, isSharePreviewOpen]);
+  }, [isOpen, isTypeListOpen, isSharePreviewOpen, isOpeningSharePreview]);
 
   useEffect(() => {
     return () => {
@@ -1176,50 +1177,38 @@ export default function Home() {
     }
   };
 
-  const openSharePreview = () => {
-    if (!isMobileClient || isPreparingShareImage || isNativeSharing || !result) return;
+  const openSharePreview = async () => {
+    if (!isMobileClient || isPreparingShareImage || isNativeSharing || isOpeningSharePreview || !result) return;
+
+    setIsOpeningSharePreview(true);
     setShareImageError(null);
-    setShareImageFile(null);
+    setIsSharePreviewOpen(false);
+
     setShareImageUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
-    setIsSharePreviewOpen(true);
+    setShareImageFile(null);
+
+    try {
+      const generated = await generateResultPng();
+      if (!generated) return;
+
+      setShareImageUrl(generated.objectUrl);
+      setShareImageFile(generated.file);
+      setIsSharePreviewOpen(true);
+    } finally {
+      setIsOpeningSharePreview(false);
+    }
   };
 
   const closeSharePreview = () => {
-    if (isPreparingShareImage || isNativeSharing) return;
+    if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
     setIsSharePreviewOpen(false);
   };
 
-  useEffect(() => {
-    if (!isSharePreviewOpen || !result || shareImageFile || shareImageUrl || isPreparingShareImage) return;
-
-    let cancelled = false;
-
-    const prepare = async () => {
-      const generated = await generateResultPng();
-      if (!generated || cancelled) {
-        if (generated?.objectUrl) URL.revokeObjectURL(generated.objectUrl);
-        return;
-      }
-
-      setShareImageUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return generated.objectUrl;
-      });
-      setShareImageFile(generated.file);
-    };
-
-    void prepare();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isSharePreviewOpen, result, shareImageFile, shareImageUrl, isPreparingShareImage]);
-
   const handleNativeShare = async () => {
-    if (isPreparingShareImage || isNativeSharing) return;
+    if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
 
     const shareText = getShareText();
     const shareUrl = getShareUrl();
@@ -1656,15 +1645,17 @@ ${shareUrl}`);
 
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <button
-                    onClick={openSharePreview}
-                    disabled={!isMobileClient}
+                    onClick={() => {
+                      void openSharePreview();
+                    }}
+                    disabled={!isMobileClient || isOpeningSharePreview || isPreparingShareImage}
                     className={`rounded-full px-6 py-4 text-base font-semibold transition ${
                       isMobileClient
                         ? "bg-[#f1e3d6] text-[#7a5c48] hover:opacity-90"
                         : "cursor-not-allowed border border-[#e7d8cc] bg-[#f7f1ec] text-[#b59a88]"
                     }`}
                   >
-                    {isMobileClient ? "シェア" : "シェア（スマホ専用）"}
+                    {!isMobileClient ? "シェア（スマホ専用）" : isOpeningSharePreview ? "共有画像を準備中…" : "シェア"}
                   </button>
                 </div>
               </div>
@@ -1673,83 +1664,109 @@ ${shareUrl}`);
         </div>
       </div>
 
-      {isSharePreviewOpen && result && (
+      {(isOpeningSharePreview || (isSharePreviewOpen && result)) && (
         <div
           className="fixed inset-0 z-50 flex min-h-[100dvh] items-center justify-center bg-black/45 p-4"
           onClick={(e) => {
-            if (isPreparingShareImage || isNativeSharing) return;
+            if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
             if (e.target === e.currentTarget) closeSharePreview();
           }}
         >
-          <div className="w-full max-w-[380px]">
-            <div
-              ref={shareCardRef}
-              className={`${notoSans.className} rounded-[32px] bg-[#fffdfb] px-5 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <p className="mb-3 text-center text-sm font-semibold tracking-[0.08em] text-[#8a6a57]">うちの子は…</p>
-
-              <div className="mb-4 text-center text-[#2b2b2b]">
-                {cardCopy.split("\n").map((line, index) => (
-                  <p
-                    key={`${line}-${index}`}
-                    className={
-                      index === 1
-                        ? "text-[34px] font-black leading-tight tracking-[-0.04em]"
-                        : "text-[24px] font-bold leading-tight tracking-[-0.03em]"
-                    }
-                  >
-                    {line}
-                  </p>
-                ))}
-              </div>
-
-              <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
-                <img
-                  src={resultImageSrc}
-                  alt={result.mainType}
-                  onError={(e) => {
-                    e.currentTarget.src = "/images/silhouette.png";
-                  }}
-                  className="mx-auto aspect-square w-full max-w-[280px] object-contain"
-                />
-              </div>
-
-              <p className="text-center text-[24px] font-bold tracking-[-0.02em] text-[#7a5c48]">
-                {result.mainType}タイプ
-              </p>
-
-              <p className="mt-4 text-right text-xs text-[#9a7d69]">©ねこびーてぃあい</p>
+          {isOpeningSharePreview ? (
+            <div className="w-full max-w-[340px] rounded-[28px] bg-white px-6 py-7 text-center shadow-2xl">
+              <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#ead8ca] border-t-[#7a5c48]" />
+              <p className="text-base font-bold text-[#4e433d]">共有画像を準備中…</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#8a6a57]">少し待ってから共有カードを表示します</p>
             </div>
+          ) : (
+            <div className="w-full max-w-[380px]" onClick={(e) => e.stopPropagation()}>
+              <div className="overflow-hidden rounded-[32px] bg-white shadow-2xl ring-1 ring-[#f1e4da]">
+                <div className="bg-[#fffdfb] p-3">
+                  {shareImageUrl ? (
+                    <img src={shareImageUrl} alt="共有カード" className="block w-full rounded-[24px]" />
+                  ) : (
+                    <div className="flex min-h-[520px] items-center justify-center rounded-[24px] bg-[#fffaf6] px-6 text-center text-sm text-[#8a6a57]">
+                      共有画像を準備できませんでした
+                    </div>
+                  )}
+                </div>
 
-            <div
-              className="mt-4 rounded-[28px] bg-white p-4 shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <p className="mb-4 text-center text-sm font-semibold text-[#7a5c48]">共有</p>
+                <div className="border-t border-[#f1e4da] bg-white p-4">
+                  {shareImageError ? (
+                    <p className="mb-3 text-center text-sm font-semibold text-[#c2644f]">{shareImageError}</p>
+                  ) : null}
 
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => {
-                    void handleNativeShare();
-                  }}
-                  disabled={isPreparingShareImage || isNativeSharing}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span className="text-2xl">↗</span>
-                  <span className="text-xs font-semibold">シェア</span>
-                </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        void handleNativeShare();
+                      }}
+                      disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="text-2xl">↗</span>
+                      <span className="text-xs font-semibold">シェア</span>
+                    </button>
 
-                <button
-                  onClick={closeSharePreview}
-                  disabled={isPreparingShareImage || isNativeSharing}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span className="text-2xl">✕</span>
-                  <span className="text-xs font-semibold">閉じる</span>
-                </button>
+                    <button
+                      onClick={closeSharePreview}
+                      disabled={isPreparingShareImage || isNativeSharing}
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="text-2xl">✕</span>
+                      <span className="text-xs font-semibold">閉じる</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
+        </div>
+      )}
+
+      {result && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed left-1/2 top-1/2 z-[-1]"
+          style={{ transform: "translate(-50%, -50%)", visibility: "hidden" }}
+        >
+          <div
+            ref={shareCardRef}
+            className={`${notoSans.className} w-[360px] rounded-[32px] bg-[#fffdfb] px-5 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
+          >
+            <p className="mb-3 text-center text-sm font-semibold tracking-[0.08em] text-[#8a6a57]">うちの子は…</p>
+
+            <div className="mb-4 text-center text-[#2b2b2b]">
+              {cardCopy.split("\n").map((line, index) => (
+                <p
+                  key={`${line}-${index}`}
+                  className={
+                    index === 1
+                      ? "text-[34px] font-black leading-tight tracking-[-0.04em]"
+                      : "text-[24px] font-bold leading-tight tracking-[-0.03em]"
+                  }
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+
+            <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+              <img
+                src={resultImageSrc}
+                alt={result.mainType}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/silhouette.png";
+                }}
+                className="mx-auto aspect-square w-full max-w-[280px] object-contain"
+              />
+            </div>
+
+            <p className="text-center text-[24px] font-bold tracking-[-0.02em] text-[#7a5c48]">
+              {result.mainType}タイプ
+            </p>
+
+            <p className="mt-4 text-right text-xs text-[#9a7d69]">©ねこびーてぃあい</p>
           </div>
         </div>
       )}
