@@ -47,6 +47,6 @@ body {
   }
 }
 @font-face {
-  font-family: "KillGothic";
-  src: url("/fonts/GN-KillGothic-U-KanaO.ttf") format("truetype");
+  font-family: "Kiwami";
+  src: url("/fonts/GenEiKiwamiGo.ttf") format("truetype");
 }
