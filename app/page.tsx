@@ -1727,11 +1727,12 @@ ${shareUrl}`);
       {result && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center p-4 opacity-[0.01]"
+          className="pointer-events-none fixed left-[-9999px] top-[-9999px] z-[60]"
         >
           <div
             ref={shareCardRef}
             className={`${notoSans.className} w-[360px] rounded-[32px] bg-[#fffdfb] px-5 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
+            style={{ opacity: 1, visibility: "visible" }}
           >
             <p className="mb-3 text-center text-sm font-semibold tracking-[0.08em] text-[#8a6a57]">うちの子は…</p>
 
