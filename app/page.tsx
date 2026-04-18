@@ -1185,12 +1185,12 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // うちの子は…
+      // title
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
       ctx.fillText("うちの子は…", width / 2, 52);
 
-      // コピー固定枠
+      // copy fixed box
       const copyBox = {
         top: 150,
         height: 240,
@@ -1231,7 +1231,7 @@ export default function Home() {
         copyY += fitted.lineHeight;
       });
 
-      // イラスト固定
+      // image fixed
       const img = await loadImageForCanvas(resultImageSrc);
       const imgBox = Math.round(width * 0.82);
       const imgY = 420;
@@ -1250,8 +1250,8 @@ export default function Home() {
         );
       }
 
-      // タイプ名（1行固定 + 自動縮小）
-      const typeY = 1120;
+      // type name: 1 line + auto shrink + black
+      const typeY = imgY + imgBox + 40;
       const typeMaxWidth = 860;
       let fontSize = 54;
 
@@ -1261,11 +1261,11 @@ export default function Home() {
         fontSize -= 2;
       }
 
-      ctx.fillStyle = "#7a5c48";
+      ctx.fillStyle = "#2b2b2b";
       ctx.font = `200 ${fontSize}px 'Kiwami'`;
       ctx.fillText(result.mainType, width / 2, typeY);
 
-      // コピーライト
+      // copyright
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
       ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
@@ -1737,7 +1737,9 @@ ${shareUrl}`);
                     <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
                     <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
                       {ownerCompatibility[result.mainType][0].type}
-                      （{ownerMbtiLabelMap[ownerCompatibility[result.mainType][0].type]}）{" "}
+                      （{ownerMbtiLabelMap[ownerCompatibility[result.mainType][0].type]}）
+                    </p>
+                    <p className="text-base text-[#4e433d]">
                       {renderHearts(ownerCompatibility[result.mainType][0].hearts)}
                     </p>
                   </div>
