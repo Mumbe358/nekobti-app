@@ -1701,9 +1701,7 @@ ${shareUrl}`);
                     <div className="space-y-2 text-[#4e433d]">
                       {ownerCompatibility[result.mainType].map((item) => (
                         <p key={item.type} className="text-base font-semibold leading-tight sm:text-lg">
-                          <span>{item.type}</span>
-                          <br />
-                          <span>{renderHearts(item.hearts)}</span>
+                          {item.type}（{ownerMbtiLabelMap[item.type]}） {renderHearts(item.hearts)}
                         </p>
                       ))}
                     </div>
