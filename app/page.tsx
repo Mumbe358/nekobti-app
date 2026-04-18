@@ -1685,34 +1685,27 @@ export default function Home() {
               className="mt-4 rounded-[28px] bg-white p-4 shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <p className="mb-4 text-center text-sm font-semibold text-[#7a5c48]">共有先を選択</p>
+              <p className="mb-4 text-center text-sm font-semibold text-[#7a5c48]">共有</p>
 
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={handleShareToX}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#111111] px-3 py-4 text-white transition hover:opacity-90"
-                >
-                  <span className="text-2xl font-black">X</span>
-                  <span className="text-xs font-semibold">X</span>
-                </button>
-
-                <button
-                  onClick={handleShareToLine}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#06C755] px-3 py-4 text-white transition hover:opacity-90"
-                >
-                  <span className="text-xl font-black">LINE</span>
-                  <span className="text-xs font-semibold">LINE</span>
-                </button>
-
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => {
-                    void handleShareOther();
+                    void handleNativeShare();
                   }}
                   disabled={isPreparingShareImage || isNativeSharing}
                   className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <span className="text-2xl">⋯</span>
-                  <span className="text-xs font-semibold">その他</span>
+                  <span className="text-2xl">↗</span>
+                  <span className="text-xs font-semibold">navigator.share</span>
+                </button>
+
+                <button
+                  onClick={closeSharePreview}
+                  disabled={isPreparingShareImage || isNativeSharing}
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="text-2xl">✕</span>
+                  <span className="text-xs font-semibold">閉じる</span>
                 </button>
               </div>
             </div>
