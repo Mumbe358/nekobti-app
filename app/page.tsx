@@ -1166,7 +1166,7 @@ export default function Home() {
         try {
           await document.fonts.ready;
           try {
-            await document.fonts.load("200 88px 'Kiwami'");
+            await document.fonts.load("900 88px 'Kiwami'");
           } catch {}
         } catch {}
       }
@@ -1192,11 +1192,11 @@ export default function Home() {
 
       // copy
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = "200 88px 'Kiwami'";
+      ctx.font = "900 88px 'Kiwami'";
       const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
       let copyY = 170;
       copyLines.forEach((line) => {
-        ctx.font = "200 88px 'Kiwami'";
+        ctx.font = "900 88px 'Kiwami'";
         ctx.fillText(line, width / 2, copyY);
         copyY += 102;
       });
@@ -1216,17 +1216,16 @@ export default function Home() {
       // type name
       ctx.fillStyle = "#000000";
       ctx.font = "900 56px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}`, width / 2, height - 160);
+      ctx.fillText(`${result.mainType}`, width / 2, height - 200);
 
-      // type label
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 32px 'Noto Sans JP', sans-serif";
-      ctx.fillText("タイプ", width / 2, height - 110);
+      ctx.fillText("タイプ", width / 2, height - 150);
 
       // copyright / brand
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, height - 60);
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 80);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
@@ -1770,18 +1769,18 @@ ${shareUrl}`);
                         void handleNativeShare();
                       }}
                       disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-[#f4e7dc] px-3 py-3 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-2xl">↗</span>
+                      <span className="text-xl">↗</span>
                       <span className="text-xs font-semibold">シェア</span>
                     </button>
 
                     <button
                       onClick={closeSharePreview}
                       disabled={isPreparingShareImage || isNativeSharing}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-[#ead8ca] bg-white px-3 py-3 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-2xl">✕</span>
+                      <span className="text-xl">✕</span>
                       <span className="text-xs font-semibold">閉じる</span>
                     </button>
                   </div>
