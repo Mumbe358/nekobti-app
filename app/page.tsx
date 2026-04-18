@@ -1229,8 +1229,15 @@ export default function Home() {
 
       // type name
       ctx.fillStyle = "#7a5c48";
-      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 20);
+      let typeFontSize = 72;
+      const typeNameText = `${result.mainType}タイプ`;
+      ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
+      while (ctx.measureText(typeNameText).width > 900 && typeFontSize > 42) {
+        typeFontSize -= 2;
+        ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
+      }
+      const typeY = imgY + imgBox - 4;
+      ctx.fillText(typeNameText, width / 2, typeY);
 
       // copyright / brand
       ctx.fillStyle = "#9a7d69";
