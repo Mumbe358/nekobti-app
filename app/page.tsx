@@ -1181,14 +1181,14 @@ export default function Home() {
       canvas.width = width;
       canvas.height = height;
 
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#fffdfb";
       ctx.fillRect(0, 0, width, height);
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
       // outer card
-      const cardX = 40;
-      const cardY = 40;
+      const cardX = 78;
+      const cardY = 28;
       const cardW = width - cardX * 2;
       const cardH = height - cardY * 2;
       const radius = 42;
@@ -1208,25 +1208,25 @@ export default function Home() {
 
       // title
       ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 56px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 88);
+      ctx.font = "700 42px 'Noto Sans JP', sans-serif";
+      ctx.fillText("うちの子は…", width / 2, 58);
 
       // copy
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = "200 96px 'Kiwami', 'Noto Sans JP', sans-serif";
+      ctx.font = "200 68px 'Kiwami', 'Noto Sans JP', sans-serif";
       const copyLines = wrapCanvasText(ctx, cardCopy, 940).slice(0, 3);
-      let copyY = 158;
+      let copyY = 120;
       copyLines.forEach((line) => {
-        ctx.font = "200 96px 'Kiwami', 'Noto Sans JP', sans-serif";
+        ctx.font = "200 68px 'Kiwami', 'Noto Sans JP', sans-serif";
         ctx.fillText(line, width / 2, copyY);
-        copyY += 110;
+        copyY += 78;
       });
 
       // image panel
-      const panelX = 40;
-      const panelY = 392;
+      const panelX = 26;
+      const panelY = 330;
       const panelW = width - panelX * 2;
-      const panelH = 560;
+      const panelH = 610;
       const panelR = 34;
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
@@ -1245,7 +1245,7 @@ export default function Home() {
       const img = await loadImageForCanvas(resultImageSrc);
       const imgBox = 700;
       const imgX = width / 2 - imgBox / 2;
-      const imgY = 360;
+      const imgY = 340;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1256,12 +1256,12 @@ export default function Home() {
       // type name
       ctx.fillStyle = "#7a5c48";
       ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1006);
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1040);
 
       // copyright
       ctx.fillStyle = "#9a7d69";
-      ctx.font = "500 24px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, 1124);
+      ctx.font = "500 20px 'Noto Sans JP', sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, 1178);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
