@@ -1199,10 +1199,27 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // layout: illustration → type name → space → copy
+      // title
+      ctx.fillStyle = "#8a6a57";
+      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
+      ctx.fillText("うちの子は…", width / 2, 52);
+
+      // copy
+      ctx.fillStyle = "#2b2b2b";
+      ctx.font = "200 88px 'Kiwami'";
+      const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
+      let copyY = 170;
+      copyLines.forEach((line) => {
+        ctx.font = "200 88px 'Kiwami'";
+        ctx.fillText(line, width / 2, copyY);
+        copyY += 102;
+      });
+
+      // image
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = Math.round(width * 0.72);
-      const imgY = 92;
+      const imgBox = Math.round(width * 0.82);
+      const imgX = width / 2 - imgBox / 2;
+      const imgY = copyY + 12;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1212,36 +1229,13 @@ export default function Home() {
 
       // type name
       ctx.fillStyle = "#7a5c48";
-      let typeFontSize = 72;
-      const typeNameText = `${result.mainType}タイプ`;
-      ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
-      while (ctx.measureText(typeNameText).width > 900 && typeFontSize > 42) {
-        typeFontSize -= 2;
-        ctx.font = `200 ${typeFontSize}px 'Kiwami'`;
-      }
-      const typeY = imgY + imgBox - 18;
-      ctx.fillText(typeNameText, width / 2, typeY);
-
-      // copy block
-      const copyTitleY = typeY + typeFontSize + 96;
-      ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, copyTitleY);
-
-      ctx.fillStyle = "#2b2b2b";
-      ctx.font = "200 78px 'Kiwami'";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 900).slice(0, 3);
-      let copyY = copyTitleY + 72;
-      copyLines.forEach((line) => {
-        ctx.font = "200 78px 'Kiwami'";
-        ctx.fillText(line, width / 2, copyY);
-        copyY += 90;
-      });
+      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 20);
 
       // copyright / brand
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, height - 108);
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
