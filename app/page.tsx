@@ -1176,7 +1176,7 @@ export default function Home() {
       if (!ctx) return null;
 
       const width = 1080;
-      const height = 1580;
+      const height = 1650;
       canvas.width = width;
       canvas.height = height;
 
