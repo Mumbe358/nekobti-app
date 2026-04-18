@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
 
@@ -815,7 +814,6 @@ export default function Home() {
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [shareImageFile, setShareImageFile] = useState<File | null>(null);
   const [shareImageError, setShareImageError] = useState<string | null>(null);
-  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
@@ -1100,77 +1098,144 @@ export default function Home() {
 
   const getShareText = () =>
     result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみてね`
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱
+診断してみてね`
       : "うちの猫のタイプ診断をやってみた🐱";
 
   const getShareUrl = () => (typeof window !== "undefined" ? window.location.href : "");
 
-  const waitForShareCardReady = async () => {
-    if (typeof document !== "undefined" && "fonts" in document) {
-      try {
-        await document.fonts.ready;
-      } catch {}
-    }
-
-    await new Promise((resolve) => window.setTimeout(resolve, 120));
-
-    const root = shareCardRef.current;
-    if (!root) return;
-
-    const images = Array.from(root.querySelectorAll("img")) as HTMLImageElement[];
-    await Promise.all(
-      images.map(
-        async (img) => {
-          await new Promise<void>((resolve) => {
-            if (img.complete && img.naturalWidth > 0) {
-              resolve();
-              return;
-            }
-
-            const done = () => {
-              img.removeEventListener("load", done);
-              img.removeEventListener("error", done);
-              resolve();
-            };
-
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
-          });
-
+  const loadImage = (src: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.decoding = "sync";
+      img.src = src;
+      img.onload = async () => {
+        try {
           if ("decode" in img) {
-            try {
-              await img.decode();
-            } catch {}
+            await img.decode();
           }
-        },
-      ),
-    );
+        } catch {}
+        resolve(img);
+      };
+      img.onerror = () => reject(new Error(`failed to load image: ${src}`));
+    });
 
-    await new Promise((resolve) =>
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve(undefined))),
-    );
+  const roundedRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number,
+  ) => {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
   };
 
-  const generateResultPng = async () => {
-    if (!shareCardRef.current) return null;
+  const drawMultilineCentered = (
+    ctx: CanvasRenderingContext2D,
+    lines: string[],
+    x: number,
+    startY: number,
+    lineHeight: number,
+    bigIndex = -1,
+  ) => {
+    lines.forEach((line, index) => {
+      ctx.font = index === bigIndex ? "900 70px sans-serif" : "700 50px sans-serif";
+      ctx.fillText(line, x, startY + index * lineHeight);
+    });
+  };
+
+  const generateShareImage = async () => {
+    if (!result) return null;
 
     try {
       setIsPreparingShareImage(true);
       setShareImageError(null);
-      await waitForShareCardReady();
 
-      const node = shareCardRef.current;
-      const width = Math.max(node.scrollWidth || 0, 360);
-      const height = Math.max(node.scrollHeight || 0, 640);
-      const dataUrl = await toPng(node, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#fffdfb",
-        canvasWidth: width,
-        canvasHeight: height,
-        skipAutoScale: true,
-      });
-      const blob = await (await fetch(dataUrl)).blob();
+      const width = 1080;
+      const height = 1350;
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        setShareImageError("共有画像の生成に失敗しました");
+        return null;
+      }
+
+      ctx.fillStyle = "#fffdfb";
+      ctx.fillRect(0, 0, width, height);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+
+      // outer card
+      roundedRect(ctx, 90, 70, 900, 1210, 44);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = "#f1e4da";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = "#8a6a57";
+      ctx.font = "700 34px sans-serif";
+      ctx.fillText("うちの子は…", width / 2, 145);
+
+      const lines = cardCopy.split("\n").filter(Boolean);
+      ctx.fillStyle = "#2b2b2b";
+      drawMultilineCentered(ctx, lines, width / 2, 255, 88, lines.length > 1 ? 1 : -1);
+
+      // image panel
+      roundedRect(ctx, 170, 360, 740, 540, 40);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = "#f1e4da";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      try {
+        const catImg = await loadImage(resultImageSrc);
+        const maxW = 620;
+        const maxH = 460;
+        const ratio = Math.min(maxW / catImg.width, maxH / catImg.height);
+        const drawW = catImg.width * ratio;
+        const drawH = catImg.height * ratio;
+        const drawX = (width - drawW) / 2;
+        const drawY = 400 + (maxH - drawH) / 2;
+        ctx.drawImage(catImg, drawX, drawY, drawW, drawH);
+      } catch (error) {
+        console.error(error);
+        setShareImageError("猫イラストの読み込みに失敗しました");
+      }
+
+      ctx.fillStyle = "#7a5c48";
+      ctx.font = "800 54px sans-serif";
+      ctx.fillText(result.mainType, width / 2, 1010);
+      ctx.font = "500 34px sans-serif";
+      ctx.fillText("タイプ", width / 2, 1068);
+
+      ctx.fillStyle = "#9a7d69";
+      ctx.font = "500 24px sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, 1180);
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((value) => resolve(value), "image/png"),
+      );
+      if (!blob) {
+        setShareImageError("共有画像の生成に失敗しました");
+        return null;
+      }
+
       const file = new File([blob], "nekobti-result.png", { type: "image/png" });
       const objectUrl = URL.createObjectURL(blob);
       return { file, objectUrl };
@@ -1197,9 +1262,8 @@ export default function Home() {
     setShareImageFile(null);
 
     try {
-      const generated = await generateResultPng();
+      const generated = await generateShareImage();
       if (!generated) return;
-
       setShareImageUrl(generated.objectUrl);
       setShareImageFile(generated.file);
       setIsSharePreviewOpen(true);
@@ -1271,7 +1335,6 @@ ${shareUrl}`);
       setIsNativeSharing(false);
     }
   };
-
 
   return (
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
@@ -1727,53 +1790,6 @@ ${shareUrl}`);
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {result && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed left-[-9999px] top-[-9999px] z-[60]"
-        >
-          <div
-            ref={shareCardRef}
-            className={`${notoSans.className} w-[360px] rounded-[32px] bg-[#fffdfb] px-5 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
-            style={{ opacity: 1, visibility: "visible" }}
-          >
-            <p className="mb-3 text-center text-sm font-semibold tracking-[0.08em] text-[#8a6a57]">うちの子は…</p>
-
-            <div className="mb-4 text-center text-[#2b2b2b]">
-              {cardCopy.split("\n").map((line, index) => (
-                <p
-                  key={`${line}-${index}`}
-                  className={
-                    index === 1
-                      ? "text-[34px] font-black leading-tight tracking-[-0.04em]"
-                      : "text-[24px] font-bold leading-tight tracking-[-0.03em]"
-                  }
-                >
-                  {line}
-                </p>
-              ))}
-            </div>
-
-            <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
-              <img
-                src={resultImageSrc}
-                alt={result.mainType}
-                onError={(e) => {
-                  e.currentTarget.src = "/images/silhouette.png";
-                }}
-                className="mx-auto aspect-square w-full max-w-[280px] object-contain"
-              />
-            </div>
-
-            <p className="text-center text-[24px] font-bold tracking-[-0.02em] text-[#7a5c48]">
-              {result.mainType}タイプ
-            </p>
-
-            <p className="mt-4 text-right text-xs text-[#9a7d69]">©ねこびーてぃあい</p>
-          </div>
         </div>
       )}
 
