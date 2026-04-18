@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+import { toJpeg } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
 
@@ -1150,13 +1150,21 @@ export default function Home() {
       setIsPreparingShareImage(true);
       setShareImageError(null);
       await waitForShareCardReady();
-      const dataUrl = await toPng(shareCardRef.current, {
+
+      const node = shareCardRef.current;
+      const width = node.scrollWidth || 360;
+      const height = node.scrollHeight || 640;
+      const dataUrl = await toJpeg(node, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 1,
+        quality: 0.86,
         backgroundColor: "#fffdfb",
+        canvasWidth: width,
+        canvasHeight: height,
+        skipAutoScale: true,
       });
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "nekobti-result.png", { type: "image/png" });
+      const file = new File([blob], "nekobti-result.jpg", { type: "image/jpeg" });
       const objectUrl = URL.createObjectURL(blob);
       return { file, objectUrl };
     } catch (error) {
@@ -1223,13 +1231,17 @@ export default function Home() {
     }
 
     try {
+      setIsNativeSharing(true);
+
       if (typeof navigator !== "undefined" && "share" in navigator) {
-        if (
-          "canShare" in navigator &&
-          navigator.canShare &&
-          navigator.canShare({ files: [file] })
-        ) {
-          await navigator.share({
+        const nav = navigator as Navigator & {
+          canShare?: (data?: ShareData) => boolean;
+          share: (data?: ShareData) => Promise<void>;
+          clipboard?: { writeText: (value: string) => Promise<void> };
+        };
+
+        if (nav.canShare?.({ files: [file] })) {
+          await nav.share({
             files: [file],
             text: shareText,
             url: shareUrl,
@@ -1237,7 +1249,7 @@ export default function Home() {
           return;
         }
 
-        await navigator.share({
+        await nav.share({
           text: shareText,
           url: shareUrl,
         });
@@ -1725,7 +1737,7 @@ ${shareUrl}`);
                   className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="text-2xl">↗</span>
-                  <span className="text-xs font-semibold">navigator.share</span>
+                  <span className="text-xs font-semibold">シェア</span>
                 </button>
 
                 <button
