@@ -1166,8 +1166,8 @@ export default function Home() {
         try {
           await document.fonts.ready;
           try {
-            await document.fonts.load("900 72px 'Kiwami'");
-            await document.fonts.load("900 90px 'Kiwami'");
+            await document.fonts.load("200 88px 'Kiwami'");
+            await document.fonts.load("500 34px 'Noto Sans JP'");
           } catch {}
         } catch {}
       }
@@ -1181,17 +1181,18 @@ export default function Home() {
       canvas.width = width;
       canvas.height = height;
 
-      ctx.fillStyle = "#fffdfb";
+      // background
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
       // outer card
-      const cardX = 78;
-      const cardY = 28;
+      const cardX = 36;
+      const cardY = 32;
       const cardW = width - cardX * 2;
       const cardH = height - cardY * 2;
-      const radius = 42;
+      const radius = 36;
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.moveTo(cardX + radius, cardY);
@@ -1208,26 +1209,25 @@ export default function Home() {
 
       // title
       ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 58);
+      ctx.font = "700 56px 'Noto Sans JP', sans-serif";
+      ctx.fillText("うちの子は…", width / 2, 82);
 
       // copy
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = "200 68px 'Kiwami', 'Noto Sans JP', sans-serif";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 940).slice(0, 3);
-      let copyY = 120;
+      const copyLines = wrapCanvasText(ctx, cardCopy, 900).slice(0, 3);
+      let copyY = 170;
       copyLines.forEach((line) => {
-        ctx.font = "200 68px 'Kiwami', 'Noto Sans JP', sans-serif";
+        ctx.font = "200 96px 'Kiwami', 'Noto Sans JP', sans-serif";
         ctx.fillText(line, width / 2, copyY);
-        copyY += 78;
+        copyY += 108;
       });
 
-      // image panel
-      const panelX = 26;
-      const panelY = 330;
+      // image area (wider)
+      const panelX = 24;
+      const panelY = 400;
       const panelW = width - panelX * 2;
-      const panelH = 610;
-      const panelR = 34;
+      const panelH = 560;
+      const panelR = 28;
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.moveTo(panelX + panelR, panelY);
@@ -1243,9 +1243,9 @@ export default function Home() {
       ctx.fill();
 
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = 700;
+      const imgBox = 760;
       const imgX = width / 2 - imgBox / 2;
-      const imgY = 340;
+      const imgY = 370;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1255,13 +1255,13 @@ export default function Home() {
 
       // type name
       ctx.fillStyle = "#7a5c48";
-      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1040);
+      ctx.font = "700 58px 'Noto Sans JP', sans-serif";
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1058);
 
-      // copyright
+      // brand
       ctx.fillStyle = "#9a7d69";
-      ctx.font = "500 20px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, 1178);
+      ctx.font = "500 34px 'Noto Sans JP', sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, 1162);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
