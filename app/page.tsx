@@ -1541,8 +1541,7 @@ ${shareUrl}`);
                         <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
                         <div className="mb-4 text-center text-[#2b2b2b]">
-                          {cardCopy.split("
-").map((line, index) => (
+                          {cardCopy.split("\n").map((line, index) => (
                             <p
                               key={`${line}-${index}`}
                               className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
