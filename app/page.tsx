@@ -1166,7 +1166,7 @@ export default function Home() {
         try {
           await document.fonts.ready;
           try {
-            await document.fonts.load("200 88px 'Kiwami'");
+            await document.fonts.load("900 88px 'Kiwami'");
           } catch {}
         } catch {}
       }
@@ -1176,50 +1176,9 @@ export default function Home() {
       if (!ctx) return null;
 
       const width = 1080;
-      const height = 1650;
+      const height = 1350;
       canvas.width = width;
       canvas.height = height;
-
-      const layout = {
-        titleY: 52,
-        copyBoxTop: 150,
-        copyBoxHeight: 250,
-        copyBoxWidth: 880,
-        imageY: 420,
-        imageBox: Math.round(width * 0.9),
-        typeY: 1350,
-        typeSubY: 1430,
-        copyrightY: 1550,
-      };
-
-      const fitCopyText = (
-        text: string,
-        maxWidth: number,
-        maxHeight: number,
-        maxLines: number,
-        maxFontSize: number,
-        minFontSize: number,
-      ) => {
-        for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 2) {
-          const lineHeight = Math.round(fontSize * 1.15);
-          ctx.font = `200 ${fontSize}px 'Kiwami'`;
-          const lines = wrapCanvasText(ctx, text, maxWidth);
-
-          if (lines.length > maxLines) continue;
-          if (lines.length * lineHeight <= maxHeight) {
-            return { fontSize, lineHeight, lines };
-          }
-        }
-
-        const fallbackFontSize = minFontSize;
-        const fallbackLineHeight = Math.round(fallbackFontSize * 1.15);
-        ctx.font = `200 ${fallbackFontSize}px 'Kiwami'`;
-        return {
-          fontSize: fallbackFontSize,
-          lineHeight: fallbackLineHeight,
-          lines: wrapCanvasText(ctx, text, maxWidth).slice(0, maxLines),
-        };
-      };
 
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
@@ -1229,33 +1188,24 @@ export default function Home() {
       // title
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, layout.titleY);
+      ctx.fillText("うちの子は…", width / 2, 52);
 
-      // copy (fixed box)
-      const fittedCopy = fitCopyText(
-        cardCopy,
-        layout.copyBoxWidth,
-        layout.copyBoxHeight,
-        3,
-        88,
-        64,
-      );
-
+      // copy
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = `200 ${fittedCopy.fontSize}px 'Kiwami'`;
-
-      const copyTotalHeight = fittedCopy.lines.length * fittedCopy.lineHeight;
-      let copyY = layout.copyBoxTop + Math.floor((layout.copyBoxHeight - copyTotalHeight) / 2);
-
-      fittedCopy.lines.forEach((line) => {
+      ctx.font = "900 88px 'Kiwami'";
+      const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
+      let copyY = 170;
+      copyLines.forEach((line) => {
+        ctx.font = "900 88px 'Kiwami'";
         ctx.fillText(line, width / 2, copyY);
-        copyY += fittedCopy.lineHeight;
+        copyY += 102;
       });
 
-      // image (fixed position)
+      // image
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = layout.imageBox;
-      const imgY = layout.imageY;
+      const imgBox = Math.round(width * 0.82);
+      const imgX = width / 2 - imgBox / 2;
+      const imgY = copyY + 12;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1263,20 +1213,15 @@ export default function Home() {
         ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
       }
 
-      // type name (fixed position)
-      ctx.fillStyle = "#000000";
-      ctx.font = "900 72px 'Noto Sans JP', sans-serif";
-      ctx.fillText(result.mainType, width / 2, layout.typeY);
+      // type name
+      ctx.fillStyle = "#7a5c48";
+      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 20);
 
-      // type sublabel (fixed position)
-      ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 36px 'Noto Sans JP', sans-serif";
-      ctx.fillText("タイプ", width / 2, layout.typeSubY);
-
-      // copyright / brand (fixed position)
+      // copyright / brand
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, layout.copyrightY);
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
@@ -1698,10 +1643,10 @@ ${shareUrl}`);
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
-                  <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
-                  <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+              <div className="rounded-3xl bg-white px-3 py-3 ring-1 ring-[#f2e5dc] sm:px-4 sm:py-4">
+                <div className="mb-3 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-3 py-3 ring-1 ring-[#f3e3d8]">
+                  <p className="mb-2 text-center text-sm text-[#7a5c48]">うちの子は…</p>
+                  <div className="mb-3 overflow-hidden rounded-[24px] bg-white p-2 ring-1 ring-[#f1e4da]">
                     <img
                       src={resultImageSrc}
                       alt={result.mainType}
@@ -1711,9 +1656,18 @@ ${shareUrl}`);
                       className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
                     />
                   </div>
-                  <h3 className="mb-5 text-center text-3xl font-bold sm:text-4xl">{result.mainType}</h3>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
+                  <div className="mb-3 flex min-h-[52px] items-center justify-center overflow-hidden">
+                    <h3
+                      className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-[36px] leading-none tracking-tight text-[#2b2b2b] sm:text-[42px]"
+                      style={{ fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif", fontWeight: 200 }}
+                    >
+                      {result.mainType}
+                    </h3>
+                  </div>
+
+                  <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
+                    <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
                     <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
                         <p key={trait}>・{trait}</p>
@@ -1722,22 +1676,14 @@ ${shareUrl}`);
                   </div>
 
                   {selectedAruaru && (
-                    <>
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 ring-1 ring-[#f1e4da]">
-                        <p className="mb-1 text-sm font-semibold text-[#9a7d69]">あるある</p>
-                        <p className="text-sm leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
-                      </div>
-
-                      <div className="mb-2 rounded-2xl bg-white/70 p-4 text-[#4e433d] ring-1 ring-[#f1e4da]">
-                        <p className="text-left text-base font-bold not-italic text-[#4e433d]">
-                          🐾 {selectedAruaru.quote.replace(/\n/g, " ")}
-                        </p>
-                      </div>
-                    </>
+                    <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
+                      <p className="mb-2 text-sm font-bold text-[#9a7d69]">あるある</p>
+                      <p className="text-sm font-bold leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
+                    </div>
                   )}
 
                   <div className="text-center">
-                    <p className="mb-1 text-xs text-[#9a7d69]">相性BEST</p>
+                    <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
                     <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
                       {bestMatchMap[result.mainType]} ★★★★★
                     </p>
@@ -1746,28 +1692,25 @@ ${shareUrl}`);
                   <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
                 </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-col gap-2">
                   <button
                     onClick={restartDiagnosis}
-                    className="rounded-full bg-[#2b2b2b] px-6 py-4 text-base font-semibold text-white transition hover:opacity-90"
+                    className="rounded-full bg-[#2b2b2b] px-5 py-3 text-base font-semibold text-white transition hover:opacity-90"
                   >
                     もう一度診断する
                   </button>
                   <button
                     onClick={closeDiagnosis}
-                    className="rounded-full border border-[#d8c1b1] bg-white px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
+                    className="rounded-full border border-[#d8c1b1] bg-white px-5 py-3 text-base font-semibold text-[#7a5c48] transition hover:bg-[#fff4ec]"
                   >
                     閉じる
                   </button>
-                </div>
-
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={() => {
                       void openSharePreview();
                     }}
                     disabled={!isMobileClient || isOpeningSharePreview || isPreparingShareImage}
-                    className={`rounded-full px-6 py-4 text-base font-semibold transition ${
+                    className={`rounded-full px-5 py-3 text-base font-semibold transition ${
                       isMobileClient
                         ? "bg-[#f1e3d6] text-[#7a5c48] hover:opacity-90"
                         : "cursor-not-allowed border border-[#e7d8cc] bg-[#f7f1ec] text-[#b59a88]"
@@ -1820,19 +1763,19 @@ ${shareUrl}`);
                         void handleNativeShare();
                       }}
                       disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#f4e7dc] px-3 py-3 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-xl">↗</span>
-                      <span className="text-[13px] font-semibold">シェア</span>
+                      <span className="text-2xl">↗</span>
+                      <span className="text-xs font-semibold">シェア</span>
                     </button>
 
                     <button
                       onClick={closeSharePreview}
                       disabled={isPreparingShareImage || isNativeSharing}
-                      className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#ead8ca] bg-white px-3 py-3 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-xl">✕</span>
-                      <span className="text-[13px] font-semibold">閉じる</span>
+                      <span className="text-2xl">✕</span>
+                      <span className="text-xs font-semibold">閉じる</span>
                     </button>
                   </div>
                 </div>
