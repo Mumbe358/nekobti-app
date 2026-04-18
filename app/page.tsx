@@ -1104,55 +1104,55 @@ export default function Home() {
 
   const getShareUrl = () => (typeof window !== "undefined" ? window.location.href : "");
 
-  const loadImage = (src: string) =>
-    new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.decoding = "sync";
-      img.src = src;
-      img.onload = async () => {
-        try {
-          if ("decode" in img) {
-            await img.decode();
-          }
-        } catch {}
-        resolve(img);
-      };
-      img.onerror = () => reject(new Error(`failed to load image: ${src}`));
+  const wrapCanvasText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number,
+  ) => {
+    const paragraphs = text.split("\n");
+    const lines: string[] = [];
+
+    paragraphs.forEach((paragraph) => {
+      if (!paragraph) {
+        lines.push("");
+        return;
+      }
+
+      let current = "";
+      for (const ch of paragraph) {
+        const next = current + ch;
+        if (ctx.measureText(next).width <= maxWidth || current.length === 0) {
+          current = next;
+        } else {
+          lines.push(current);
+          current = ch;
+        }
+      }
+      if (current) lines.push(current);
     });
 
-  const roundedRect = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radius: number,
-  ) => {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
+    return lines;
   };
 
-  const drawMultilineCentered = (
-    ctx: CanvasRenderingContext2D,
-    lines: string[],
-    x: number,
-    startY: number,
-    lineHeight: number,
-    bigIndex = -1,
-  ) => {
-    lines.forEach((line, index) => {
-      ctx.font = index === bigIndex ? "900 70px sans-serif" : "700 50px sans-serif";
-      ctx.fillText(line, x, startY + index * lineHeight);
+  const loadImageForCanvas = async (src: string) => {
+    const img = new Image();
+    img.decoding = "sync";
+    img.loading = "eager";
+    img.src = `${src}${src.includes("?") ? "&" : "?"}v=${Date.now()}`;
+
+    await new Promise<void>((resolve) => {
+      const done = () => resolve();
+      img.onload = done;
+      img.onerror = done;
     });
+
+    if ("decode" in img) {
+      try {
+        await img.decode();
+      } catch {}
+    }
+
+    return img;
   };
 
   const generateShareImage = async () => {
@@ -1162,79 +1162,107 @@ export default function Home() {
       setIsPreparingShareImage(true);
       setShareImageError(null);
 
+      if (typeof document !== "undefined" && "fonts" in document) {
+        try {
+          await document.fonts.ready;
+        } catch {}
+      }
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+
       const width = 1080;
       const height = 1350;
-      const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        setShareImageError("共有画像の生成に失敗しました");
-        return null;
-      }
 
       ctx.fillStyle = "#fffdfb";
       ctx.fillRect(0, 0, width, height);
       ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
+      ctx.textBaseline = "top";
 
       // outer card
-      roundedRect(ctx, 90, 70, 900, 1210, 44);
+      const cardX = 78;
+      const cardY = 68;
+      const cardW = width - cardX * 2;
+      const cardH = height - cardY * 2;
+      const radius = 42;
       ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.moveTo(cardX + radius, cardY);
+      ctx.lineTo(cardX + cardW - radius, cardY);
+      ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+      ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+      ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+      ctx.lineTo(cardX + radius, cardY + cardH);
+      ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+      ctx.lineTo(cardX, cardY + radius);
+      ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+      ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = "#f1e4da";
-      ctx.lineWidth = 3;
-      ctx.stroke();
 
+      // title
       ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 34px sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 145);
+      ctx.font = "700 34px 'Noto Sans JP', sans-serif";
+      ctx.fillText("うちの子は…", width / 2, 122);
 
-      const lines = cardCopy.split("\n").filter(Boolean);
+      // copy
       ctx.fillStyle = "#2b2b2b";
-      drawMultilineCentered(ctx, lines, width / 2, 255, 88, lines.length > 1 ? 1 : -1);
+      ctx.font = "900 78px 'Noto Sans JP', sans-serif";
+      const copyLines = wrapCanvasText(ctx, cardCopy, 760).slice(0, 3);
+      let copyY = 180;
+      copyLines.forEach((line, index) => {
+        ctx.font = index === 1 ? "900 90px 'Noto Sans JP', sans-serif" : "900 72px 'Noto Sans JP', sans-serif";
+        ctx.fillText(line, width / 2, copyY);
+        copyY += index === 1 ? 102 : 84;
+      });
 
       // image panel
-      roundedRect(ctx, 170, 360, 740, 540, 40);
-      ctx.fillStyle = "#ffffff";
+      const panelX = 150;
+      const panelY = 420;
+      const panelW = width - panelX * 2;
+      const panelH = 560;
+      const panelR = 34;
+      ctx.fillStyle = "#fff7f1";
+      ctx.beginPath();
+      ctx.moveTo(panelX + panelR, panelY);
+      ctx.lineTo(panelX + panelW - panelR, panelY);
+      ctx.quadraticCurveTo(panelX + panelW, panelY, panelX + panelW, panelY + panelR);
+      ctx.lineTo(panelX + panelW, panelY + panelH - panelR);
+      ctx.quadraticCurveTo(panelX + panelW, panelY + panelH, panelX + panelW - panelR, panelY + panelH);
+      ctx.lineTo(panelX + panelR, panelY + panelH);
+      ctx.quadraticCurveTo(panelX, panelY + panelH, panelX, panelY + panelH - panelR);
+      ctx.lineTo(panelX, panelY + panelR);
+      ctx.quadraticCurveTo(panelX, panelY, panelX + panelR, panelY);
+      ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = "#f1e4da";
-      ctx.lineWidth = 3;
-      ctx.stroke();
 
-      try {
-        const catImg = await loadImage(resultImageSrc);
-        const maxW = 620;
-        const maxH = 460;
-        const ratio = Math.min(maxW / catImg.width, maxH / catImg.height);
-        const drawW = catImg.width * ratio;
-        const drawH = catImg.height * ratio;
-        const drawX = (width - drawW) / 2;
-        const drawY = 400 + (maxH - drawH) / 2;
-        ctx.drawImage(catImg, drawX, drawY, drawW, drawH);
-      } catch (error) {
-        console.error(error);
-        setShareImageError("猫イラストの読み込みに失敗しました");
+      const img = await loadImageForCanvas(resultImageSrc);
+      const imgBox = 640;
+      const imgX = width / 2 - imgBox / 2;
+      const imgY = 386;
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
+        const drawW = img.naturalWidth * scale;
+        const drawH = img.naturalHeight * scale;
+        ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
       }
 
+      // type name
       ctx.fillStyle = "#7a5c48";
-      ctx.font = "800 54px sans-serif";
-      ctx.fillText(result.mainType, width / 2, 1010);
-      ctx.font = "500 34px sans-serif";
-      ctx.fillText("タイプ", width / 2, 1068);
+      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
+      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1040);
 
+      // copyright
       ctx.fillStyle = "#9a7d69";
-      ctx.font = "500 24px sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, 1180);
+      ctx.font = "500 24px 'Noto Sans JP', sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, 1160);
 
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob((value) => resolve(value), "image/png"),
-      );
-      if (!blob) {
-        setShareImageError("共有画像の生成に失敗しました");
-        return null;
-      }
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((value) => resolve(value), "image/png");
+      });
+      if (!blob) return null;
 
       const file = new File([blob], "nekobti-result.png", { type: "image/png" });
       const objectUrl = URL.createObjectURL(blob);
@@ -1264,6 +1292,7 @@ export default function Home() {
     try {
       const generated = await generateShareImage();
       if (!generated) return;
+
       setShareImageUrl(generated.objectUrl);
       setShareImageFile(generated.file);
       setIsSharePreviewOpen(true);
@@ -1335,6 +1364,7 @@ ${shareUrl}`);
       setIsNativeSharing(false);
     }
   };
+
 
   return (
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">

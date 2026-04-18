@@ -46,3 +46,7 @@ body {
     transform: translateX(0);
   }
 }
+@font-face {
+  font-family: "KillGothic";
+  src: url("/fonts/GN-KillGothic-U-KanaO.ttf") format("truetype");
+}
