@@ -807,6 +807,7 @@ export default function Home() {
   const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
+  const [showSharePreview, setShowSharePreview] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
@@ -1103,8 +1104,6 @@ export default function Home() {
   };
 
   const generateResultPng = async () => {
-    setIsSharing(true);
-
     try {
       await waitForShareCardReady();
 
@@ -1118,63 +1117,87 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       return null;
-    } finally {
-      setIsSharing(false);
     }
   };
 
+  const openSharePreview = () => {
+    if (isSharing) return;
+    setShowSharePreview(true);
+  };
+
+  const closeSharePreview = () => {
+    if (isSharing) return;
+    setShowSharePreview(false);
+  };
+
   const handleShare = async () => {
-    const dataUrl = await generateResultPng();
-    const shareText = result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみてね`
-      : "うちの猫のタイプ診断をやってみた🐱";
-    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    if (isSharing) return;
 
-    if (dataUrl) {
-      try {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], "nekobti-result.png", { type: "image/png" });
-
-        if (
-          typeof navigator !== "undefined" &&
-          "share" in navigator &&
-          "canShare" in navigator &&
-          navigator.canShare({ files: [file] })
-        ) {
-          await navigator.share({
-            text: `${shareText}\n${shareUrl}`,
-            files: [file],
-          });
-          return;
-        }
-
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "nekobti-result.png";
-        link.click();
-        return;
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    if (typeof navigator !== "undefined" && "share" in navigator) {
-      try {
-        await navigator.share({
-          text: `${shareText}\n${shareUrl}`,
-        });
-        return;
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    setIsSharing(true);
 
     try {
-      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-      alert("共有テキストをコピーしました");
-    } catch (error) {
-      console.error(error);
-      alert("共有に失敗しました");
+      const dataUrl = await generateResultPng();
+      const shareText = result
+        ? `うちの猫のタイプは「${result.mainType}」でした🐱
+診断してみてね`
+        : "うちの猫のタイプ診断をやってみた🐱";
+      const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+      if (dataUrl) {
+        try {
+          const blob = await (await fetch(dataUrl)).blob();
+          const file = new File([blob], "nekobti-result.png", { type: "image/png" });
+
+          if (
+            typeof navigator !== "undefined" &&
+            "share" in navigator &&
+            "canShare" in navigator &&
+            navigator.canShare({ files: [file] })
+          ) {
+            await navigator.share({
+              text: `${shareText}
+${shareUrl}`,
+              files: [file],
+            });
+            setShowSharePreview(false);
+            return;
+          }
+
+          const link = document.createElement("a");
+          link.href = dataUrl;
+          link.download = "nekobti-result.png";
+          link.click();
+          setShowSharePreview(false);
+          return;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        try {
+          await navigator.share({
+            text: `${shareText}
+${shareUrl}`,
+          });
+          setShowSharePreview(false);
+          return;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      try {
+        await navigator.clipboard.writeText(`${shareText}
+${shareUrl}`);
+        setShowSharePreview(false);
+        alert("共有テキストをコピーしました");
+      } catch (error) {
+        console.error(error);
+        alert("共有に失敗しました");
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -1492,42 +1515,74 @@ export default function Home() {
               </div>
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                {isSharing ? (
-                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(255,253,251,0.96)] p-4">
-                    <div
-                      ref={shareCardRef}
-                      className={`${notoSans.className} rounded-[28px] bg-[#fffdfb] px-6 pb-6 pt-6 text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)]`}
-                      style={{ width: 360, maxWidth: 360 }}
-                    >
-                      <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
+                {showSharePreview ? (
+                  <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(43,43,43,0.35)] p-4"
+                    onClick={closeSharePreview}
+                  >
+                    <div className="w-full max-w-[420px]">
+                      <div
+                        ref={shareCardRef}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleShare();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            void handleShare();
+                          }
+                        }}
+                        className={`${notoSans.className} mx-auto w-[360px] max-w-full cursor-pointer rounded-[28px] bg-[#fffdfb] px-6 pb-6 pt-6 text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)] transition ${isSharing ? "opacity-90" : "hover:scale-[1.01]"}`}
+                        style={{ width: 360, maxWidth: "100%" }}
+                      >
+                        <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
 
-                      <div className="mb-4 text-center text-[#2b2b2b]">
-                        {cardCopy.split("\n").map((line, index) => (
-                          <p
-                            key={`${line}-${index}`}
-                            className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
-                          >
-                            {line}
-                          </p>
-                        ))}
+                        <div className="mb-4 text-center text-[#2b2b2b]">
+                          {cardCopy.split("
+").map((line, index) => (
+                            <p
+                              key={`${line}-${index}`}
+                              className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
+                            >
+                              {line}
+                            </p>
+                          ))}
+                        </div>
+
+                        <div className="mb-3 flex justify-center">
+                          <img
+                            src={resultImageSrc}
+                            alt={result.mainType}
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/silhouette.png";
+                            }}
+                            className="aspect-square w-full max-w-[240px] object-contain"
+                          />
+                        </div>
+
+                        <p className="text-center text-[24px] font-medium leading-[1.25] tracking-[-0.02em] text-[#7a5c48] break-keep">
+                          {result.mainType}タイプ
+                        </p>
+
+                        <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
                       </div>
 
-                      <div className="mb-3 flex justify-center">
-                        <img
-                          src={resultImageSrc}
-                          alt={result.mainType}
-                          onError={(e) => {
-                            e.currentTarget.src = "/images/silhouette.png";
+                      <div className="mt-3 flex items-center justify-center gap-3 text-white/90">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closeSharePreview();
                           }}
-                          className="aspect-square w-full max-w-[240px] object-contain"
-                        />
+                          className="rounded-full border border-white/35 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur"
+                        >
+                          閉じる
+                        </button>
+                        <p className="text-sm">カードをタップで共有</p>
                       </div>
-
-                      <p className="text-center text-[24px] font-medium leading-[1.25] tracking-[-0.02em] text-[#7a5c48] break-keep">
-                        {result.mainType}タイプ
-                      </p>
-
-                      <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
                     </div>
                   </div>
                 ) : null}
@@ -1596,7 +1651,7 @@ export default function Home() {
 
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <button
-                    onClick={handleShare}
+                    onClick={openSharePreview}
                     className="rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
                   >
                     シェア
