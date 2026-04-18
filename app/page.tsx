@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
 
@@ -814,6 +815,7 @@ export default function Home() {
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [shareImageFile, setShareImageFile] = useState<File | null>(null);
   const [shareImageError, setShareImageError] = useState<string | null>(null);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
@@ -1098,172 +1100,77 @@ export default function Home() {
 
   const getShareText = () =>
     result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱
-診断してみてね`
+      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみてね`
       : "うちの猫のタイプ診断をやってみた🐱";
 
   const getShareUrl = () => (typeof window !== "undefined" ? window.location.href : "");
 
-  const wrapCanvasText = (
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    maxWidth: number,
-  ) => {
-    const paragraphs = text.split("\n");
-    const lines: string[] = [];
-
-    paragraphs.forEach((paragraph) => {
-      if (!paragraph) {
-        lines.push("");
-        return;
-      }
-
-      let current = "";
-      for (const ch of paragraph) {
-        const next = current + ch;
-        if (ctx.measureText(next).width <= maxWidth || current.length === 0) {
-          current = next;
-        } else {
-          lines.push(current);
-          current = ch;
-        }
-      }
-      if (current) lines.push(current);
-    });
-
-    return lines;
-  };
-
-  const loadImageForCanvas = async (src: string) => {
-    const img = new Image();
-    img.decoding = "sync";
-    img.loading = "eager";
-    img.src = `${src}${src.includes("?") ? "&" : "?"}v=${Date.now()}`;
-
-    await new Promise<void>((resolve) => {
-      const done = () => resolve();
-      img.onload = done;
-      img.onerror = done;
-    });
-
-    if ("decode" in img) {
+  const waitForShareCardReady = async () => {
+    if (typeof document !== "undefined" && "fonts" in document) {
       try {
-        await img.decode();
+        await document.fonts.ready;
       } catch {}
     }
 
-    return img;
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
+
+    const root = shareCardRef.current;
+    if (!root) return;
+
+    const images = Array.from(root.querySelectorAll("img")) as HTMLImageElement[];
+    await Promise.all(
+      images.map(
+        async (img) => {
+          await new Promise<void>((resolve) => {
+            if (img.complete && img.naturalWidth > 0) {
+              resolve();
+              return;
+            }
+
+            const done = () => {
+              img.removeEventListener("load", done);
+              img.removeEventListener("error", done);
+              resolve();
+            };
+
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          });
+
+          if ("decode" in img) {
+            try {
+              await img.decode();
+            } catch {}
+          }
+        },
+      ),
+    );
+
+    await new Promise((resolve) =>
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve(undefined))),
+    );
   };
 
-  const generateShareImage = async () => {
-    if (!result) return null;
+  const generateResultPng = async () => {
+    if (!shareCardRef.current) return null;
 
     try {
       setIsPreparingShareImage(true);
       setShareImageError(null);
+      await waitForShareCardReady();
 
-      if (typeof document !== "undefined" && "fonts" in document) {
-        try {
-          await document.fonts.ready;
-        } catch {}
-      }
-
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
-
-      const width = 1080;
-      const height = 1350;
-      canvas.width = width;
-      canvas.height = height;
-
-      ctx.fillStyle = "#fffdfb";
-      ctx.fillRect(0, 0, width, height);
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-
-      // outer card
-      const cardX = 78;
-      const cardY = 68;
-      const cardW = width - cardX * 2;
-      const cardH = height - cardY * 2;
-      const radius = 42;
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.moveTo(cardX + radius, cardY);
-      ctx.lineTo(cardX + cardW - radius, cardY);
-      ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
-      ctx.lineTo(cardX + cardW, cardY + cardH - radius);
-      ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
-      ctx.lineTo(cardX + radius, cardY + cardH);
-      ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
-      ctx.lineTo(cardX, cardY + radius);
-      ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
-      ctx.closePath();
-      ctx.fill();
-
-      // title
-      ctx.fillStyle = "#8a6a57";
-      ctx.font = "700 34px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 122);
-
-      // copy
-      ctx.fillStyle = "#2b2b2b";
-      ctx.font = "900 78px 'Noto Sans JP', sans-serif";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 760).slice(0, 3);
-      let copyY = 180;
-      copyLines.forEach((line, index) => {
-        ctx.font = index === 1 ? "900 90px 'Noto Sans JP', sans-serif" : "900 72px 'Noto Sans JP', sans-serif";
-        ctx.fillText(line, width / 2, copyY);
-        copyY += index === 1 ? 102 : 84;
+      const node = shareCardRef.current;
+      const width = Math.max(node.scrollWidth || 0, 360);
+      const height = Math.max(node.scrollHeight || 0, 640);
+      const dataUrl = await toPng(node, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#fffdfb",
+        canvasWidth: width,
+        canvasHeight: height,
+        skipAutoScale: true,
       });
-
-      // image panel
-      const panelX = 150;
-      const panelY = 420;
-      const panelW = width - panelX * 2;
-      const panelH = 560;
-      const panelR = 34;
-      ctx.fillStyle = "#fff7f1";
-      ctx.beginPath();
-      ctx.moveTo(panelX + panelR, panelY);
-      ctx.lineTo(panelX + panelW - panelR, panelY);
-      ctx.quadraticCurveTo(panelX + panelW, panelY, panelX + panelW, panelY + panelR);
-      ctx.lineTo(panelX + panelW, panelY + panelH - panelR);
-      ctx.quadraticCurveTo(panelX + panelW, panelY + panelH, panelX + panelW - panelR, panelY + panelH);
-      ctx.lineTo(panelX + panelR, panelY + panelH);
-      ctx.quadraticCurveTo(panelX, panelY + panelH, panelX, panelY + panelH - panelR);
-      ctx.lineTo(panelX, panelY + panelR);
-      ctx.quadraticCurveTo(panelX, panelY, panelX + panelR, panelY);
-      ctx.closePath();
-      ctx.fill();
-
-      const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = 640;
-      const imgX = width / 2 - imgBox / 2;
-      const imgY = 386;
-      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-        const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
-        const drawW = img.naturalWidth * scale;
-        const drawH = img.naturalHeight * scale;
-        ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
-      }
-
-      // type name
-      ctx.fillStyle = "#7a5c48";
-      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, 1040);
-
-      // copyright
-      ctx.fillStyle = "#9a7d69";
-      ctx.font = "500 24px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, 1160);
-
-      const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob((value) => resolve(value), "image/png");
-      });
-      if (!blob) return null;
-
+      const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "nekobti-result.png", { type: "image/png" });
       const objectUrl = URL.createObjectURL(blob);
       return { file, objectUrl };
@@ -1290,7 +1197,7 @@ export default function Home() {
     setShareImageFile(null);
 
     try {
-      const generated = await generateShareImage();
+      const generated = await generateResultPng();
       if (!generated) return;
 
       setShareImageUrl(generated.objectUrl);
@@ -1820,6 +1727,53 @@ ${shareUrl}`);
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {result && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed left-[-9999px] top-[-9999px] z-[60]"
+        >
+          <div
+            ref={shareCardRef}
+            className={`${notoSans.className} w-[360px] rounded-[32px] bg-[#fffdfb] px-5 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
+            style={{ opacity: 1, visibility: "visible" }}
+          >
+            <p className="mb-3 text-center text-sm font-semibold tracking-[0.08em] text-[#8a6a57]">うちの子は…</p>
+
+            <div className="mb-4 text-center text-[#2b2b2b]">
+              {cardCopy.split("\n").map((line, index) => (
+                <p
+                  key={`${line}-${index}`}
+                  className={
+                    index === 1
+                      ? "text-[34px] font-black leading-tight tracking-[-0.04em]"
+                      : "text-[24px] font-bold leading-tight tracking-[-0.03em]"
+                  }
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+
+            <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+              <img
+                src={resultImageSrc}
+                alt={result.mainType}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/silhouette.png";
+                }}
+                className="mx-auto aspect-square w-full max-w-[280px] object-contain"
+              />
+            </div>
+
+            <p className="text-center text-[24px] font-bold tracking-[-0.02em] text-[#7a5c48]">
+              {result.mainType}タイプ
+            </p>
+
+            <p className="mt-4 text-right text-xs text-[#9a7d69]">©ねこびーてぃあい</p>
+          </div>
         </div>
       )}
 
