@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toJpeg } from "html-to-image";
+import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
 
@@ -1112,7 +1112,7 @@ export default function Home() {
       } catch {}
     }
 
-    await new Promise((resolve) => window.setTimeout(resolve, 80));
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
 
     const root = shareCardRef.current;
     if (!root) return;
@@ -1120,8 +1120,8 @@ export default function Home() {
     const images = Array.from(root.querySelectorAll("img")) as HTMLImageElement[];
     await Promise.all(
       images.map(
-        (img) =>
-          new Promise<void>((resolve) => {
+        async (img) => {
+          await new Promise<void>((resolve) => {
             if (img.complete && img.naturalWidth > 0) {
               resolve();
               return;
@@ -1133,9 +1133,16 @@ export default function Home() {
               resolve();
             };
 
-            img.addEventListener("load", done);
-            img.addEventListener("error", done);
-          }),
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          });
+
+          if ("decode" in img) {
+            try {
+              await img.decode();
+            } catch {}
+          }
+        },
       ),
     );
 
@@ -1153,19 +1160,18 @@ export default function Home() {
       await waitForShareCardReady();
 
       const node = shareCardRef.current;
-      const width = node.scrollWidth || 360;
-      const height = node.scrollHeight || 640;
-      const dataUrl = await toJpeg(node, {
+      const width = Math.max(node.scrollWidth || 0, 360);
+      const height = Math.max(node.scrollHeight || 0, 640);
+      const dataUrl = await toPng(node, {
         cacheBust: true,
-        pixelRatio: 1,
-        quality: 0.86,
+        pixelRatio: 2,
         backgroundColor: "#fffdfb",
         canvasWidth: width,
         canvasHeight: height,
         skipAutoScale: true,
       });
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "nekobti-result.jpg", { type: "image/jpeg" });
+      const file = new File([blob], "nekobti-result.png", { type: "image/png" });
       const objectUrl = URL.createObjectURL(blob);
       return { file, objectUrl };
     } catch (error) {
