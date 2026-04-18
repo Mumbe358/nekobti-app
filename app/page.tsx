@@ -786,6 +786,20 @@ function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
 }
 
+function getResultTypeTitleClass(type: CatType) {
+  const length = type.length;
+
+  if (length >= 10) {
+    return "text-[28px] sm:text-[34px]";
+  }
+
+  if (length >= 8) {
+    return "text-[32px] sm:text-[38px]";
+  }
+
+  return "text-[36px] sm:text-[42px]";
+}
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
@@ -1659,7 +1673,7 @@ ${shareUrl}`);
 
                   <div className="mb-3 flex min-h-[52px] items-center justify-center overflow-hidden">
                     <h3
-                      className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-[36px] leading-none tracking-tight text-[#2b2b2b] sm:text-[42px]"
+                      className={`max-w-full text-center leading-none tracking-tight text-[#2b2b2b] whitespace-normal break-keep ${getResultTypeTitleClass(result.mainType)}`}
                       style={{ fontFamily: "'Kiwami', 'Noto Sans JP', sans-serif", fontWeight: 200 }}
                     >
                       {result.mainType}
@@ -1670,7 +1684,7 @@ ${shareUrl}`);
                     <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
                     <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
-                        <p key={trait}>・{trait}</p>
+                        <p key={trait} className="font-bold">・{trait}</p>
                       ))}
                     </div>
                   </div>
@@ -1684,9 +1698,15 @@ ${shareUrl}`);
 
                   <div className="text-center">
                     <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
-                    <p className="text-base font-semibold text-[#4e433d] sm:text-lg">
-                      {bestMatchMap[result.mainType]} ★★★★★
-                    </p>
+                    <div className="space-y-2 text-[#4e433d]">
+                      {ownerCompatibility[result.mainType].map((item) => (
+                        <p key={item.type} className="text-base font-semibold leading-tight sm:text-lg">
+                          <span>{item.type}</span>
+                          <br />
+                          <span>{renderHearts(item.hearts)}</span>
+                        </p>
+                      ))}
+                    </div>
                   </div>
 
                   <p className="mt-2 text-center text-xs text-[#9a7d69]">#ねこびーてぃあい</p>
