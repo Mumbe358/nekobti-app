@@ -1166,7 +1166,7 @@ export default function Home() {
         try {
           await document.fonts.ready;
           try {
-            await document.fonts.load("900 88px 'Kiwami'");
+            await document.fonts.load("200 88px 'Kiwami'");
           } catch {}
         } catch {}
       }
@@ -1192,11 +1192,11 @@ export default function Home() {
 
       // copy
       ctx.fillStyle = "#2b2b2b";
-      ctx.font = "900 88px 'Kiwami'";
+      ctx.font = "200 88px 'Kiwami'";
       const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
       let copyY = 170;
       copyLines.forEach((line) => {
-        ctx.font = "900 88px 'Kiwami'";
+        ctx.font = "200 88px 'Kiwami'";
         ctx.fillText(line, width / 2, copyY);
         copyY += 102;
       });
