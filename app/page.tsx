@@ -811,6 +811,9 @@ export default function Home() {
   const [isMobileClient, setIsMobileClient] = useState(false);
   const [isPreparingShareImage, setIsPreparingShareImage] = useState(false);
   const [isNativeSharing, setIsNativeSharing] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+  const [shareImageFile, setShareImageFile] = useState<File | null>(null);
+  const [shareImageError, setShareImageError] = useState<string | null>(null);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
@@ -840,6 +843,14 @@ export default function Home() {
       if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (shareImageUrl) {
+        URL.revokeObjectURL(shareImageUrl);
+      }
+    };
+  }, [shareImageUrl]);
 
   const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions + 1;
@@ -1137,14 +1148,20 @@ export default function Home() {
 
     try {
       setIsPreparingShareImage(true);
+      setShareImageError(null);
       await waitForShareCardReady();
-      return await toPng(shareCardRef.current, {
+      const dataUrl = await toPng(shareCardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#fffdfb",
       });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "nekobti-result.png", { type: "image/png" });
+      const objectUrl = URL.createObjectURL(blob);
+      return { file, objectUrl };
     } catch (error) {
       console.error(error);
+      setShareImageError("共有画像の生成に失敗しました");
       return null;
     } finally {
       setIsPreparingShareImage(false);
@@ -1153,6 +1170,12 @@ export default function Home() {
 
   const openSharePreview = () => {
     if (!isMobileClient || isPreparingShareImage || isNativeSharing || !result) return;
+    setShareImageError(null);
+    setShareImageFile(null);
+    setShareImageUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
     setIsSharePreviewOpen(true);
   };
 
@@ -1161,39 +1184,72 @@ export default function Home() {
     setIsSharePreviewOpen(false);
   };
 
+  useEffect(() => {
+    if (!isSharePreviewOpen || !result || shareImageFile || shareImageUrl || isPreparingShareImage) return;
+
+    let cancelled = false;
+
+    const prepare = async () => {
+      const generated = await generateResultPng();
+      if (!generated || cancelled) {
+        if (generated?.objectUrl) URL.revokeObjectURL(generated.objectUrl);
+        return;
+      }
+
+      setShareImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return generated.objectUrl;
+      });
+      setShareImageFile(generated.file);
+    };
+
+    void prepare();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSharePreviewOpen, result, shareImageFile, shareImageUrl, isPreparingShareImage]);
+
   const handleNativeShare = async () => {
     if (isPreparingShareImage || isNativeSharing) return;
 
-    setIsNativeSharing(true);
+    const shareText = getShareText();
+    const shareUrl = getShareUrl();
 
     try {
-      const dataUrl = await generateResultPng();
-      const shareText = getShareText();
-      const shareUrl = getShareUrl();
+      setIsNativeSharing(true);
 
-      if (dataUrl) {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], "nekobti-result.png", { type: "image/png" });
-
-        if (
-          typeof navigator !== "undefined" &&
-          "share" in navigator &&
-          "canShare" in navigator &&
-          navigator.canShare({ files: [file] })
-        ) {
-          setIsSharePreviewOpen(false);
-          await navigator.share({
-            text: `${shareText}\n${shareUrl}`,
-            files: [file],
+      let file = shareImageFile;
+      if (!file) {
+        const generated = await generateResultPng();
+        if (generated) {
+          file = generated.file;
+          setShareImageFile(generated.file);
+          setShareImageUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return generated.objectUrl;
           });
-          return;
         }
       }
 
       if (typeof navigator !== "undefined" && "share" in navigator) {
-        setIsSharePreviewOpen(false);
+        if (
+          file &&
+          "canShare" in navigator &&
+          navigator.canShare &&
+          navigator.canShare({ files: [file] })
+        ) {
+          await navigator.share({
+            files: [file],
+            text: shareText,
+            url: shareUrl,
+          });
+          return;
+        }
+
         await navigator.share({
-          text: `${shareText}\n${shareUrl}`,
+          text: shareText,
+          url: shareUrl,
         });
         return;
       }
@@ -1202,8 +1258,8 @@ export default function Home() {
         clipboard?: { writeText: (value: string) => Promise<void> };
       }).clipboard;
       if (clipboard?.writeText) {
-        await clipboard.writeText(`${shareText}\n${shareUrl}`);
-        setIsSharePreviewOpen(false);
+        await clipboard.writeText(`${shareText}
+${shareUrl}`);
         alert("共有テキストをコピーしました");
         return;
       }
@@ -1218,6 +1274,7 @@ export default function Home() {
       setIsNativeSharing(false);
     }
   };
+
 
   return (
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
@@ -1675,7 +1732,7 @@ export default function Home() {
                     void handleNativeShare();
                   }}
                   disabled={isPreparingShareImage || isNativeSharing}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#2b2b2b] px-3 py-4 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="text-2xl">↗</span>
                   <span className="text-xs font-semibold">navigator.share</span>
@@ -1684,9 +1741,9 @@ export default function Home() {
                 <button
                   onClick={closeSharePreview}
                   disabled={isPreparingShareImage || isNativeSharing}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <span className="text-2xl">×</span>
+                  <span className="text-2xl">✕</span>
                   <span className="text-xs font-semibold">閉じる</span>
                 </button>
               </div>
