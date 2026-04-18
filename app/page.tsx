@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
@@ -1143,6 +1144,9 @@ export default function Home() {
         : "うちの猫のタイプ診断をやってみた🐱";
       const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
+      setShowSharePreview(false);
+      await new Promise((resolve) => window.setTimeout(resolve, 60));
+
       if (dataUrl) {
         try {
           const blob = await (await fetch(dataUrl)).blob();
@@ -1159,7 +1163,6 @@ export default function Home() {
 ${shareUrl}`,
               files: [file],
             });
-            setShowSharePreview(false);
             return;
           }
 
@@ -1167,7 +1170,6 @@ ${shareUrl}`,
           link.href = dataUrl;
           link.download = "nekobti-result.png";
           link.click();
-          setShowSharePreview(false);
           return;
         } catch (error) {
           console.error(error);
@@ -1180,7 +1182,6 @@ ${shareUrl}`,
             text: `${shareText}
 ${shareUrl}`,
           });
-          setShowSharePreview(false);
           return;
         } catch (error) {
           console.error(error);
@@ -1190,7 +1191,6 @@ ${shareUrl}`,
       try {
         await navigator.clipboard.writeText(`${shareText}
 ${shareUrl}`);
-        setShowSharePreview(false);
         alert("共有テキストをコピーしました");
       } catch (error) {
         console.error(error);
@@ -1515,76 +1515,71 @@ ${shareUrl}`);
               </div>
 
               <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
-                {showSharePreview ? (
-                  <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(43,43,43,0.35)] p-4"
-                    onClick={closeSharePreview}
-                  >
-                    <div className="w-full max-w-[420px]">
+                {showSharePreview && typeof document !== "undefined"
+                  ? createPortal(
                       <div
-                        ref={shareCardRef}
-                        role="button"
-                        tabIndex={0}
+                        className="fixed inset-0 z-[9999] flex min-h-[100dvh] items-center justify-center bg-[rgba(43,43,43,0.35)] p-4"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          void handleShare();
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            void handleShare();
+                          if (isSharing) return;
+                          if (e.target === e.currentTarget) {
+                            closeSharePreview();
                           }
                         }}
-                        className={`${notoSans.className} mx-auto w-[360px] max-w-full cursor-pointer rounded-[28px] bg-[#fffdfb] px-6 pb-6 pt-6 text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)] transition ${isSharing ? "opacity-90" : "hover:scale-[1.01]"}`}
-                        style={{ width: 360, maxWidth: "100%" }}
                       >
-                        <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
-
-                        <div className="mb-4 text-center text-[#2b2b2b]">
-                          {cardCopy.split("\n").map((line, index) => (
-                            <p
-                              key={`${line}-${index}`}
-                              className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
-                            >
-                              {line}
-                            </p>
-                          ))}
-                        </div>
-
-                        <div className="mb-3 flex justify-center">
-                          <img
-                            src={resultImageSrc}
-                            alt={result.mainType}
-                            onError={(e) => {
-                              e.currentTarget.src = "/images/silhouette.png";
+                        <div className="flex w-full max-w-[420px] items-center justify-center">
+                          <div
+                            ref={shareCardRef}
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void handleShare();
                             }}
-                            className="aspect-square w-full max-w-[240px] object-contain"
-                          />
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                void handleShare();
+                              }
+                            }}
+                            className={`${notoSans.className} mx-auto w-[360px] max-w-full cursor-pointer rounded-[28px] bg-[#fffdfb] px-6 pb-6 pt-6 text-[#2b2b2b] shadow-[0_24px_80px_rgba(0,0,0,0.12)] transition ${isSharing ? "opacity-90" : "hover:scale-[1.01]"}`}
+                            style={{ width: 360, maxWidth: "100%" }}
+                          >
+                            <p className="mb-2 text-center text-[18px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
+
+                            <div className="mb-4 text-center text-[#2b2b2b]">
+                              {cardCopy.split("\n").map((line, index) => (
+                                <p
+                                  key={`${line}-${index}`}
+                                  className={index === 1 ? "text-[42px] font-black leading-[1.08] tracking-[-0.04em]" : "text-[32px] font-bold leading-[1.14] tracking-[-0.03em]"}
+                                >
+                                  {line}
+                                </p>
+                              ))}
+                            </div>
+
+                            <div className="mb-3 flex justify-center">
+                              <img
+                                src={resultImageSrc}
+                                alt={result.mainType}
+                                onError={(e) => {
+                                  e.currentTarget.src = "/images/silhouette.png";
+                                }}
+                                className="aspect-square w-full max-w-[240px] object-contain"
+                              />
+                            </div>
+
+                            <p className="text-center text-[24px] font-medium leading-[1.25] tracking-[-0.02em] text-[#7a5c48] break-keep">
+                              {result.mainType}タイプ
+                            </p>
+
+                            <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
+                          </div>
                         </div>
-
-                        <p className="text-center text-[24px] font-medium leading-[1.25] tracking-[-0.02em] text-[#7a5c48] break-keep">
-                          {result.mainType}タイプ
-                        </p>
-
-                        <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-center gap-3 text-white/90">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            closeSharePreview();
-                          }}
-                          className="rounded-full border border-white/35 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur"
-                        >
-                          閉じる
-                        </button>
-                        <p className="text-sm">カードをタップで共有</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+                      </div>,
+                      document.body,
+                    )
+                  : null}
 
                 <div className="mb-6 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] p-4 ring-1 ring-[#f3e3d8]">
                   <p className="mb-3 text-center text-sm text-[#7a5c48]">うちの子は…</p>
