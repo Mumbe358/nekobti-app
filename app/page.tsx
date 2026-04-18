@@ -808,11 +808,10 @@ export default function Home() {
   const [typeShares, setTypeShares] = useState<Record<string, number>>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [isSharePreviewOpen, setIsSharePreviewOpen] = useState(false);
-  const [isNativeSharing, setIsNativeSharing] = useState(false);
-  const [isPreparingShareImage, setIsPreparingShareImage] = useState(false);
   const [isMobileClient, setIsMobileClient] = useState(false);
-  const resultCardRef = useRef<HTMLDivElement | null>(null);
-  const sharePreviewCardRef = useRef<HTMLDivElement | null>(null);
+  const [isPreparingShareImage, setIsPreparingShareImage] = useState(false);
+  const [isNativeSharing, setIsNativeSharing] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
@@ -896,10 +895,7 @@ export default function Home() {
 
     detectMobile();
     window.addEventListener("resize", detectMobile);
-
-    return () => {
-      window.removeEventListener("resize", detectMobile);
-    };
+    return () => window.removeEventListener("resize", detectMobile);
   }, []);
 
   const openDiagnosis = () => {
@@ -1088,68 +1084,6 @@ export default function Home() {
       setIsCalculating(false);
       setShowResult(true);
     }, 2200);
-  };
-
-  const waitForShareCardReady = async () => {
-    if (typeof document !== "undefined" && "fonts" in document) {
-      try {
-        await document.fonts.ready;
-      } catch {}
-    }
-
-    await new Promise((resolve) => window.setTimeout(resolve, 120));
-
-    const root = sharePreviewCardRef.current;
-    if (!root) return;
-
-    const images = Array.from(root.querySelectorAll("img"));
-    await Promise.all(
-      images.map(
-        (img) =>
-          new Promise<void>((resolve) => {
-            if (img.complete) {
-              resolve();
-              return;
-            }
-            const done = () => resolve();
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
-          }),
-      ),
-    );
-
-    await new Promise((resolve) =>
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve(undefined))),
-    );
-  };
-
-  const generateResultPng = async () => {
-    if (!sharePreviewCardRef.current) return null;
-
-    try {
-      setIsPreparingShareImage(true);
-      await waitForShareCardReady();
-      return await toPng(sharePreviewCardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#fffdfb",
-      });
-    } catch (error) {
-      console.error(error);
-      return null;
-    } finally {
-      setIsPreparingShareImage(false);
-    }
-  };
-
-  const openSharePreview = () => {
-    if (!isMobileClient || isPreparingShareImage || isNativeSharing) return;
-    setIsSharePreviewOpen(true);
-  };
-
-  const closeSharePreview = () => {
-    if (isPreparingShareImage || isNativeSharing) return;
-    setIsSharePreviewOpen(false);
   };
 
   const getShareText = () =>
@@ -1159,343 +1093,6 @@ export default function Home() {
 
   const getShareUrl = () => (typeof window !== "undefined" ? window.location.href : "");
 
-  const handleShareToX = () => {
-    if (!result) return;
-
-    const shareText = getShareText();
-    const shareUrl = getShareUrl();
-    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-
-    setIsSharePreviewOpen(false);
-    window.open(xUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareToLine = () => {
-    const shareText = getShareText();
-    const shareUrl = getShareUrl();
-    const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
-
-    setIsSharePreviewOpen(false);
-    window.open(lineUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareOther = async () => {
-    if (isPreparingShareImage || isNativeSharing) return;
-
-    setIsNativeSharing(true);
-
-    const dataUrl = await generateResultPng();
-    const shareText = getShareText();
-    const shareUrl = getShareUrl();
-
-    setIsSharePreviewOpen(false);
-    await new Promise((resolve) => window.setTimeout(resolve, 80));
-
-    try {
-      if (dataUrl) {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], "nekobti-result.png", { type: "image/png" });
-
-        if (
-          typeof navigator !== "undefined" &&
-          "share" in navigator &&
-          "canShare" in navigator &&
-          navigator.canShare({ files: [file] })
-        ) {
-          await navigator.share({
-            text: `${shareText}\n${shareUrl}`,
-            files: [file],
-          });
-          return;
-        }
-
-        if (typeof navigator !== "undefined" && "share" in navigator) {
-          await navigator.share({
-            text: `${shareText}\n${shareUrl}`,
-          });
-          return;
-        }
-
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "nekobti-result.png";
-        link.click();
-        return;
-      }
-
-      if (typeof navigator !== "undefined" && "share" in navigator) {
-        await navigator.share({
-          text: `${shareText}\n${shareUrl}`,
-        });
-        return;
-      }
-
-      const clipboard = (navigator as Navigator & { clipboard?: { writeText: (text: string) => Promise<void> } }).clipboard;
-      if (clipboard?.writeText) {
-        await clipboard.writeText(`${shareText}\n${shareUrl}`);
-        alert("共有テキストをコピーしました");
-        return;
-      }
-
-      alert("この端末では共有できませんでした");
-    } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError")) {
-        console.error(error);
-        alert("共有に失敗しました");
-      }
-    } finally {
-      setIsNativeSharing(false);
-    }
-  };
-
-  const totalQuestions = currentQuestions.length;
-  const totalSteps = totalQuestions + 1;
-  const answeredCount = answers.filter(Boolean).length;
-  const isAppearanceStep = step === totalQuestions;
-
-  const result = useMemo(() => {
-    if (answeredCount !== totalQuestions) return null;
-
-    const scores = { ...initialScores };
-
-    answers.forEach((answer) => {
-      if (!answer) return;
-      scores[answer.axis] += 1;
-    });
-
-    const mbti = getMbtiType(scores);
-    const mainType = catTypeMap[mbti];
-
-    return {
-      scores,
-      mbti,
-      mainType,
-    };
-  }, [answers, answeredCount, totalQuestions]);
-
-  const cardCopy = useMemo(() => {
-    if (!result) return "";
-    return getCardCopy(result.mainType, selectedAruaru);
-  }, [result, selectedAruaru]);
-
-  useEffect(() => {
-    if (showResult && result) {
-      setSelectedAruaru(getRandomAruaru(result.mainType));
-    }
-  }, [showResult, result]);
-
-  useEffect(() => {
-    if (!result) return;
-
-    setResultImageSrc(getResultImagePath(result.mbti, selectedGender, selectedCoat));
-  }, [result, selectedGender, selectedCoat]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const detectMobile = () => {
-      const ua = navigator.userAgent || "";
-      const mobileByUa = /iPhone|Android.+Mobile|iPod|Windows Phone|webOS|BlackBerry/i.test(ua);
-      const mobileByViewport = window.innerWidth <= 768 && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-      setIsMobileClient(mobileByUa || mobileByViewport);
-    };
-
-    detectMobile();
-    window.addEventListener("resize", detectMobile);
-
-    return () => {
-      window.removeEventListener("resize", detectMobile);
-    };
-  }, []);
-
-  const openDiagnosis = () => {
-    setIsOpen(true);
-    setStep(0);
-    const nextQuestions = buildQuestionSet();
-    setCurrentQuestions(nextQuestions);
-    setAnswers(Array(nextQuestions.length).fill(null));
-    setSelectedLabel(null);
-    setAnimating(false);
-    setDirection("next");
-    setIsCalculating(false);
-    setLoadingMessageIndex(0);
-    setShowResult(false);
-    setSelectedAruaru(null);
-    setSelectedGender("");
-    setSelectedCoat("");
-    setResultImageSrc("/images/silhouette.png");
-  };
-
-  const closeDiagnosis = () => {
-    setIsOpen(false);
-    setSelectedLabel(null);
-    setAnimating(false);
-    setIsCalculating(false);
-    setLoadingMessageIndex(0);
-    setShowResult(false);
-  };
-
-  const fetchTypeShares = async () => {
-    const { data, error } = await supabase
-      .from("diagnosis_type_share")
-      .select("result_type, percentage");
-
-    if (error) {
-      console.error("type share fetch failed:", error);
-      return;
-    }
-
-    const next: Record<string, number> = {};
-
-    (data ?? []).forEach((row: { result_type: string; percentage: number | string }) => {
-      next[row.result_type] = Number(row.percentage);
-    });
-
-    setTypeShares(next);
-  };
-
-  const openTypeList = async () => {
-    setIsTypeListOpen(true);
-    await fetchTypeShares();
-  };
-
-  const closeTypeList = () => {
-    setIsTypeListOpen(false);
-  };
-
-  const handleAnswer = (option: QuestionOption) => {
-    if (selectedLabel || animating || isCalculating || transitionLockRef.current) return;
-
-    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
-    if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
-
-    transitionLockRef.current = true;
-    setSelectedLabel(option.label);
-    setDirection("next");
-    setAnimating(true);
-
-    const advanceDelay = justWentBackRef.current ? 0 : 180;
-    justWentBackRef.current = false;
-
-    stepTimerRef.current = window.setTimeout(() => {
-      setAnswers((prev) => {
-        const next = [...prev];
-        next[step] = option;
-        return next;
-      });
-
-      setSelectedLabel(null);
-
-      if (step < totalQuestions - 1) {
-        setStep((prev) => prev + 1);
-      } else {
-        setStep(totalQuestions);
-      }
-
-      unlockTimerRef.current = window.setTimeout(() => {
-        setAnimating(false);
-        transitionLockRef.current = false;
-      }, 320);
-    }, advanceDelay);
-  };
-
-  const handlePrev = () => {
-    if (step === 0 || selectedLabel || animating || transitionLockRef.current) return;
-
-    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
-    if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
-
-    transitionLockRef.current = true;
-    justWentBackRef.current = true;
-    setSelectedLabel(null);
-    setDirection("prev");
-    setAnimating(true);
-
-    setAnswers((prev) => {
-      const next = [...prev];
-      for (let i = step - 1; i < next.length; i += 1) {
-        next[i] = null;
-      }
-      return next;
-    });
-
-    setStep((prev) => prev - 1);
-
-    unlockTimerRef.current = window.setTimeout(() => {
-      setAnimating(false);
-      transitionLockRef.current = false;
-    }, 320);
-  };
-
-  const restartDiagnosis = () => {
-    setStep(0);
-    const nextQuestions = buildQuestionSet();
-    setCurrentQuestions(nextQuestions);
-    setAnswers(Array(nextQuestions.length).fill(null));
-    setSelectedLabel(null);
-    setAnimating(false);
-    setDirection("next");
-    setIsCalculating(false);
-    setLoadingMessageIndex(0);
-    setShowResult(false);
-    setSelectedAruaru(null);
-    setSelectedGender("");
-    setSelectedCoat("");
-    setResultImageSrc("/images/silhouette.png");
-  };
-
-  const saveDiagnosisResult = async () => {
-    if (!result || !selectedGender || !selectedCoat || isSavingResult) return;
-
-    try {
-      setIsSavingResult(true);
-
-      const ua = navigator.userAgent;
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const referrer = document.referrer;
-
-      const { error } = await supabase.from("diagnosis_results").insert({
-        result_type: result.mainType,
-        mbti: result.mbti,
-        gender: selectedGender,
-        coat: selectedCoat,
-        user_agent: ua,
-        timezone,
-        referrer,
-      });
-
-      if (error) {
-        console.error("result save failed:", error);
-        return;
-      }
-
-      await fetchTypeShares();
-    } finally {
-      setIsSavingResult(false);
-    }
-  };
-
-  const handleAppearanceNext = () => {
-    if (animating || isCalculating || isSavingResult) return;
-
-    setIsCalculating(true);
-    setLoadingMessageIndex(0);
-
-    window.setTimeout(() => {
-      setLoadingMessageIndex(1);
-    }, 700);
-
-    window.setTimeout(() => {
-      setLoadingMessageIndex(2);
-    }, 1400);
-
-    window.setTimeout(async () => {
-      await saveDiagnosisResult();
-      setIsCalculating(false);
-      setShowResult(true);
-    }, 2200);
-  };
-
   const waitForShareCardReady = async () => {
     if (typeof document !== "undefined" && "fonts" in document) {
       try {
@@ -1503,23 +1100,29 @@ export default function Home() {
       } catch {}
     }
 
-    await new Promise((resolve) => window.setTimeout(resolve, 120));
+    await new Promise((resolve) => window.setTimeout(resolve, 80));
 
-    const root = sharePreviewCardRef.current;
+    const root = shareCardRef.current;
     if (!root) return;
 
-    const images = Array.from(root.querySelectorAll("img"));
+    const images = Array.from(root.querySelectorAll("img")) as HTMLImageElement[];
     await Promise.all(
       images.map(
         (img) =>
           new Promise<void>((resolve) => {
-            if (img.complete) {
+            if (img.complete && img.naturalWidth > 0) {
               resolve();
               return;
             }
-            const done = () => resolve();
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
+
+            const done = () => {
+              img.removeEventListener("load", done);
+              img.removeEventListener("error", done);
+              resolve();
+            };
+
+            img.addEventListener("load", done);
+            img.addEventListener("error", done);
           }),
       ),
     );
@@ -1530,12 +1133,12 @@ export default function Home() {
   };
 
   const generateResultPng = async () => {
-    if (!sharePreviewCardRef.current) return null;
+    if (!shareCardRef.current) return null;
 
     try {
       setIsPreparingShareImage(true);
       await waitForShareCardReady();
-      return await toPng(sharePreviewCardRef.current, {
+      return await toPng(shareCardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#fffdfb",
@@ -1549,7 +1152,7 @@ export default function Home() {
   };
 
   const openSharePreview = () => {
-    if (isPreparingShareImage || isNativeSharing) return;
+    if (!isMobileClient || isPreparingShareImage || isNativeSharing || !result) return;
     setIsSharePreviewOpen(true);
   };
 
@@ -1558,22 +1161,34 @@ export default function Home() {
     setIsSharePreviewOpen(false);
   };
 
-  const handleShareCardTap = async () => {
+  const handleShareToX = () => {
+    if (!result || typeof window === "undefined") return;
+    const shareText = getShareText();
+    const shareUrl = getShareUrl();
+    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    setIsSharePreviewOpen(false);
+    window.open(xUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareToLine = () => {
+    if (typeof window === "undefined") return;
+    const shareText = getShareText();
+    const shareUrl = getShareUrl();
+    const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
+    setIsSharePreviewOpen(false);
+    window.open(lineUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareOther = async () => {
     if (isPreparingShareImage || isNativeSharing) return;
 
     setIsNativeSharing(true);
 
-    const dataUrl = await generateResultPng();
-    const shareText = result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱
-診断してみてね`
-      : "うちの猫のタイプ診断をやってみた🐱";
-    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-
-    setIsSharePreviewOpen(false);
-    await new Promise((resolve) => window.setTimeout(resolve, 80));
-
     try {
+      const dataUrl = await generateResultPng();
+      const shareText = getShareText();
+      const shareUrl = getShareUrl();
+
       if (dataUrl) {
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], "nekobti-result.png", { type: "image/png" });
@@ -1584,32 +1199,34 @@ export default function Home() {
           "canShare" in navigator &&
           navigator.canShare({ files: [file] })
         ) {
+          setIsSharePreviewOpen(false);
           await navigator.share({
-            text: `${shareText}
-${shareUrl}`,
+            text: `${shareText}\n${shareUrl}`,
             files: [file],
           });
           return;
         }
-
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "nekobti-result.png";
-        link.click();
-        return;
       }
 
       if (typeof navigator !== "undefined" && "share" in navigator) {
+        setIsSharePreviewOpen(false);
         await navigator.share({
-          text: `${shareText}
-${shareUrl}`,
+          text: `${shareText}\n${shareUrl}`,
         });
         return;
       }
 
-      await (navigator as Navigator & { clipboard?: { writeText: (text: string) => Promise<void> } }).clipboard?.writeText(`${shareText}
-${shareUrl}`);
-      alert("共有テキストをコピーしました");
+      const clipboard = (navigator as Navigator & {
+        clipboard?: { writeText: (value: string) => Promise<void> };
+      }).clipboard;
+      if (clipboard?.writeText) {
+        await clipboard.writeText(`${shareText}\n${shareUrl}`);
+        setIsSharePreviewOpen(false);
+        alert("共有テキストをコピーしました");
+        return;
+      }
+
+      alert("この端末では共有できませんでした");
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         console.error(error);
@@ -1899,7 +1516,7 @@ ${shareUrl}`);
                 </button>
               </div>
 
-              <div ref={resultCardRef} className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
+              <div className="rounded-3xl bg-white p-5 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="flex flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-6 py-12 text-center ring-1 ring-[#f3e3d8]">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#eadfd6] border-t-[#b07d62]" />
                   <p className="text-lg font-semibold text-[#2b2b2b]">
@@ -1997,24 +1614,111 @@ ${shareUrl}`);
                 </div>
 
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                  {isMobileClient ? (
-                    <button
-                      onClick={openSharePreview}
-                      className="rounded-full bg-[#f1e3d6] px-6 py-4 text-base font-semibold text-[#7a5c48] transition hover:opacity-90"
-                    >
-                      シェア
-                    </button>
-                  ) : (
-                    <div className="rounded-3xl border border-[#ead8cb] bg-[#fff8f2] px-5 py-4 text-sm leading-6 text-[#8a6a57]">
-                      シェア機能は現在スマホのみ対応です。
-                    </div>
-                  )}
+                  <button
+                    onClick={openSharePreview}
+                    disabled={!isMobileClient}
+                    className={`rounded-full px-6 py-4 text-base font-semibold transition ${
+                      isMobileClient
+                        ? "bg-[#f1e3d6] text-[#7a5c48] hover:opacity-90"
+                        : "cursor-not-allowed border border-[#e7d8cc] bg-[#f7f1ec] text-[#b59a88]"
+                    }`}
+                  >
+                    {isMobileClient ? "シェア" : "シェア（スマホ専用）"}
+                  </button>
                 </div>
               </div>
             </>
           ) : null}
         </div>
       </div>
+
+      {isSharePreviewOpen && result && (
+        <div
+          className="fixed inset-0 z-50 flex min-h-[100dvh] items-center justify-center bg-black/45 p-4"
+          onClick={(e) => {
+            if (isPreparingShareImage || isNativeSharing) return;
+            if (e.target === e.currentTarget) closeSharePreview();
+          }}
+        >
+          <div className="w-full max-w-[380px]">
+            <div
+              ref={shareCardRef}
+              className={`${notoSans.className} rounded-[32px] bg-[#fffdfb] px-5 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="mb-3 text-center text-sm font-semibold tracking-[0.08em] text-[#8a6a57]">うちの子は…</p>
+
+              <div className="mb-4 text-center text-[#2b2b2b]">
+                {cardCopy.split("\n").map((line, index) => (
+                  <p
+                    key={`${line}-${index}`}
+                    className={
+                      index === 1
+                        ? "text-[34px] font-black leading-tight tracking-[-0.04em]"
+                        : "text-[24px] font-bold leading-tight tracking-[-0.03em]"
+                    }
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+
+              <div className="mb-4 overflow-hidden rounded-[24px] bg-white p-3 ring-1 ring-[#f1e4da]">
+                <img
+                  src={resultImageSrc}
+                  alt={result.mainType}
+                  onError={(e) => {
+                    e.currentTarget.src = "/images/silhouette.png";
+                  }}
+                  className="mx-auto aspect-square w-full max-w-[280px] object-contain"
+                />
+              </div>
+
+              <p className="text-center text-[24px] font-bold tracking-[-0.02em] text-[#7a5c48]">
+                {result.mainType}タイプ
+              </p>
+
+              <p className="mt-4 text-right text-xs text-[#9a7d69]">©ねこびーてぃあい</p>
+            </div>
+
+            <div
+              className="mt-4 rounded-[28px] bg-white p-4 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="mb-4 text-center text-sm font-semibold text-[#7a5c48]">共有先を選択</p>
+
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={handleShareToX}
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#111111] px-3 py-4 text-white transition hover:opacity-90"
+                >
+                  <span className="text-2xl font-black">X</span>
+                  <span className="text-xs font-semibold">X</span>
+                </button>
+
+                <button
+                  onClick={handleShareToLine}
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#06C755] px-3 py-4 text-white transition hover:opacity-90"
+                >
+                  <span className="text-xl font-black">LINE</span>
+                  <span className="text-xs font-semibold">LINE</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    void handleShareOther();
+                  }}
+                  disabled={isPreparingShareImage || isNativeSharing}
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="text-2xl">⋯</span>
+                  <span className="text-xs font-semibold">その他</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         className={`fixed inset-0 z-40 overflow-y-auto overflow-x-hidden bg-black/25 px-4 transition-all duration-300 ${
@@ -2064,101 +1768,6 @@ ${shareUrl}`);
           </div>
         </div>
       </div>
-
-      {isSharePreviewOpen && result && (
-        <div
-          className="fixed inset-0 z-[120] grid min-h-[100dvh] place-items-center bg-black/45 p-4"
-          style={{
-            paddingTop: "max(16px, env(safe-area-inset-top))",
-            paddingBottom: "max(16px, env(safe-area-inset-bottom))",
-          }}
-          onClick={(e) => {
-            if (isPreparingShareImage || isNativeSharing) return;
-            if (e.target === e.currentTarget) closeSharePreview();
-          }}
-        >
-          <div
-            className="flex w-full max-w-[392px] flex-col items-center gap-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              ref={sharePreviewCardRef}
-              className={`${notoSans.className} w-[360px] max-w-[calc(100vw-32px)] rounded-[32px] bg-[#fffdfb] px-6 pb-6 pt-5 text-[#2b2b2b] shadow-2xl`}
-            >
-              <p className="mb-3 text-center text-[20px] font-medium tracking-[0.01em] text-[#8a6a57]">うちの子は…</p>
-
-              <div className="mb-4 text-center text-[#2b2b2b]">
-                {cardCopy.split("\n").map((line, index) => (
-                  <p
-                    key={`${line}-${index}`}
-                    className={index === 1 ? "text-[28px] font-black leading-[1.06] tracking-[-0.04em]" : "text-[22px] font-bold leading-[1.12] tracking-[-0.03em]"}
-                  >
-                    {line}
-                  </p>
-                ))}
-              </div>
-
-              <div className="mb-4 flex justify-center">
-                <img
-                  src={resultImageSrc}
-                  alt={result.mainType}
-                  onError={(e) => {
-                    e.currentTarget.src = "/images/silhouette.png";
-                  }}
-                  className="aspect-square w-full max-w-[260px] object-contain"
-                />
-              </div>
-
-              <p className="text-center text-[22px] font-medium tracking-[-0.02em] text-[#7a5c48]">
-                {result.mainType}タイプ
-              </p>
-
-              <p className="mt-5 text-right text-[14px] text-[#9a7d69]">©ねこびーてぃあい</p>
-            </div>
-
-            <div className="grid w-full max-w-[392px] grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={handleShareToX}
-                className="flex flex-col items-center justify-center gap-2 rounded-[24px] bg-white px-4 py-4 shadow-lg ring-1 ring-[#f0e1d6]"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111111] text-[22px] font-black text-white">X</span>
-                <span className="text-sm font-semibold text-[#4e433d]">X</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleShareToLine}
-                className="flex flex-col items-center justify-center gap-2 rounded-[24px] bg-white px-4 py-4 shadow-lg ring-1 ring-[#f0e1d6]"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#06C755] text-[11px] font-black text-white">LINE</span>
-                <span className="text-sm font-semibold text-[#4e433d]">LINE</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  void handleShareOther();
-                }}
-                disabled={isPreparingShareImage || isNativeSharing}
-                className="flex flex-col items-center justify-center gap-2 rounded-[24px] bg-white px-4 py-4 shadow-lg ring-1 ring-[#f0e1d6] disabled:opacity-50"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f1e3d6] text-[22px] font-black text-[#7a5c48]">…</span>
-                <span className="text-sm font-semibold text-[#4e433d]">その他</span>
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={closeSharePreview}
-              className="rounded-full bg-white/95 px-5 py-2 text-sm font-semibold text-[#7a5c48] shadow-lg ring-1 ring-[#ead8cb]"
-            >
-              閉じる
-            </button>
-          </div>
-        </div>
-      )}
-
     </main>
   );
 }
