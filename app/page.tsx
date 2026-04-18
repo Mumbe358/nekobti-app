@@ -1107,7 +1107,7 @@ export default function Home() {
     if (!sharePreviewCardRef.current) return null;
 
     try {
-      setIsSharing(true);
+
       await waitForShareCardReady();
       return await toPng(sharePreviewCardRef.current, {
         cacheBust: true,
@@ -1118,7 +1118,7 @@ export default function Home() {
       console.error(error);
       return null;
     } finally {
-      setIsSharing(false);
+
     }
   };
 
