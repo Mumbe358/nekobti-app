@@ -1217,7 +1217,7 @@ export default function Home() {
       const copyLines = wrapCanvasText(ctx, cardCopy, 760).slice(0, 3);
       let copyY = 180;
       copyLines.forEach((line, index) => {
-        ctx.font = index === 1 ? "900 90px 'Kiwami', 'Noto Sans JP', sans-serif" : "900 72px 'Kiwami', 'Noto Sans JP', sans-serif";
+        ctx.font = index === 1 ? "400 90px 'Kiwami', 'Noto Sans JP', sans-serif" : "900 72px 'Kiwami', 'Noto Sans JP', sans-serif";
         ctx.fillText(line, width / 2, copyY);
         copyY += index === 1 ? 102 : 84;
       });
