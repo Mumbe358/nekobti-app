@@ -1182,7 +1182,7 @@ ${shareUrl}`,
         return;
       }
 
-      await navigator.clipboard.writeText(`${shareText}
+      await (navigator as Navigator & { clipboard?: { writeText: (text: string) => Promise<void> } }).clipboard?.writeText(`${shareText}
 ${shareUrl}`);
       alert("共有テキストをコピーしました");
     } catch (error) {
