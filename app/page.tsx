@@ -1215,26 +1215,16 @@ export default function Home() {
 
     const shareText = getShareText();
     const shareUrl = getShareUrl();
+    const file = shareImageFile;
+
+    if (!file) {
+      alert("共有画像を準備中です。少し待ってからもう一度押してください。");
+      return;
+    }
 
     try {
-      setIsNativeSharing(true);
-
-      let file = shareImageFile;
-      if (!file) {
-        const generated = await generateResultPng();
-        if (generated) {
-          file = generated.file;
-          setShareImageFile(generated.file);
-          setShareImageUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return generated.objectUrl;
-          });
-        }
-      }
-
       if (typeof navigator !== "undefined" && "share" in navigator) {
         if (
-          file &&
           "canShare" in navigator &&
           navigator.canShare &&
           navigator.canShare({ files: [file] })
