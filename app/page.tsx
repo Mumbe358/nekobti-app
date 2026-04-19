@@ -1007,6 +1007,7 @@ function getResultTypeTitleClass(type: CatType) {
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>(() => buildQuestionSet());
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(QuestionOption | null)[]>(() =>
@@ -1043,7 +1044,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (isOpen || isTypeListOpen || isSharePreviewOpen || isOpeningSharePreview) {
+    if (isOpen || isTypeListOpen || isAboutOpen || isSharePreviewOpen || isOpeningSharePreview) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -1052,7 +1053,7 @@ export default function Home() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, isTypeListOpen, isSharePreviewOpen, isOpeningSharePreview]);
+  }, [isOpen, isTypeListOpen, isAboutOpen, isSharePreviewOpen, isOpeningSharePreview]);
 
   useEffect(() => {
     return () => {
@@ -1185,6 +1186,14 @@ export default function Home() {
 
   const closeTypeList = () => {
     setIsTypeListOpen(false);
+  };
+
+  const openAbout = () => {
+    setIsAboutOpen(true);
+  };
+
+  const closeAbout = () => {
+    setIsAboutOpen(false);
   };
 
   const handleAnswer = (option: QuestionOption) => {
@@ -1614,6 +1623,15 @@ ${shareUrl}`);
                 <p className="text-lg font-bold">覇王ボスねこ</p>
               </div>
             </div>
+
+            <div className="mt-6">
+              <button
+                onClick={openAbout}
+                className="text-sm font-semibold text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
+              >
+                ねこびーてぃあいについて
+              </button>
+            </div>
           </div>
 
           <div className="relative">
@@ -2027,6 +2045,84 @@ ${shareUrl}`);
           )}
         </div>
       )}
+
+      <div
+        className={`fixed inset-0 z-40 overflow-y-auto overflow-x-hidden bg-black/25 px-4 transition-all duration-300 ${
+          isAboutOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeAbout}
+      >
+        <div
+          className={`mx-auto my-6 w-[min(92vw,640px)] max-w-[640px] max-h-[calc(100dvh-48px)] overflow-y-auto overflow-x-hidden rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
+            isAboutOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">ABOUT</p>
+              <h2 className="text-3xl font-bold">ねこびーてぃあいについて</h2>
+            </div>
+
+            <button
+              onClick={closeAbout}
+              className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+            >
+              閉じる
+            </button>
+          </div>
+
+          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-[#f1e4da]">
+            <h3 className="mb-5 text-xl font-bold text-[#2b2b2b]">運営情報</h3>
+
+            <div className="space-y-5 text-[15px] leading-8 text-[#4e433d] sm:text-base">
+              <div>
+                <p className="text-sm font-bold text-[#9a7d69]">サービス名</p>
+                <p>ねこびーてぃあい（NEKOBTI）</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#9a7d69]">内容</p>
+                <p>猫タイプ診断コンテンツの企画・運営</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#9a7d69]">運営</p>
+                <p>NEKOBEE</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
+                <a
+                  href="https://your-site.com/contact"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
+                >
+                  https://your-site.com/contact
+                </a>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#9a7d69]">プライバシーポリシー</p>
+                <a
+                  href="https://your-site.com/privacy"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
+                >
+                  https://your-site.com/privacy
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
+              <p>※本サービスはエンターテインメントを目的としています。</p>
+              <p className="mt-2">© NEKOBEE All Rights Reserved.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div
         className={`fixed inset-0 z-40 overflow-y-auto overflow-x-hidden bg-black/25 px-4 transition-all duration-300 ${
