@@ -113,6 +113,17 @@ function getTrackingMeta() {
   };
 }
 
+function shouldTrackOncePerSession(eventName: string, pagePath: string) {
+  if (typeof window === "undefined") return false;
+
+  const key = `nekobti_tracked:${eventName}:${pagePath}`;
+  const alreadyTracked = window.sessionStorage.getItem(key) === "1";
+  if (alreadyTracked) return false;
+
+  window.sessionStorage.setItem(key, "1");
+  return true;
+}
+
 const questionPool: Record<Segment, Question[]> = {
   EI: [
     {
@@ -1174,6 +1185,12 @@ export default function Home() {
 
   useEffect(() => {
     if (pageViewTrackedRef.current) return;
+
+    const pagePath = typeof window !== "undefined" ? window.location.pathname : "/";
+    if (!shouldTrackOncePerSession("page_view", pagePath)) {
+      pageViewTrackedRef.current = true;
+      return;
+    }
 
     pageViewTrackedRef.current = true;
     void trackEvent("page_view");
