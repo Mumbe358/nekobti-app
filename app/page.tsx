@@ -1749,7 +1749,7 @@ ${shareUrl}`);
                                 }
                               }}
                               disabled={selectedLabel !== null || animating}
-                              className={`w-full rounded-2xl border px-4 py-4 text-left break-words transition sm:px-5 ${
+                              className={`w-full rounded-2xl border px-4 py-4 font-bold text-left break-words transition sm:px-5 ${
                                 isSelected
                                   ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
                                   : "border-[#ead8ca] bg-[#fffdfb] md:hover:bg-[#fff3ea]"
