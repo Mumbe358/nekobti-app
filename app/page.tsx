@@ -1904,7 +1904,7 @@ ${shareUrl}`);
                     </h3>
                   </div>
 
-                  <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
+                  <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 pb-5 ring-1 ring-[#f1e4da]">
                     <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
                     <div className="space-y-0 text-base leading-tight text-[#4e433d] sm:text-[17px]">
                       {traitsMap[result.mainType].map((trait) => (
@@ -1914,7 +1914,7 @@ ${shareUrl}`);
                   </div>
 
                   {selectedAruaru && (
-                    <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
+                    <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 pb-5 ring-1 ring-[#f1e4da]">
                       <p className="mb-2 text-sm font-bold text-[#9a7d69]">あるある</p>
                       <p className="text-base font-bold leading-tight text-[#4e433d] sm:text-[17px]">{selectedAruaru.text}</p>
                     </div>
