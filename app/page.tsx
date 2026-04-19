@@ -1624,7 +1624,15 @@ ${shareUrl}`);
               </div>
             </div>
 
-
+            <div className="mt-6">
+              <button
+                onClick={openAbout}
+                className="text-sm font-semibold text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
+              >
+                ねこびーてぃあいについて
+              </button>
+            </div>
+          </div>
 
           <div className="relative">
             <div className="absolute -left-4 -top-4 h-32 w-32 rounded-full bg-[#ffe8d9] blur-2xl" />
@@ -1676,17 +1684,6 @@ ${shareUrl}`);
             </div>
           </div>
         </div>
-
-            <div className="mt-6">
-              <button
-                onClick={openAbout}
-                className="text-sm font-semibold text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
-              >
-                ねこびーてぃあいについて
-              </button>
-            </div>
-          </div>
-
       </section>
 
       <div
