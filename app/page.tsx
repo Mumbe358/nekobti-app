@@ -1682,7 +1682,7 @@ ${shareUrl}`);
 
                   <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
                     <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
-                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
+                    <div className="space-y-0 text-base leading-tight text-[#4e433d] sm:text-[17px]">
                       {traitsMap[result.mainType].map((trait) => (
                         <p key={trait} className="font-bold">・{trait}</p>
                       ))}
@@ -1692,16 +1692,16 @@ ${shareUrl}`);
                   {selectedAruaru && (
                     <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
                       <p className="mb-2 text-sm font-bold text-[#9a7d69]">あるある</p>
-                      <p className="text-sm font-bold leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
+                      <p className="text-base font-bold leading-tight text-[#4e433d] sm:text-[17px]">{selectedAruaru.text}</p>
                     </div>
                   )}
 
                   <div className="text-center">
-                    <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
-                    <div className="space-y-2 text-[#4e433d]">
+                    <p className="mb-1 text-sm font-bold text-[#9a7d69]">飼いぬしとの相性</p>
+                    <div className="space-y-2 text-[#5c5c5c]">
                       {ownerCompatibility[result.mainType].map((item) => (
-                        <p key={item.type} className="text-base font-semibold leading-tight sm:text-lg">
-                          {item.type}（{ownerMbtiLabelMap[item.type]}） {renderHearts(item.hearts)}
+                        <p key={item.type} className="text-[13px] font-medium leading-tight sm:text-sm">
+                          {item.type}（{ownerMbtiLabelMap[item.type]}） <span className="text-[12px]">{renderHearts(item.hearts)}</span>
                         </p>
                       ))}
                     </div>
