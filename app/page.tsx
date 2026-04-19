@@ -47,6 +47,72 @@ const notoSans = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
 });
 
+
+const VISITOR_ID_STORAGE_KEY = "nekobti_visitor_id";
+const SESSION_ID_STORAGE_KEY = "nekobti_session_id";
+
+function safeUuid() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getOrCreateVisitorId() {
+  if (typeof window === "undefined") return "";
+
+  const existing = window.localStorage.getItem(VISITOR_ID_STORAGE_KEY);
+  if (existing) return existing;
+
+  const next = safeUuid();
+  window.localStorage.setItem(VISITOR_ID_STORAGE_KEY, next);
+  return next;
+}
+
+function getOrCreateSessionId() {
+  if (typeof window === "undefined") return "";
+
+  const existing = window.sessionStorage.getItem(SESSION_ID_STORAGE_KEY);
+  if (existing) return existing;
+
+  const next = safeUuid();
+  window.sessionStorage.setItem(SESSION_ID_STORAGE_KEY, next);
+  return next;
+}
+
+function getTrackingMeta() {
+  if (typeof window === "undefined") {
+    return {
+      session_id: "",
+      visitor_id: "",
+      page_path: "",
+      page_url: "",
+      referrer: null as string | null,
+      utm_source: null as string | null,
+      utm_medium: null as string | null,
+      utm_campaign: null as string | null,
+      user_agent: "",
+      timezone: "",
+    };
+  }
+
+  const url = new URL(window.location.href);
+
+  return {
+    session_id: getOrCreateSessionId(),
+    visitor_id: getOrCreateVisitorId(),
+    page_path: window.location.pathname,
+    page_url: window.location.href,
+    referrer: document.referrer || null,
+    utm_source: url.searchParams.get("utm_source"),
+    utm_medium: url.searchParams.get("utm_medium"),
+    utm_campaign: url.searchParams.get("utm_campaign"),
+    user_agent: navigator.userAgent || "",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+  };
+}
+
 const questionPool: Record<Segment, Question[]> = {
   EI: [
     {
@@ -1034,10 +1100,45 @@ export default function Home() {
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [shareImageFile, setShareImageFile] = useState<File | null>(null);
   const [shareImageError, setShareImageError] = useState<string | null>(null);
+  const pageViewTrackedRef = useRef(false);
   const transitionLockRef = useRef(false);
   const stepTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
   const justWentBackRef = useRef(false);
+
+  const trackEvent = async (
+    eventName: string,
+    extra: Partial<{
+      result_type: string;
+      mbti: string;
+      gender: string;
+      coat: string;
+    }> = {},
+  ) => {
+    const meta = getTrackingMeta();
+
+    const { error } = await supabase.from("events").insert({
+      event_name: eventName,
+      session_id: meta.session_id,
+      visitor_id: meta.visitor_id,
+      page_path: meta.page_path,
+      page_url: meta.page_url,
+      referrer: meta.referrer,
+      utm_source: meta.utm_source,
+      utm_medium: meta.utm_medium,
+      utm_campaign: meta.utm_campaign,
+      user_agent: meta.user_agent,
+      timezone: meta.timezone,
+      result_type: extra.result_type ?? null,
+      mbti: extra.mbti ?? null,
+      gender: extra.gender ?? null,
+      coat: extra.coat ?? null,
+    });
+
+    if (error) {
+      console.error(`event track failed: ${eventName}`, error);
+    }
+  };
 
   const loadingMessages = useMemo(
     () => ["猫らしさを分析中...", "行動パターンを整理中...", "タイプを判定しています..."],
@@ -1070,6 +1171,13 @@ export default function Home() {
       }
     };
   }, [shareImageUrl]);
+
+  useEffect(() => {
+    if (pageViewTrackedRef.current) return;
+
+    pageViewTrackedRef.current = true;
+    void trackEvent("page_view");
+  }, []);
 
   const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions + 1;
@@ -1135,6 +1243,7 @@ export default function Home() {
   }, []);
 
   const openDiagnosis = () => {
+    void trackEvent("diagnosis_started");
     setIsOpen(true);
     setStep(0);
     const nextQuestions = buildQuestionSet();
@@ -1293,24 +1402,35 @@ export default function Home() {
     try {
       setIsSavingResult(true);
 
-      const ua = navigator.userAgent;
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const referrer = document.referrer;
+      const meta = getTrackingMeta();
 
       const { error } = await supabase.from("diagnosis_results").insert({
         result_type: result.mainType,
         mbti: result.mbti,
         gender: selectedGender,
         coat: selectedCoat,
-        user_agent: ua,
-        timezone,
-        referrer,
+        session_id: meta.session_id,
+        visitor_id: meta.visitor_id,
+        page_path: meta.page_path,
+        referrer: meta.referrer,
+        utm_source: meta.utm_source,
+        utm_medium: meta.utm_medium,
+        utm_campaign: meta.utm_campaign,
+        user_agent: meta.user_agent,
+        timezone: meta.timezone,
       });
 
       if (error) {
         console.error("result save failed:", error);
         return;
       }
+
+      await trackEvent("diagnosis_completed", {
+        result_type: result.mainType,
+        mbti: result.mbti,
+        gender: selectedGender,
+        coat: selectedCoat,
+      });
 
       await fetchTypeShares();
     } finally {
@@ -1546,11 +1666,25 @@ ${getShareUrl()}`;
             files: [file],
             text: shareText,
           });
+
+          await trackEvent("share_clicked", {
+            result_type: result?.mainType,
+            mbti: result?.mbti,
+            gender: selectedGender || undefined,
+            coat: selectedCoat || undefined,
+          });
           return;
         }
 
         await nav.share({
           text: shareText,
+        });
+
+        await trackEvent("share_clicked", {
+          result_type: result?.mainType,
+          mbti: result?.mbti,
+          gender: selectedGender || undefined,
+          coat: selectedCoat || undefined,
         });
         return;
       }
@@ -1561,6 +1695,12 @@ ${getShareUrl()}`;
       if (clipboard?.writeText) {
         await clipboard.writeText(`${shareText}
 ${shareUrl}`);
+        await trackEvent("share_clicked", {
+          result_type: result?.mainType,
+          mbti: result?.mbti,
+          gender: selectedGender || undefined,
+          coat: selectedCoat || undefined,
+        });
         alert("共有テキストをコピーしました");
         return;
       }
