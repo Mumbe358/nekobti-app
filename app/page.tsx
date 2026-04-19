@@ -54,8 +54,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "初めて会う人が家に来た直後、どちらの行動をしやすい？",
       segment: "EI",
       options: [
-        { label: "ちょっと近くで見るにゃ", axis: "E", weight: 1.35 },
-        { label: "ここから様子見るにゃ", axis: "I", weight: 1.35 },
+        { label: "A.ちょっと近くで見るにゃ", axis: "E", weight: 1.35 },
+        { label: "B.ここから様子見るにゃ", axis: "I", weight: 1.35 },
       ],
     },
     {
@@ -63,8 +63,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "見慣れない新しいおもちゃを見つけたとき、まずどちらをしやすい？",
       segment: "EI",
       options: [
-        { label: "すぐ触ってみるにゃ", axis: "E", weight: 1.15 },
-        { label: "少し見てから触るにゃ", axis: "I", weight: 1.15 },
+        { label: "A.すぐ触ってみるにゃ", axis: "E", weight: 1.15 },
+        { label: "B.少し見てから触るにゃ", axis: "I", weight: 1.15 },
       ],
     },
     {
@@ -72,8 +72,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "家で落ち着いて過ごしたいとき、どちらの場所を選びやすい？",
       segment: "EI",
       options: [
-        { label: "気配あるとこがいいにゃ", axis: "E", weight: 1.35 },
-        { label: "静かなとこがいいにゃ", axis: "I", weight: 1.35 },
+        { label: "A.気配あるとこがいいにゃ", axis: "E", weight: 1.35 },
+        { label: "B.静かなとこがいいにゃ", axis: "I", weight: 1.35 },
       ],
     },
     {
@@ -81,8 +81,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "知らない猫や他の猫が近くにいるとき、どちらの動きをしやすい？",
       segment: "EI",
       options: [
-        { label: "自分から行ってみるにゃ", axis: "E", weight: 1.15 },
-        { label: "ちょっと距離とるにゃ", axis: "I", weight: 1.15 },
+        { label: "A.自分から行ってみるにゃ", axis: "E", weight: 1.15 },
+        { label: "B.ちょっと距離とるにゃ", axis: "I", weight: 1.15 },
       ],
     },
   ],
@@ -92,8 +92,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "遊び始めるとき、まずどちらの動き方になりやすい？",
       segment: "SN",
       options: [
-        { label: "まず動いてみるにゃ", axis: "S", weight: 1.15 },
-        { label: "流れ見てから行くにゃ", axis: "N", weight: 1.15 },
+        { label: "A.まず動いてみるにゃ", axis: "S", weight: 1.15 },
+        { label: "B.流れ見てから行くにゃ", axis: "N", weight: 1.15 },
       ],
     },
     {
@@ -101,8 +101,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "別の場所で気になる音がしたとき、最初にどちらをしやすい？",
       segment: "SN",
       options: [
-        { label: "見に行って確かめるにゃ", axis: "S", weight: 1.35 },
-        { label: "何か考えて様子見るにゃ", axis: "N", weight: 1.35 },
+        { label: "A.見に行って確かめるにゃ", axis: "S", weight: 1.35 },
+        { label: "B.何か考えて様子見るにゃ", axis: "N", weight: 1.35 },
       ],
     },
     {
@@ -110,8 +110,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "高い場所や棚の上が気になったとき、どちらの意識が強くなりやすい？",
       segment: "SN",
       options: [
-        { label: "登れるか試すにゃ", axis: "S", weight: 0.9 },
-        { label: "上から見たくなるにゃ", axis: "N", weight: 0.9 },
+        { label: "A.登れるか試すにゃ", axis: "S", weight: 0.9 },
+        { label: "B.上から見たくなるにゃ", axis: "N", weight: 0.9 },
       ],
     },
     {
@@ -119,8 +119,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "窓の外をじっと見ているとき、どちらの見方になりやすい？",
       segment: "SN",
       options: [
-        { label: "動くもの追うにゃ", axis: "S", weight: 1.15 },
-        { label: "空気ごと見てるにゃ", axis: "N", weight: 1.15 },
+        { label: "A.動くもの追うにゃ", axis: "S", weight: 1.15 },
+        { label: "B.空気ごと見てるにゃ", axis: "N", weight: 1.15 },
       ],
     },
   ],
@@ -130,8 +130,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "飼い主が近くにいるとき、ふだんの距離感はどちらに近い？",
       segment: "TF",
       options: [
-        { label: "わりとそばにいるにゃ", axis: "F", weight: 0.9 },
-        { label: "気が向いたら行くにゃ", axis: "T", weight: 0.9 },
+        { label: "A.わりとそばにいるにゃ", axis: "F", weight: 0.9 },
+        { label: "B.気が向いたら行くにゃ", axis: "T", weight: 0.9 },
       ],
     },
     {
@@ -139,8 +139,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "飼い主に遊びへ誘われたとき、気分が普通ならどちらを選びやすい？",
       segment: "TF",
       options: [
-        { label: "すぐ乗ってみるにゃ", axis: "F", weight: 0.9 },
-        { label: "そのとき決めるにゃ", axis: "T", weight: 0.9 },
+        { label: "A.すぐ乗ってみるにゃ", axis: "F", weight: 0.9 },
+        { label: "B.そのとき決めるにゃ", axis: "T", weight: 0.9 },
       ],
     },
     {
@@ -148,8 +148,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "自分のお気に入りの場所を使うとき、どちらの傾向が強い？",
       segment: "TF",
       options: [
-        { label: "そこは譲りたくないにゃ", axis: "T", weight: 1.35 },
-        { label: "別のとこでもいいにゃ", axis: "F", weight: 1.35 },
+        { label: "A.そこは譲りたくないにゃ", axis: "T", weight: 1.35 },
+        { label: "B.別のとこでもいいにゃ", axis: "F", weight: 1.35 },
       ],
     },
     {
@@ -157,8 +157,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "飼い主に何かしてほしい合図をされたとき、どちらの反応をしやすい？",
       segment: "TF",
       options: [
-        { label: "わかったにゃ、やるにゃ", axis: "F", weight: 1.35 },
-        { label: "自分のタイミングでやるにゃ", axis: "T", weight: 1.35 },
+        { label: "A.わかったにゃ、やるにゃ", axis: "F", weight: 1.35 },
+        { label: "B.自分のタイミングでやるにゃ", axis: "T", weight: 1.35 },
       ],
     },
   ],
@@ -168,8 +168,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "いつものごはん時間が少し遅れたとき、どちらの反応に近い？",
       segment: "JP",
       options: [
-        { label: "そのまま待てるにゃ", axis: "P", weight: 1.35 },
-        { label: "ちゃんと知らせるにゃ", axis: "J", weight: 1.35 },
+        { label: "A.そのまま待てるにゃ", axis: "P", weight: 1.35 },
+        { label: "B.ちゃんと知らせるにゃ", axis: "J", weight: 1.35 },
       ],
     },
     {
@@ -177,8 +177,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "新しい部屋や初めての場所に入った直後、まずどちらをしやすい？",
       segment: "JP",
       options: [
-        { label: "気になったら行くにゃ", axis: "P", weight: 1.35 },
-        { label: "まず様子見るにゃ", axis: "J", weight: 1.35 },
+        { label: "A.気になったら行くにゃ", axis: "P", weight: 1.35 },
+        { label: "B.まず様子見るにゃ", axis: "J", weight: 1.35 },
       ],
     },
     {
@@ -186,8 +186,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "家でくつろぐ場所を決めるとき、どちらになりやすい？",
       segment: "JP",
       options: [
-        { label: "どこでもくつろぐにゃ", axis: "P", weight: 1.15 },
-        { label: "いつもの場所がいいにゃ", axis: "J", weight: 1.15 },
+        { label: "A.どこでもくつろぐにゃ", axis: "P", weight: 1.15 },
+        { label: "B.いつもの場所がいいにゃ", axis: "J", weight: 1.15 },
       ],
     },
     {
@@ -195,8 +195,8 @@ const questionPool: Record<Segment, Question[]> = {
       text: "眠くなってきたとき、どちらの行動を取りやすい？",
       segment: "JP",
       options: [
-        { label: "ここで寝るにゃ", axis: "P", weight: 1.15 },
-        { label: "落ち着く場所行くにゃ", axis: "J", weight: 1.15 },
+        { label: "A.ここで寝るにゃ", axis: "P", weight: 1.15 },
+        { label: "B.落ち着く場所行くにゃ", axis: "J", weight: 1.15 },
       ],
     },
   ],
@@ -1730,7 +1730,7 @@ ${shareUrl}`);
                 >
                   {!isAppearanceStep ? (
                     <>
-                      <div className="mb-6 min-h-[96px]">
+                      <div className="mb-6 min-h-[84px]">
                         <p className="break-words text-lg font-semibold leading-7">
                           {currentQuestions[step].text}
                         </p>
