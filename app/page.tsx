@@ -48,28 +48,156 @@ const notoSans = Noto_Sans_JP({
 
 const questionPool: Record<Segment, Question[]> = {
   EI: [
-    { id: 1, text: "初めて会う人が来たら？", segment: "EI", options: [{ label: "自分から近づいて様子を見る", axis: "E" }, { label: "少し離れて観察する", axis: "I" }] },
-    { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ触って試す", axis: "E" }, { label: "少し様子を見てから触る", axis: "I" }] },
-    { id: 3, text: "落ち着く場所は？", segment: "EI", options: [{ label: "みんなの気配がある場所", axis: "E" }, { label: "静かで一人になれる場所", axis: "I" }] },
-    { id: 4, text: "他の猫が近くにいたら？", segment: "EI", options: [{ label: "自分から関わりに行く", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
+    {
+      id: 1,
+      text: "初めて会う人が家に来た直後、どちらの行動をしやすい？",
+      segment: "EI",
+      options: [
+        { label: "ちょっと近くで見るにゃ", axis: "E", weight: 1.35 },
+        { label: "ここから様子見るにゃ", axis: "I", weight: 1.35 },
+      ],
+    },
+    {
+      id: 2,
+      text: "見慣れない新しいおもちゃを見つけたとき、まずどちらをしやすい？",
+      segment: "EI",
+      options: [
+        { label: "すぐ触ってみるにゃ", axis: "E", weight: 1.15 },
+        { label: "少し見てから触るにゃ", axis: "I", weight: 1.15 },
+      ],
+    },
+    {
+      id: 3,
+      text: "家で落ち着いて過ごしたいとき、どちらの場所を選びやすい？",
+      segment: "EI",
+      options: [
+        { label: "気配あるとこがいいにゃ", axis: "E", weight: 1.35 },
+        { label: "静かなとこがいいにゃ", axis: "I", weight: 1.35 },
+      ],
+    },
+    {
+      id: 4,
+      text: "知らない猫や他の猫が近くにいるとき、どちらの動きをしやすい？",
+      segment: "EI",
+      options: [
+        { label: "自分から行ってみるにゃ", axis: "E", weight: 1.15 },
+        { label: "ちょっと距離とるにゃ", axis: "I", weight: 1.15 },
+      ],
+    },
   ],
   SN: [
-    { id: 7, text: "遊ぶときはどっちに近い？", segment: "SN", options: [{ label: "まず動いて感覚を確かめる", axis: "S" }, { label: "作戦や流れを考えてから動く", axis: "N" }] },
-    { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "現場を見に行って確かめる", axis: "S" }, { label: "何の音か想像しながら様子を見る", axis: "N" }] },
-    { id: 9, text: "高い場所に対しては？", segment: "SN", options: [{ label: "使えそうなら登って確かめる", axis: "S" }, { label: "上から全体を眺めたくなる", axis: "N" }] },
-    { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動いているものを目で追う", axis: "S" }, { label: "景色や空気感を味わう", axis: "N" }] },
+    {
+      id: 7,
+      text: "遊び始めるとき、まずどちらの動き方になりやすい？",
+      segment: "SN",
+      options: [
+        { label: "まず動いてみるにゃ", axis: "S", weight: 1.15 },
+        { label: "流れ見てから行くにゃ", axis: "N", weight: 1.15 },
+      ],
+    },
+    {
+      id: 8,
+      text: "別の場所で気になる音がしたとき、最初にどちらをしやすい？",
+      segment: "SN",
+      options: [
+        { label: "見に行って確かめるにゃ", axis: "S", weight: 1.35 },
+        { label: "何か考えて様子見るにゃ", axis: "N", weight: 1.35 },
+      ],
+    },
+    {
+      id: 9,
+      text: "高い場所や棚の上が気になったとき、どちらの意識が強くなりやすい？",
+      segment: "SN",
+      options: [
+        { label: "登れるか試すにゃ", axis: "S", weight: 0.9 },
+        { label: "上から見たくなるにゃ", axis: "N", weight: 0.9 },
+      ],
+    },
+    {
+      id: 10,
+      text: "窓の外をじっと見ているとき、どちらの見方になりやすい？",
+      segment: "SN",
+      options: [
+        { label: "動くもの追うにゃ", axis: "S", weight: 1.15 },
+        { label: "空気ごと見てるにゃ", axis: "N", weight: 1.15 },
+      ],
+    },
   ],
   TF: [
-    { id: 13, text: "飼い主との距離感は？", segment: "TF", options: [{ label: "よくそばにいる", axis: "F" }, { label: "気が向いたときだけ近づく", axis: "T" }] },
-    { id: 14, text: "遊びに誘われたら？", segment: "TF", options: [{ label: "だいたいすぐ乗る", axis: "F" }, { label: "気分で決める", axis: "T" }] },
-    { id: 15, text: "自分の場所へのこだわりは？", segment: "TF", options: [{ label: "強いほうだ", axis: "T" }, { label: "あまり気にしない", axis: "F" }] },
-    { id: 16, text: "指示を受けたときは？", segment: "TF", options: [{ label: "わりと素直に従う", axis: "F" }, { label: "自分の判断を優先する", axis: "T" }] },
+    {
+      id: 13,
+      text: "飼い主が近くにいるとき、ふだんの距離感はどちらに近い？",
+      segment: "TF",
+      options: [
+        { label: "わりとそばにいるにゃ", axis: "F", weight: 0.9 },
+        { label: "気が向いたら行くにゃ", axis: "T", weight: 0.9 },
+      ],
+    },
+    {
+      id: 14,
+      text: "飼い主に遊びへ誘われたとき、気分が普通ならどちらを選びやすい？",
+      segment: "TF",
+      options: [
+        { label: "すぐ乗ってみるにゃ", axis: "F", weight: 0.9 },
+        { label: "そのとき決めるにゃ", axis: "T", weight: 0.9 },
+      ],
+    },
+    {
+      id: 15,
+      text: "自分のお気に入りの場所を使うとき、どちらの傾向が強い？",
+      segment: "TF",
+      options: [
+        { label: "そこは譲りたくないにゃ", axis: "T", weight: 1.35 },
+        { label: "別のとこでもいいにゃ", axis: "F", weight: 1.35 },
+      ],
+    },
+    {
+      id: 16,
+      text: "飼い主に何かしてほしい合図をされたとき、どちらの反応をしやすい？",
+      segment: "TF",
+      options: [
+        { label: "わかったにゃ、やるにゃ", axis: "F", weight: 1.35 },
+        { label: "自分のタイミングでやるにゃ", axis: "T", weight: 1.35 },
+      ],
+    },
   ],
   JP: [
-    { id: 19, text: "ごはんの時間がズレたら？", segment: "JP", options: [{ label: "そのまま待てる", axis: "P" }, { label: "ちゃんと主張する", axis: "J" }] },
-    { id: 20, text: "新しい環境では？", segment: "JP", options: [{ label: "気になったらすぐ動く", axis: "P" }, { label: "様子を見てから動く", axis: "J" }] },
-    { id: 21, text: "くつろぐときは？", segment: "JP", options: [{ label: "どこでもリラックスできる", axis: "P" }, { label: "決まった場所が落ち着く", axis: "J" }] },
-    { id: 22, text: "眠いときは？", segment: "JP", options: [{ label: "その場で寝る", axis: "P" }, { label: "落ち着く場所に移動する", axis: "J" }] },
+    {
+      id: 19,
+      text: "いつものごはん時間が少し遅れたとき、どちらの反応に近い？",
+      segment: "JP",
+      options: [
+        { label: "そのまま待てるにゃ", axis: "P", weight: 1.35 },
+        { label: "ちゃんと知らせるにゃ", axis: "J", weight: 1.35 },
+      ],
+    },
+    {
+      id: 20,
+      text: "新しい部屋や初めての場所に入った直後、まずどちらをしやすい？",
+      segment: "JP",
+      options: [
+        { label: "気になったら行くにゃ", axis: "P", weight: 1.35 },
+        { label: "まず様子見るにゃ", axis: "J", weight: 1.35 },
+      ],
+    },
+    {
+      id: 21,
+      text: "家でくつろぐ場所を決めるとき、どちらになりやすい？",
+      segment: "JP",
+      options: [
+        { label: "どこでもくつろぐにゃ", axis: "P", weight: 1.15 },
+        { label: "いつもの場所がいいにゃ", axis: "J", weight: 1.15 },
+      ],
+    },
+    {
+      id: 22,
+      text: "眠くなってきたとき、どちらの行動を取りやすい？",
+      segment: "JP",
+      options: [
+        { label: "ここで寝るにゃ", axis: "P", weight: 1.15 },
+        { label: "落ち着く場所行くにゃ", axis: "J", weight: 1.15 },
+      ],
+    },
   ],
 };
 
@@ -619,6 +747,56 @@ function getRandomAruaru(type: CatType) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+function getResultAruaruFromAnswers(
+  type: CatType,
+  mbti: string,
+  questions: Question[],
+  answers: (QuestionOption | null)[]
+) {
+  const axisBySegment: Record<Segment, Axis> = {
+    EI: mbti[0] as Axis,
+    SN: mbti[1] as Axis,
+    TF: mbti[2] as Axis,
+    JP: mbti[3] as Axis,
+  };
+
+  const candidates = questions
+    .map((question, index) => {
+      const answer = answers[index];
+      if (!answer) return null;
+      if (answer.axis !== axisBySegment[question.segment]) return null;
+
+      const questionIndexInSegment = questionPool[question.segment].findIndex((item) => item.id === question.id);
+      if (questionIndexInSegment < 0) return null;
+
+      return {
+        question,
+        answer,
+        index,
+        questionIndexInSegment,
+      };
+    })
+    .filter(Boolean) as {
+      question: Question;
+      answer: QuestionOption;
+      index: number;
+      questionIndexInSegment: number;
+    }[];
+
+  const best = candidates.sort((a, b) => {
+    if (b.answer.weight !== a.answer.weight) return b.answer.weight - a.answer.weight;
+    return b.index - a.index;
+  })[0];
+
+  if (!best) return getRandomAruaru(type);
+
+  return aruaruMap[type][best.questionIndexInSegment] ?? aruaruMap[type][0];
+}
+
+function getPrimaryResultNote(notes: string[]) {
+  return notes[0] ?? "かなりこのタイプ寄りにゃ";
+}
+
 const Paw = ({ active }: { active: boolean }) => (
   <svg
     viewBox="0 0 24 24"
@@ -773,12 +951,102 @@ const initialScores: Record<Axis, number> = {
   P: 0,
 };
 
-function getMbtiType(scores: Record<Axis, number>) {
-  const EI = scores.E >= scores.I ? "E" : "I";
-  const SN = scores.S >= scores.N ? "S" : "N";
-  const TF = scores.T >= scores.F ? "T" : "F";
-  const JP = scores.J >= scores.P ? "J" : "P";
-  return `${EI}${SN}${TF}${JP}`;
+const segmentAxisMap: Record<Segment, [Axis, Axis]> = {
+  EI: ["E", "I"],
+  SN: ["S", "N"],
+  TF: ["T", "F"],
+  JP: ["J", "P"],
+};
+
+type MbtiResult = {
+  mbti: string;
+  unstableSegments: Segment[];
+  notes: string[];
+  segmentMargins: Record<Segment, number>;
+};
+
+function resolveSegmentAxis(
+  scores: Record<Axis, number>,
+  counts: Record<Axis, number>,
+  answers: (QuestionOption | null)[],
+  questions: Question[],
+  segment: Segment,
+  threshold: number
+) {
+  const [leftAxis, rightAxis] = segmentAxisMap[segment];
+  const weightedDiff = scores[leftAxis] - scores[rightAxis];
+  const countDiff = counts[leftAxis] - counts[rightAxis];
+
+  let chosenAxis: Axis = weightedDiff > 0 ? leftAxis : rightAxis;
+
+  if (weightedDiff === 0) {
+    if (countDiff > 0) {
+      chosenAxis = leftAxis;
+    } else if (countDiff < 0) {
+      chosenAxis = rightAxis;
+    } else {
+      const reversed = [...questions].reverse();
+      const fallback = reversed.find((question) => {
+        if (question.segment !== segment) return false;
+        const index = questions.findIndex((item) => item.id === question.id);
+        const answer = answers[index];
+        return !!answer;
+      });
+      if (fallback) {
+        const fallbackIndex = questions.findIndex((item) => item.id === fallback.id);
+        const fallbackAnswer = answers[fallbackIndex];
+        if (fallbackAnswer) chosenAxis = fallbackAnswer.axis;
+      }
+    }
+  }
+
+  const margin = Math.abs(weightedDiff);
+  const unstable = margin < threshold;
+
+  return {
+    chosenAxis,
+    margin,
+    unstable,
+  };
+}
+
+function getMbtiResult(
+  scores: Record<Axis, number>,
+  counts: Record<Axis, number>,
+  answers: (QuestionOption | null)[],
+  questions: Question[]
+): MbtiResult {
+  const threshold = 0.35;
+
+  const ei = resolveSegmentAxis(scores, counts, answers, questions, "EI", threshold);
+  const sn = resolveSegmentAxis(scores, counts, answers, questions, "SN", threshold);
+  const tf = resolveSegmentAxis(scores, counts, answers, questions, "TF", threshold);
+  const jp = resolveSegmentAxis(scores, counts, answers, questions, "JP", threshold);
+
+  const unstableSegments = ([
+    ei.unstable ? "EI" : null,
+    sn.unstable ? "SN" : null,
+    tf.unstable ? "TF" : null,
+    jp.unstable ? "JP" : null,
+  ].filter(Boolean) as Segment[]);
+
+  const notes: string[] = [];
+  if (ei.unstable) notes.push("E/I がかなり拮抗してるにゃ");
+  if (sn.unstable) notes.push("S/N は気分で少し揺れやすいにゃ");
+  if (tf.unstable) notes.push("T/F は場面で出方が変わりやすいにゃ");
+  if (jp.unstable) notes.push("J/P はその日の流れでぶれやすいにゃ");
+
+  return {
+    mbti: `${ei.chosenAxis}${sn.chosenAxis}${tf.chosenAxis}${jp.chosenAxis}`,
+    unstableSegments,
+    notes,
+    segmentMargins: {
+      EI: ei.margin,
+      SN: sn.margin,
+      TF: tf.margin,
+      JP: jp.margin,
+    },
+  };
 }
 
 function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption) {
@@ -874,21 +1142,27 @@ export default function Home() {
     if (answeredCount !== totalQuestions) return null;
 
     const scores = { ...initialScores };
+    const counts = { ...initialScores };
 
     answers.forEach((answer) => {
       if (!answer) return;
-      scores[answer.axis] += 1;
+      scores[answer.axis] += answer.weight;
+      counts[answer.axis] += 1;
     });
 
-    const mbti = getMbtiType(scores);
-    const mainType = catTypeMap[mbti];
+    const mbtiResult = getMbtiResult(scores, counts, answers, currentQuestions);
+    const mainType = catTypeMap[mbtiResult.mbti];
 
     return {
       scores,
-      mbti,
+      counts,
+      mbti: mbtiResult.mbti,
       mainType,
+      unstableSegments: mbtiResult.unstableSegments,
+      resultNotes: mbtiResult.notes,
+      segmentMargins: mbtiResult.segmentMargins,
     };
-  }, [answers, answeredCount, totalQuestions]);
+  }, [answers, answeredCount, totalQuestions, currentQuestions]);
 
   const cardCopy = useMemo(() => {
     if (!result) return "";
@@ -897,9 +1171,9 @@ export default function Home() {
 
   useEffect(() => {
     if (showResult && result) {
-      setSelectedAruaru(getRandomAruaru(result.mainType));
+      setSelectedAruaru(getResultAruaruFromAnswers(result.mainType, result.mbti, currentQuestions, answers));
     }
-  }, [showResult, result]);
+  }, [showResult, result, currentQuestions, answers]);
 
   useEffect(() => {
     if (!result) return;
@@ -1113,6 +1387,7 @@ export default function Home() {
   const getShareText = () =>
     result
       ? `うちの猫のタイプは「${result.mainType}」でした🐱
+${getPrimaryResultNote(result.resultNotes)}
 診断してみてね`
       : "うちの猫のタイプ診断をやってみた🐱";
 
@@ -1202,13 +1477,13 @@ export default function Home() {
       // title
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 58);
+      ctx.fillText("うちの子は…", width / 2, 60);
 
       // copy
       ctx.fillStyle = "#2b2b2b";
       ctx.font = "200 88px 'Kiwami'";
       const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
-      let copyY = 142;
+      let copyY = 140;
       copyLines.forEach((line) => {
         ctx.font = "200 88px 'Kiwami'";
         ctx.fillText(line, width / 2, copyY);
@@ -1217,8 +1492,8 @@ export default function Home() {
 
       // image
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = Math.round(width * 0.72);
-      const imgY = copyY + 18;
+      const imgBox = Math.round(width * 0.75);
+      const imgY = copyY + 10;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1229,17 +1504,17 @@ export default function Home() {
       // type name
       ctx.fillStyle = "#000000";
       ctx.font = "200 72px 'Kiwami'";
-      ctx.fillText(result.mainType, width / 2, imgY + imgBox + 18);
+      ctx.fillText(result.mainType, width / 2, imgY + imgBox + 10);
 
       // type label
       ctx.fillStyle = "#444444";
       ctx.font = "700 28px 'Noto Sans JP', sans-serif";
-      ctx.fillText("タイプ", width / 2, imgY + imgBox + 96);
+      ctx.fillText("タイプ", width / 2, imgY + imgBox + 90);
 
       // copyright / brand
       ctx.fillStyle = "#9a7d69";
-      ctx.font = "700 40px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, height - 84);
+      ctx.font = "700 36px 'Noto Sans JP', sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 70);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
@@ -1682,6 +1957,10 @@ ${shareUrl}`);
                     >
                       {result.mainType}
                     </h3>
+                  </div>
+
+                  <div className="mb-3 text-center">
+                    <p className="text-[13px] font-bold text-[#8b6d5d] sm:text-sm">{getPrimaryResultNote(result.resultNotes)}</p>
                   </div>
 
                   <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
