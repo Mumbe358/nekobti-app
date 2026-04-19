@@ -1562,7 +1562,7 @@ ${shareUrl}`);
     <main className="min-h-screen bg-[#fffaf6] text-[#2b2b2b]">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 md:px-10">
         <div className="mb-6 inline-flex w-fit items-center rounded-full border border-[#e8d8cb] bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm">
-          ねこびーてぃあい
+          ねこびーてぃあい　べーた
         </div>
 
         <div className="grid items-center gap-12 md:grid-cols-2">
