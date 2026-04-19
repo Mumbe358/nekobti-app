@@ -994,14 +994,14 @@ function getResultTypeTitleClass(type: CatType) {
   const length = type.length;
 
   if (length >= 10) {
-    return "text-[28px] sm:text-[34px]";
+    return "text-[24px] sm:text-[34px]";
   }
 
   if (length >= 8) {
-    return "text-[32px] sm:text-[38px]";
+    return "text-[28px] sm:text-[38px]";
   }
 
-  return "text-[36px] sm:text-[42px]";
+  return "text-[28px] sm:text-[42px]";
 }
 
 export default function Home() {
@@ -1721,7 +1721,7 @@ ${shareUrl}`);
                 >
                   {!isAppearanceStep ? (
                     <>
-                      <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
+                      <p className="mb-6 break-words text-lg font-semibold leading-7 sm:leading-7">
                         {currentQuestions[step].text}
                       </p>
 
