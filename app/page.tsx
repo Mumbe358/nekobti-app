@@ -1124,6 +1124,8 @@ export default function Home() {
       mbti: string;
       gender: string;
       coat: string;
+      share_target: string;
+      share_method: string;
     }> = {},
   ) => {
     const meta = getTrackingMeta();
@@ -1144,6 +1146,8 @@ export default function Home() {
       mbti: extra.mbti ?? null,
       gender: extra.gender ?? null,
       coat: extra.coat ?? null,
+      share_target: extra.share_target ?? null,
+      share_method: extra.share_method ?? null,
     });
 
     if (error) {
