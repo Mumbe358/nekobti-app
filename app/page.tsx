@@ -27,6 +27,7 @@ type CatType =
 type QuestionOption = {
   label: string;
   axis: Axis;
+  weight: number;
 };
 
 type Segment = "EI" | "SN" | "TF" | "JP";
@@ -747,56 +748,6 @@ function getRandomAruaru(type: CatType) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function getResultAruaruFromAnswers(
-  type: CatType,
-  mbti: string,
-  questions: Question[],
-  answers: (QuestionOption | null)[]
-) {
-  const axisBySegment: Record<Segment, Axis> = {
-    EI: mbti[0] as Axis,
-    SN: mbti[1] as Axis,
-    TF: mbti[2] as Axis,
-    JP: mbti[3] as Axis,
-  };
-
-  const candidates = questions
-    .map((question, index) => {
-      const answer = answers[index];
-      if (!answer) return null;
-      if (answer.axis !== axisBySegment[question.segment]) return null;
-
-      const questionIndexInSegment = questionPool[question.segment].findIndex((item) => item.id === question.id);
-      if (questionIndexInSegment < 0) return null;
-
-      return {
-        question,
-        answer,
-        index,
-        questionIndexInSegment,
-      };
-    })
-    .filter(Boolean) as {
-      question: Question;
-      answer: QuestionOption;
-      index: number;
-      questionIndexInSegment: number;
-    }[];
-
-  const best = candidates.sort((a, b) => {
-    if (b.answer.weight !== a.answer.weight) return b.answer.weight - a.answer.weight;
-    return b.index - a.index;
-  })[0];
-
-  if (!best) return getRandomAruaru(type);
-
-  return aruaruMap[type][best.questionIndexInSegment] ?? aruaruMap[type][0];
-}
-
-function getPrimaryResultNote(notes: string[]) {
-  return notes[0] ?? "かなりこのタイプ寄りにゃ";
-}
-
 const Paw = ({ active }: { active: boolean }) => (
   <svg
     viewBox="0 0 24 24"
@@ -951,102 +902,87 @@ const initialScores: Record<Axis, number> = {
   P: 0,
 };
 
-const segmentAxisMap: Record<Segment, [Axis, Axis]> = {
-  EI: ["E", "I"],
-  SN: ["S", "N"],
-  TF: ["T", "F"],
-  JP: ["J", "P"],
-};
-
-type MbtiResult = {
-  mbti: string;
-  unstableSegments: Segment[];
-  notes: string[];
-  segmentMargins: Record<Segment, number>;
-};
-
-function resolveSegmentAxis(
-  scores: Record<Axis, number>,
-  counts: Record<Axis, number>,
-  answers: (QuestionOption | null)[],
-  questions: Question[],
+function resolveSegmentLetter(
   segment: Segment,
-  threshold: number
+  left: Axis,
+  right: Axis,
+  scores: Record<Axis, number>,
+  currentQuestions: Question[],
+  answers: (QuestionOption | null)[]
 ) {
-  const [leftAxis, rightAxis] = segmentAxisMap[segment];
-  const weightedDiff = scores[leftAxis] - scores[rightAxis];
-  const countDiff = counts[leftAxis] - counts[rightAxis];
+  const leftScore = scores[left];
+  const rightScore = scores[right];
+  const diff = Math.abs(leftScore - rightScore);
 
-  let chosenAxis: Axis = weightedDiff > 0 ? leftAxis : rightAxis;
-
-  if (weightedDiff === 0) {
-    if (countDiff > 0) {
-      chosenAxis = leftAxis;
-    } else if (countDiff < 0) {
-      chosenAxis = rightAxis;
-    } else {
-      const reversed = [...questions].reverse();
-      const fallback = reversed.find((question) => {
-        if (question.segment !== segment) return false;
-        const index = questions.findIndex((item) => item.id === question.id);
-        const answer = answers[index];
-        return !!answer;
-      });
-      if (fallback) {
-        const fallbackIndex = questions.findIndex((item) => item.id === fallback.id);
-        const fallbackAnswer = answers[fallbackIndex];
-        if (fallbackAnswer) chosenAxis = fallbackAnswer.axis;
-      }
-    }
+  if (leftScore > rightScore) {
+    return { letter: left, close: diff <= 0.35, tied: false };
   }
 
-  const margin = Math.abs(weightedDiff);
-  const unstable = margin < threshold;
+  if (rightScore > leftScore) {
+    return { letter: right, close: diff <= 0.35, tied: false };
+  }
+
+  const ranked = currentQuestions
+    .map((question, index) => ({ question, answer: answers[index] }))
+    .filter(
+      (item): item is { question: Question; answer: QuestionOption } =>
+        item.question.segment === segment && !!item.answer
+    )
+    .sort((a, b) => {
+      if (b.answer.weight !== a.answer.weight) return b.answer.weight - a.answer.weight;
+      return a.question.id - b.question.id;
+    });
+
+  const tiedLetter = ranked[0]?.answer.axis === right ? right : left;
+  return { letter: tiedLetter, close: true, tied: true };
+}
+
+function getMbtiType(
+  scores: Record<Axis, number>,
+  currentQuestions: Question[],
+  answers: (QuestionOption | null)[]
+) {
+  const ei = resolveSegmentLetter("EI", "E", "I", scores, currentQuestions, answers);
+  const sn = resolveSegmentLetter("SN", "S", "N", scores, currentQuestions, answers);
+  const tf = resolveSegmentLetter("TF", "T", "F", scores, currentQuestions, answers);
+  const jp = resolveSegmentLetter("JP", "J", "P", scores, currentQuestions, answers);
 
   return {
-    chosenAxis,
-    margin,
-    unstable,
+    mbti: `${ei.letter}${sn.letter}${tf.letter}${jp.letter}`,
+    closeSegments: ([
+      ei.close ? "EI" : null,
+      sn.close ? "SN" : null,
+      tf.close ? "TF" : null,
+      jp.close ? "JP" : null,
+    ].filter(Boolean) as Segment[]),
+    tiedSegments: ([
+      ei.tied ? "EI" : null,
+      sn.tied ? "SN" : null,
+      tf.tied ? "TF" : null,
+      jp.tied ? "JP" : null,
+    ].filter(Boolean) as Segment[]),
   };
 }
 
-function getMbtiResult(
-  scores: Record<Axis, number>,
-  counts: Record<Axis, number>,
-  answers: (QuestionOption | null)[],
-  questions: Question[]
-): MbtiResult {
-  const threshold = 0.35;
+function getDecisiveQuestionId(
+  mbti: string,
+  currentQuestions: Question[],
+  answers: (QuestionOption | null)[]
+) {
+  const mbtiAxes = new Set<Axis>(mbti.split("") as Axis[]);
 
-  const ei = resolveSegmentAxis(scores, counts, answers, questions, "EI", threshold);
-  const sn = resolveSegmentAxis(scores, counts, answers, questions, "SN", threshold);
-  const tf = resolveSegmentAxis(scores, counts, answers, questions, "TF", threshold);
-  const jp = resolveSegmentAxis(scores, counts, answers, questions, "JP", threshold);
+  const ranked = currentQuestions
+    .map((question, index) => ({ question, answer: answers[index] }))
+    .filter(
+      (item): item is { question: Question; answer: QuestionOption } =>
+        !!item.answer && mbtiAxes.has(item.answer.axis)
+    )
+    .sort((a, b) => {
+      if (b.answer.weight !== a.answer.weight) return b.answer.weight - a.answer.weight;
+      return a.question.id - b.question.id;
+    });
 
-  const unstableSegments = ([
-    ei.unstable ? "EI" : null,
-    sn.unstable ? "SN" : null,
-    tf.unstable ? "TF" : null,
-    jp.unstable ? "JP" : null,
-  ].filter(Boolean) as Segment[]);
-
-  const notes: string[] = [];
-  if (ei.unstable) notes.push("E/I がかなり拮抗してるにゃ");
-  if (sn.unstable) notes.push("S/N は気分で少し揺れやすいにゃ");
-  if (tf.unstable) notes.push("T/F は場面で出方が変わりやすいにゃ");
-  if (jp.unstable) notes.push("J/P はその日の流れでぶれやすいにゃ");
-
-  return {
-    mbti: `${ei.chosenAxis}${sn.chosenAxis}${tf.chosenAxis}${jp.chosenAxis}`,
-    unstableSegments,
-    notes,
-    segmentMargins: {
-      EI: ei.margin,
-      SN: sn.margin,
-      TF: tf.margin,
-      JP: jp.margin,
-    },
-  };
+  return ranked[0]?.question.id ?? null;
 }
 
 function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption) {
@@ -1142,27 +1078,25 @@ export default function Home() {
     if (answeredCount !== totalQuestions) return null;
 
     const scores = { ...initialScores };
-    const counts = { ...initialScores };
 
     answers.forEach((answer) => {
       if (!answer) return;
       scores[answer.axis] += answer.weight;
-      counts[answer.axis] += 1;
     });
 
-    const mbtiResult = getMbtiResult(scores, counts, answers, currentQuestions);
+    const mbtiResult = getMbtiType(scores, currentQuestions, answers);
     const mainType = catTypeMap[mbtiResult.mbti];
+    const decisiveQuestionId = getDecisiveQuestionId(mbtiResult.mbti, currentQuestions, answers);
 
     return {
       scores,
-      counts,
       mbti: mbtiResult.mbti,
       mainType,
-      unstableSegments: mbtiResult.unstableSegments,
-      resultNotes: mbtiResult.notes,
-      segmentMargins: mbtiResult.segmentMargins,
+      closeSegments: mbtiResult.closeSegments,
+      tiedSegments: mbtiResult.tiedSegments,
+      decisiveQuestionId,
     };
-  }, [answers, answeredCount, totalQuestions, currentQuestions]);
+  }, [answers, answeredCount, currentQuestions, totalQuestions]);
 
   const cardCopy = useMemo(() => {
     if (!result) return "";
@@ -1170,10 +1104,12 @@ export default function Home() {
   }, [result, selectedAruaru]);
 
   useEffect(() => {
-    if (showResult && result) {
-      setSelectedAruaru(getResultAruaruFromAnswers(result.mainType, result.mbti, currentQuestions, answers));
-    }
-  }, [showResult, result, currentQuestions, answers]);
+    if (!showResult || !result) return;
+
+    const list = aruaruMap[result.mainType];
+    const baseIndex = result.decisiveQuestionId ? (result.decisiveQuestionId - 1) % list.length : 0;
+    setSelectedAruaru(list[baseIndex] ?? list[0]);
+  }, [showResult, result]);
 
   useEffect(() => {
     if (!result) return;
@@ -1387,7 +1323,6 @@ export default function Home() {
   const getShareText = () =>
     result
       ? `うちの猫のタイプは「${result.mainType}」でした🐱
-${getPrimaryResultNote(result.resultNotes)}
 診断してみてね`
       : "うちの猫のタイプ診断をやってみた🐱";
 
@@ -1477,7 +1412,7 @@ ${getPrimaryResultNote(result.resultNotes)}
       // title
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 60);
+      ctx.fillText("うちの子は…", width / 2, 54);
 
       // copy
       ctx.fillStyle = "#2b2b2b";
@@ -1492,8 +1427,8 @@ ${getPrimaryResultNote(result.resultNotes)}
 
       // image
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = Math.round(width * 0.75);
-      const imgY = copyY + 10;
+      const imgBox = Math.round(width * 0.72);
+      const imgY = copyY + 8;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
@@ -1503,15 +1438,15 @@ ${getPrimaryResultNote(result.resultNotes)}
 
       // type name
       ctx.fillStyle = "#000000";
-      ctx.font = "200 72px 'Kiwami'";
-      ctx.fillText(result.mainType, width / 2, imgY + imgBox + 10);
+      ctx.font = "200 76px 'Kiwami'";
+      ctx.fillText(result.mainType, width / 2, imgY + imgBox + 18);
 
       // type label
-      ctx.fillStyle = "#444444";
+      ctx.fillStyle = "#4b4b4b";
       ctx.font = "700 28px 'Noto Sans JP', sans-serif";
-      ctx.fillText("タイプ", width / 2, imgY + imgBox + 90);
+      ctx.fillText("タイプ", width / 2, imgY + imgBox + 100);
 
-      // copyright / brand
+      // copyright / brand (footer)
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 36px 'Noto Sans JP', sans-serif";
       ctx.fillText("©ねこびーてぃあい", width / 2, height - 70);
@@ -1957,10 +1892,6 @@ ${shareUrl}`);
                     >
                       {result.mainType}
                     </h3>
-                  </div>
-
-                  <div className="mb-3 text-center">
-                    <p className="text-[13px] font-bold text-[#8b6d5d] sm:text-sm">{getPrimaryResultNote(result.resultNotes)}</p>
                   </div>
 
                   <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
