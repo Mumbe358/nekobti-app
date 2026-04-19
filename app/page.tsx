@@ -40,7 +40,7 @@ type Question = {
 };
 
 type GenderOption = "" | "male" | "female";
-type CoatOption = "" | "white" | "black" | "gray" | "tabby" | "calico" | "brown";
+type CoatOption = "" | "white" | "black" | "gray" | "tabby" | "calico" | "brown" | "blackwhite";
 
 const notoSans = Noto_Sans_JP({
   subsets: ["latin"],
@@ -1791,7 +1791,7 @@ ${shareUrl}`);
                           >
                             <option value="">毛色を選択</option>
                             <option value="tabby">キジトラ</option>
-                            <option value="tabby">黒白</option>
+                            <option value="blackwhite">黒白</option>
                             <option value="brown">茶トラ</option>
                             <option value="black">黒</option>
                             <option value="calico">三毛</option>
