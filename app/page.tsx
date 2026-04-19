@@ -1124,8 +1124,6 @@ export default function Home() {
       mbti: string;
       gender: string;
       coat: string;
-      share_target: string;
-      share_method: string;
     }> = {},
   ) => {
     const meta = getTrackingMeta();
@@ -1146,8 +1144,6 @@ export default function Home() {
       mbti: extra.mbti ?? null,
       gender: extra.gender ?? null,
       coat: extra.coat ?? null,
-      share_target: extra.share_target ?? null,
-      share_method: extra.share_method ?? null,
     });
 
     if (error) {
@@ -1480,42 +1476,15 @@ export default function Home() {
     }, 2200);
   };
 
-type ShareTarget = "x" | "line" | "instagram" | "native_share";
+const getShareText = () =>
+  result
+    ? `うちの猫のタイプは「${result.mainType}」でした🐱
+診断してみてね
+${getShareUrl()}`
+    : `うちの猫のタイプ診断をやってみた🐱
+${getShareUrl()}`;
 
-  const buildTrackedUrl = (source: ShareTarget) => {
-    if (typeof window === "undefined") return "";
-
-    const url = new URL("/", window.location.origin);
-    url.searchParams.set("utm_source", source);
-    url.searchParams.set("utm_medium", "social");
-    url.searchParams.set("utm_campaign", "result_share");
-    if (result?.mainType) {
-      url.searchParams.set("utm_content", result.mainType);
-    }
-    return url.toString();
-  };
-
-  const getShareCaption = () =>
-    result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱\n診断してみてね`
-      : `うちの猫のタイプ診断をやってみた🐱`;
-
-  const getShareText = (source: ShareTarget = "native_share") =>
-    `${getShareCaption()}\n${buildTrackedUrl(source)}`;
-
-  const logShareClick = async (
-    shareTarget: ShareTarget,
-    shareMethod: "intent" | "copy_text" | "native_sheet" | "copy_fallback" | "file_share" | "text_share",
-  ) => {
-    await trackEvent("share_clicked", {
-      result_type: result?.mainType,
-      mbti: result?.mbti,
-      gender: selectedGender || undefined,
-      coat: selectedCoat || undefined,
-      share_target: shareTarget,
-      share_method: shareMethod,
-    });
-  };
+  const getShareUrl = () => (typeof window !== "undefined" ? window.location.href : "");
 
   const wrapCanvasText = (
     ctx: CanvasRenderingContext2D,
@@ -1687,71 +1656,11 @@ type ShareTarget = "x" | "line" | "instagram" | "native_share";
     setIsSharePreviewOpen(false);
   };
 
-  const handleShareX = async () => {
-    if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
-
-    try {
-      setIsNativeSharing(true);
-      const shareUrl = buildTrackedUrl("x");
-      const text = getShareCaption();
-      const xIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-      window.open(xIntentUrl, "_blank", "noopener,noreferrer");
-      await logShareClick("x", "intent");
-    } catch (error) {
-      console.error(error);
-      alert("X共有の起動に失敗しました");
-    } finally {
-      setIsNativeSharing(false);
-    }
-  };
-
-  const handleShareLine = async () => {
-    if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
-
-    try {
-      setIsNativeSharing(true);
-      const shareUrl = buildTrackedUrl("line");
-      const lineIntentUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`;
-      window.open(lineIntentUrl, "_blank", "noopener,noreferrer");
-      await logShareClick("line", "intent");
-    } catch (error) {
-      console.error(error);
-      alert("LINE共有の起動に失敗しました");
-    } finally {
-      setIsNativeSharing(false);
-    }
-  };
-
-  const handleShareInstagram = async () => {
-    if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
-
-    try {
-      setIsNativeSharing(true);
-      const shareText = getShareText("instagram");
-      const clipboard = (navigator as Navigator & {
-        clipboard?: { writeText: (value: string) => Promise<void> };
-      }).clipboard;
-
-      if (clipboard?.writeText) {
-        await clipboard.writeText(shareText);
-        await logShareClick("instagram", "copy_text");
-        alert("Instagram投稿用のテキストをコピーしました");
-        return;
-      }
-
-      alert("この端末ではコピーできませんでした");
-    } catch (error) {
-      console.error(error);
-      alert("Instagram用テキストのコピーに失敗しました");
-    } finally {
-      setIsNativeSharing(false);
-    }
-  };
-
   const handleNativeShare = async () => {
     if (isPreparingShareImage || isNativeSharing || isOpeningSharePreview) return;
 
-    const shareText = getShareText("native_share");
+    const shareText = getShareText();
+    const shareUrl = getShareUrl();
     const file = shareImageFile;
 
     if (!file) {
@@ -1775,7 +1684,12 @@ type ShareTarget = "x" | "line" | "instagram" | "native_share";
             text: shareText,
           });
 
-          await logShareClick("native_share", "file_share");
+          await trackEvent("share_clicked", {
+            result_type: result?.mainType,
+            mbti: result?.mbti,
+            gender: selectedGender || undefined,
+            coat: selectedCoat || undefined,
+          });
           return;
         }
 
@@ -1783,7 +1697,12 @@ type ShareTarget = "x" | "line" | "instagram" | "native_share";
           text: shareText,
         });
 
-        await logShareClick("native_share", "text_share");
+        await trackEvent("share_clicked", {
+          result_type: result?.mainType,
+          mbti: result?.mbti,
+          gender: selectedGender || undefined,
+          coat: selectedCoat || undefined,
+        });
         return;
       }
 
@@ -1791,8 +1710,14 @@ type ShareTarget = "x" | "line" | "instagram" | "native_share";
         clipboard?: { writeText: (value: string) => Promise<void> };
       }).clipboard;
       if (clipboard?.writeText) {
-        await clipboard.writeText(shareText);
-        await logShareClick("native_share", "copy_fallback");
+        await clipboard.writeText(`${shareText}
+${shareUrl}`);
+        await trackEvent("share_clicked", {
+          result_type: result?.mainType,
+          mbti: result?.mbti,
+          gender: selectedGender || undefined,
+          coat: selectedCoat || undefined,
+        });
         alert("共有テキストをコピーしました");
         return;
       }
@@ -2266,54 +2191,19 @@ type ShareTarget = "x" | "line" | "instagram" | "native_share";
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => {
-                        void handleShareX();
-                      }}
-                      disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#111111] px-3 py-4 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <span className="text-2xl">𝕏</span>
-                      <span className="text-xs font-semibold">Xでシェア</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        void handleShareLine();
-                      }}
-                      disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#06c755] px-3 py-4 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <span className="text-2xl">L</span>
-                      <span className="text-xs font-semibold">LINEでシェア</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        void handleShareInstagram();
+                        void handleNativeShare();
                       }}
                       disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
                       className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-2xl">◎</span>
-                      <span className="text-xs font-semibold">Instagram用にコピー</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        void handleNativeShare();
-                      }}
-                      disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
                       <span className="text-2xl">↗</span>
-                      <span className="text-xs font-semibold">その他で共有</span>
+                      <span className="text-xs font-semibold">シェア</span>
                     </button>
-                  </div>
 
-                  <div className="mt-3">
                     <button
                       onClick={closeSharePreview}
                       disabled={isPreparingShareImage || isNativeSharing}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <span className="text-2xl">✕</span>
                       <span className="text-xs font-semibold">閉じる</span>
