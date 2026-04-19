@@ -1911,7 +1911,7 @@ ${shareUrl}`);
                   )}
 
                   <div className="text-center">
-                    <p className="mb-1 text-sm font-bold text-[#9a7d69]">飼いぬしとの相性</p>
+                    <p className="mt-6 mb-1 text-sm font-bold text-[#9a7d69]">飼いぬしとの相性</p>
                     <div className="space-y-2 text-[#5c5c5c]">
                       {ownerCompatibility[result.mainType].map((item) => (
                         <p key={item.type} className="text-[13px] font-medium leading-tight sm:text-sm">
