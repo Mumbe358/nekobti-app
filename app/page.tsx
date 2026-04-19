@@ -1730,9 +1730,11 @@ ${shareUrl}`);
                 >
                   {!isAppearanceStep ? (
                     <>
-                      <p className="mb-6 min-h-[96x] break-words text-lg font-semibold leading-7 sm:leading-7">
-                        {currentQuestions[step].text}
-                      </p>
+ <div className="mb-6 min-h-[120px]">
+  <p className="break-words text-lg font-semibold leading-7">
+    {currentQuestions[step].text}
+  </p>
+</div>
 
                       <div className="grid gap-3">
                         {currentQuestions[step].options.map((option) => {
