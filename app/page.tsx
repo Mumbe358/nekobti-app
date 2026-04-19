@@ -1790,12 +1790,13 @@ ${shareUrl}`);
                             className="w-full rounded-2xl border border-[#ead8ca] bg-[#fffdfb] px-4 py-4 text-left text-base text-[#2b2b2b] outline-none transition focus:border-[#c28f71]"
                           >
                             <option value="">毛色を選択</option>
-                            <option value="white">白</option>
-                            <option value="black">黒</option>
-                            <option value="gray">グレー</option>
                             <option value="tabby">キジトラ</option>
-                            <option value="calico">三毛</option>
+                            <option value="tabby">黒白</option>
                             <option value="brown">茶トラ</option>
+                            <option value="black">黒</option>
+                            <option value="calico">三毛</option>
+                            <option value="white">白</option>
+                            <option value="gray">サバトラ</option>
                           </select>
                         </label>
 
