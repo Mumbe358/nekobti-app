@@ -1730,12 +1730,11 @@ ${shareUrl}`);
                 >
                   {!isAppearanceStep ? (
                     <>
- <div className="mb-6 min-h-[120px]">
-  <p className="break-words text-lg font-semibold leading-7">
-    {currentQuestions[step].text}
-  </p>
-</div>
-
+                      <div className="mb-6 min-h-[96px]">
+                        <p className="break-words text-lg font-semibold leading-7">
+                          {currentQuestions[step].text}
+                        </p>
+                      </div>
                       <div className="grid gap-3">
                         {currentQuestions[step].options.map((option) => {
                           const isSelected = selectedLabel === option.label;
