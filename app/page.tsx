@@ -1687,7 +1687,16 @@ ${shareUrl}`);
                   <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
                     DIAGNOSIS START
                   </p>
-                  <h2 className="text-3xl font-bold">まずは{step + 1}問目</h2>
+                  <h2 className="text-3xl font-bold">
+                    {
+                       step === 0
+                        ? "まずは "
+                        : step < totalQuestions * 0.7
+                        ? "次は "
+                        : "あと少し "
+                    }
+                    {step + 1}問目
+                 </h2>
                 </div>
 
                 <button
