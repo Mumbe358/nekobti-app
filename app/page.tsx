@@ -48,29 +48,174 @@ const notoSans = Noto_Sans_JP({
 
 const questionPool: Record<Segment, Question[]> = {
   EI: [
-    { id: 1, text: "初めて会う人が来たら？", segment: "EI", options: [{ label: "自分から近づいて様子を見る", axis: "E" }, { label: "少し離れて観察する", axis: "I" }] },
-    { id: 2, text: "新しいおもちゃを見つけたら？", segment: "EI", options: [{ label: "すぐ触って試す", axis: "E" }, { label: "少し様子を見てから触る", axis: "I" }] },
-    { id: 3, text: "落ち着く場所は？", segment: "EI", options: [{ label: "みんなの気配がある場所", axis: "E" }, { label: "静かで一人になれる場所", axis: "I" }] },
-    { id: 4, text: "他の猫が近くにいたら？", segment: "EI", options: [{ label: "自分から関わりに行く", axis: "E" }, { label: "距離を保つ", axis: "I" }] },
+    {
+      id: 1,
+      text: "朝、家の中で人が動き出すと、うちの子はどっちが多い？",
+      segment: "EI",
+      options: [
+        { label: "自分から近くに来たり、様子を見に来る", axis: "E" },
+        { label: "少し離れた場所で、まずは静かに見ている", axis: "I" },
+      ],
+    },
+    {
+      id: 2,
+      text: "来客や知らない人が来たとき、うちの子に近いのは？",
+      segment: "EI",
+      options: [
+        { label: "気になって自分から出てくることが多い", axis: "E" },
+        { label: "すぐには出ず、少し距離を取って観察する", axis: "I" },
+      ],
+    },
+    {
+      id: 3,
+      text: "家の中で落ち着いているとき、よくいる場所は？",
+      segment: "EI",
+      options: [
+        { label: "人の気配がある場所の近く", axis: "E" },
+        { label: "静かでひとりになれる場所", axis: "I" },
+      ],
+    },
+    {
+      id: 4,
+      text: "ほかの猫や人が近くにいるとき、うちの子はどっち寄り？",
+      segment: "EI",
+      options: [
+        { label: "自分から関わりに行くことが多い", axis: "E" },
+        { label: "自分の距離を保ちながら様子を見ることが多い", axis: "I" },
+      ],
+    },
   ],
+
   SN: [
-    { id: 7, text: "遊ぶときはどっちに近い？", segment: "SN", options: [{ label: "まず動いて感覚を確かめる", axis: "S" }, { label: "作戦や流れを考えてから動く", axis: "N" }] },
-    { id: 8, text: "気になる音がしたら？", segment: "SN", options: [{ label: "現場を見に行って確かめる", axis: "S" }, { label: "何の音か想像しながら様子を見る", axis: "N" }] },
-    { id: 9, text: "高い場所に対しては？", segment: "SN", options: [{ label: "使えそうなら登って確かめる", axis: "S" }, { label: "上から全体を眺めたくなる", axis: "N" }] },
-    { id: 10, text: "窓の外を見るときは？", segment: "SN", options: [{ label: "動いているものを目で追う", axis: "S" }, { label: "景色や空気感を味わう", axis: "N" }] },
+    {
+      id: 7,
+      text: "新しいおもちゃや見慣れない物があるとき、うちの子はどっちが多い？",
+      segment: "SN",
+      options: [
+        { label: "まず触ったり近づいたりして確かめる", axis: "S" },
+        { label: "少し見て、流れや様子を読んでから動く", axis: "N" },
+      ],
+    },
+    {
+      id: 8,
+      text: "気になる音がしたとき、うちの子に近いのは？",
+      segment: "SN",
+      options: [
+        { label: "音のした場所へ行って確かめようとする", axis: "S" },
+        { label: "何の音か探るように、少し離れて様子を見る", axis: "N" },
+      ],
+    },
+    {
+      id: 9,
+      text: "高い場所や登れそうな所を見ると、うちの子はどっち寄り？",
+      segment: "SN",
+      options: [
+        { label: "行けそうなら実際に登って確かめる", axis: "S" },
+        { label: "まず全体を見たり、景色を眺めたりしている", axis: "N" },
+      ],
+    },
+    {
+      id: 10,
+      text: "窓の外を見ているとき、うちの子はどっちが多い？",
+      segment: "SN",
+      options: [
+        { label: "動いているものを目で追っている", axis: "S" },
+        { label: "景色や空気感を味わうように見ている", axis: "N" },
+      ],
+    },
   ],
+
   TF: [
-    { id: 13, text: "飼い主との距離感は？", segment: "TF", options: [{ label: "よくそばにいる", axis: "F" }, { label: "気が向いたときだけ近づく", axis: "T" }] },
-    { id: 14, text: "遊びに誘われたら？", segment: "TF", options: [{ label: "だいたいすぐ乗る", axis: "F" }, { label: "気分で決める", axis: "T" }] },
-    { id: 15, text: "自分の場所へのこだわりは？", segment: "TF", options: [{ label: "強いほうだ", axis: "T" }, { label: "あまり気にしない", axis: "F" }] },
-    { id: 16, text: "指示を受けたときは？", segment: "TF", options: [{ label: "わりと素直に従う", axis: "F" }, { label: "自分の判断を優先する", axis: "T" }] },
+    {
+      id: 13,
+      text: "あなたが家で落ち着いているとき、うちの子はどっちが多い？",
+      segment: "TF",
+      options: [
+        { label: "気づくと近くに来ていることが多い", axis: "F" },
+        { label: "来るときは来るけど、距離は自分で決めている", axis: "T" },
+      ],
+    },
+    {
+      id: 14,
+      text: "遊びに誘ったとき、うちの子に近いのは？",
+      segment: "TF",
+      options: [
+        { label: "わりとすぐ乗ってくることが多い", axis: "F" },
+        { label: "そのときの気分で反応がはっきり変わる", axis: "T" },
+      ],
+    },
+    {
+      id: 15,
+      text: "自分の場所や落ち着く位置へのこだわりは？",
+      segment: "TF",
+      options: [
+        { label: "かなりあるほうで、乱されるのを好まない", axis: "T" },
+        { label: "場所にはそこまでこだわらず柔らかい", axis: "F" },
+      ],
+    },
+    {
+      id: 16,
+      text: "声をかけたり、してほしいことがあるときの反応は？",
+      segment: "TF",
+      options: [
+        { label: "比較的そのまま受け入れることが多い", axis: "F" },
+        { label: "自分の判断やタイミングを優先することが多い", axis: "T" },
+      ],
+    },
   ],
+
   JP: [
-    { id: 19, text: "ごはんの時間がズレたら？", segment: "JP", options: [{ label: "そのまま待てる", axis: "P" }, { label: "ちゃんと主張する", axis: "J" }] },
-    { id: 20, text: "新しい環境では？", segment: "JP", options: [{ label: "気になったらすぐ動く", axis: "P" }, { label: "様子を見てから動く", axis: "J" }] },
-    { id: 21, text: "くつろぐときは？", segment: "JP", options: [{ label: "どこでもリラックスできる", axis: "P" }, { label: "決まった場所が落ち着く", axis: "J" }] },
-    { id: 22, text: "眠いときは？", segment: "JP", options: [{ label: "その場で寝る", axis: "P" }, { label: "落ち着く場所に移動する", axis: "J" }] },
+    {
+      id: 19,
+      text: "ごはんの時間が少しズレたとき、うちの子はどっちが多い？",
+      segment: "JP",
+      options: [
+        { label: "そこまで乱れず、そのまま待てる", axis: "P" },
+        { label: "いつもと違うことをしっかり主張する", axis: "J" },
+      ],
+    },
+    {
+      id: 20,
+      text: "新しい部屋や初めての環境では、うちの子はどっち寄り？",
+      segment: "JP",
+      options: [
+        { label: "気になったら比較的すぐ動く", axis: "P" },
+        { label: "まず安全そうかを見てから動く", axis: "J" },
+      ],
+    },
+    {
+      id: 21,
+      text: "くつろぐ場所の使い方は、うちの子にどっちが近い？",
+      segment: "JP",
+      options: [
+        { label: "そのとき気分で、どこでもリラックスできる", axis: "P" },
+        { label: "落ち着く場所がだいたい決まっている", axis: "J" },
+      ],
+    },
+    {
+      id: 22,
+      text: "眠そうなとき、うちの子はどっちが多い？",
+      segment: "JP",
+      options: [
+        { label: "その場でそのまま寝始めることがある", axis: "P" },
+        { label: "寝る前に落ち着く場所へ移動することが多い", axis: "J" },
+      ],
+    },
   ],
+};
+
+const segmentIntroMap: Record<Segment, string> = {
+  EI: "まずは、朝やふだんの第一反応から。",
+  SN: "次に、気になるものへの反応を見ていきます。",
+  TF: "つづいて、あなたや周りとの距離感です。",
+  JP: "最後に、毎日の過ごし方の癖を見ていきます。",
+};
+
+const segmentTitleMap: Record<Segment, string> = {
+  EI: "朝の反応",
+  SN: "気になるものへの反応",
+  TF: "人との距離感",
+  JP: "生活の癖",
 };
 
 function shuffleArray<T>(array: T[]) {
@@ -85,12 +230,12 @@ function shuffleArray<T>(array: T[]) {
 }
 
 function buildQuestionSet() {
-  return shuffleArray([
-    ...questionPool.EI,
-    ...questionPool.SN,
-    ...questionPool.TF,
-    ...questionPool.JP,
-  ]);
+  return [
+    ...shuffleArray(questionPool.EI),
+    ...shuffleArray(questionPool.SN),
+    ...shuffleArray(questionPool.TF),
+    ...shuffleArray(questionPool.JP),
+  ];
 }
 
 const catTypeMap: Record<string, CatType> = {
@@ -869,6 +1014,12 @@ export default function Home() {
   const totalSteps = totalQuestions + 1;
   const answeredCount = answers.filter(Boolean).length;
   const isAppearanceStep = step === totalQuestions;
+  const currentQuestion = !isAppearanceStep ? currentQuestions[step] : null;
+  const currentSegment = currentQuestion?.segment ?? null;
+  const showSegmentHeader =
+    step < totalQuestions &&
+    (step === 0 ||
+      currentQuestions[step - 1]?.segment !== currentQuestions[step]?.segment);
 
   const result = useMemo(() => {
     if (answeredCount !== totalQuestions) return null;
@@ -1473,7 +1624,9 @@ ${shareUrl}`);
                   <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">
                     DIAGNOSIS START
                   </p>
-                  <h2 className="text-3xl font-bold">まずは{step + 1}問目</h2>
+                  <h2 className="text-3xl font-bold">
+                    {isAppearanceStep ? "最後に見た目を選択" : `まずは${step + 1}問目`}
+                  </h2>
                 </div>
 
                 <button
@@ -1486,6 +1639,11 @@ ${shareUrl}`);
 
               <div className="overflow-hidden rounded-3xl bg-white p-4 ring-1 ring-[#f2e5dc] sm:p-6">
                 <div className="mb-4">
+                  <p className="mb-3 text-sm leading-7 text-[#6b5b52]">
+                    あなたの「うちの子」を思い浮かべてください。<br />
+                    ふだんの様子に近い方を選んでください。
+                  </p>
+
                   <div className="mb-3 flex items-center gap-1.5">
                     {Array.from({ length: totalSteps }).map((_, index) => (
                       <Paw key={index} active={index < answeredCount || (isAppearanceStep && index === totalQuestions)} />
@@ -1507,12 +1665,23 @@ ${shareUrl}`);
                 >
                   {!isAppearanceStep ? (
                     <>
+                      {showSegmentHeader && currentSegment && (
+                        <div className="mb-5 rounded-2xl bg-[#fff7f2] px-4 py-3 text-center">
+                          <p className="text-xs font-bold tracking-[0.12em] text-[#b07d62]">
+                            {segmentTitleMap[currentSegment]}
+                          </p>
+                          <p className="mt-1 text-sm text-[#6b5b52]">
+                            {segmentIntroMap[currentSegment]}
+                          </p>
+                        </div>
+                      )}
+
                       <p className="mb-6 break-words text-lg font-semibold leading-9 sm:leading-8">
-                        {currentQuestions[step].text}
+                        {currentQuestion?.text}
                       </p>
 
                       <div className="grid gap-3">
-                        {currentQuestions[step].options.map((option) => {
+                        {currentQuestion?.options.map((option) => {
                           const isSelected = selectedLabel === option.label;
                           const isAnsweredThisStep = answers[step] !== null;
 
@@ -1682,7 +1851,7 @@ ${shareUrl}`);
 
                   <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
                     <p className="mb-2 text-sm font-bold text-[#9a7d69]">特徴</p>
-                    <div className="space-y-0 text-base leading-tight text-[#4e433d] sm:text-[17px]">
+                    <div className="space-y-0 text-sm leading-tight text-[#4e433d] sm:text-base">
                       {traitsMap[result.mainType].map((trait) => (
                         <p key={trait} className="font-bold">・{trait}</p>
                       ))}
@@ -1692,16 +1861,16 @@ ${shareUrl}`);
                   {selectedAruaru && (
                     <div className="mb-2 rounded-2xl bg-white/70 px-3 py-3 ring-1 ring-[#f1e4da]">
                       <p className="mb-2 text-sm font-bold text-[#9a7d69]">あるある</p>
-                      <p className="text-base font-bold leading-tight text-[#4e433d] sm:text-[17px]">{selectedAruaru.text}</p>
+                      <p className="text-sm font-bold leading-tight text-[#4e433d] sm:text-base">{selectedAruaru.text}</p>
                     </div>
                   )}
 
                   <div className="text-center">
-                    <p className="mb-1 text-sm font-bold text-[#9a7d69]">飼いぬしとの相性</p>
-                    <div className="space-y-2 text-[#5c5c5c]">
+                    <p className="mb-1 text-xs font-bold text-[#9a7d69]">飼いぬしとの相性</p>
+                    <div className="space-y-2 text-[#4e433d]">
                       {ownerCompatibility[result.mainType].map((item) => (
-                        <p key={item.type} className="text-[13px] font-medium leading-tight sm:text-sm">
-                          {item.type}（{ownerMbtiLabelMap[item.type]}） <span className="text-[12px]">{renderHearts(item.hearts)}</span>
+                        <p key={item.type} className="text-base font-semibold leading-tight sm:text-lg">
+                          {item.type}（{ownerMbtiLabelMap[item.type]}） {renderHearts(item.hearts)}
                         </p>
                       ))}
                     </div>
