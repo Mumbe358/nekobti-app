@@ -1730,7 +1730,7 @@ ${shareUrl}`);
                 >
                   {!isAppearanceStep ? (
                     <>
-                      <p className="mb-6 min-h-[84x] break-words text-lg font-semibold leading-7 sm:leading-7">
+                      <p className="mb-6 min-h-[96x] break-words text-lg font-semibold leading-7 sm:leading-7">
                         {currentQuestions[step].text}
                       </p>
 
