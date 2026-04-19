@@ -1008,6 +1008,7 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>(() => buildQuestionSet());
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(QuestionOption | null)[]>(() =>
@@ -1044,7 +1045,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (isOpen || isTypeListOpen || isAboutOpen || isSharePreviewOpen || isOpeningSharePreview) {
+    if (isOpen || isTypeListOpen || isAboutOpen || isPrivacyOpen || isSharePreviewOpen || isOpeningSharePreview) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -1053,7 +1054,7 @@ export default function Home() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, isTypeListOpen, isAboutOpen, isSharePreviewOpen, isOpeningSharePreview]);
+  }, [isOpen, isTypeListOpen, isAboutOpen, isPrivacyOpen, isSharePreviewOpen, isOpeningSharePreview]);
 
   useEffect(() => {
     return () => {
@@ -1193,7 +1194,16 @@ export default function Home() {
   };
 
   const closeAbout = () => {
+    setIsPrivacyOpen(false);
     setIsAboutOpen(false);
+  };
+
+  const openPrivacy = () => {
+    setIsPrivacyOpen(true);
+  };
+
+  const closePrivacy = () => {
+    setIsPrivacyOpen(false);
   };
 
   const handleAnswer = (option: QuestionOption) => {
@@ -2108,20 +2118,92 @@ ${shareUrl}`);
 
               <div>
                 <p className="text-sm font-bold text-[#9a7d69]">プライバシーポリシー</p>
-                <a
-                  href="https://your-site.com/privacy"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
+                <button
+                  type="button"
+                  onClick={openPrivacy}
+                  className="break-all text-left text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
                 >
-                  https://your-site.com/privacy
-                </a>
+                  プライバシーポリシーを見る
+                </button>
               </div>
             </div>
 
             <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
               <p>※本サービスはエンターテインメントを目的としています。</p>
               <p className="mt-2">© NEKOBEE All Rights Reserved.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={`fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-black/35 px-4 transition-all duration-300 ${
+          isPrivacyOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closePrivacy}
+      >
+        <div
+          className={`mx-auto my-6 w-[min(92vw,640px)] max-w-[640px] max-h-[calc(100dvh-48px)] overflow-y-auto overflow-x-hidden rounded-[32px] border border-[#eedfd3] bg-[#fffaf6] p-5 shadow-2xl transition-all duration-300 sm:my-8 sm:p-8 ${
+            isPrivacyOpen ? "scale-100 blur-0" : "scale-95 blur-sm"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">PRIVACY POLICY</p>
+              <h2 className="text-3xl font-bold">プライバシーポリシー</h2>
+            </div>
+
+            <button
+              onClick={closePrivacy}
+              className="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-[#7a5c48] shadow-sm transition hover:bg-[#fff3ea]"
+            >
+              閉じる
+            </button>
+          </div>
+
+          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-[#f1e4da]">
+            <div className="space-y-5 text-[15px] leading-8 text-[#4e433d] sm:text-base">
+              <p>
+                ねこびーてぃあい（以下、「本サービス」）は、診断結果の表示、サービス改善、不正利用防止、お問い合わせ対応のため、利用状況や端末情報等を取得することがあります。
+              </p>
+
+              <p>
+                本サービスでは、利便性向上やアクセス解析のため、Cookie等を利用する場合があります。
+              </p>
+
+              <p>
+                取得した情報は、法令に基づく場合等を除き、本人の同意なく第三者に提供しません。
+              </p>
+
+              <p>
+                本サービスは、必要な範囲で外部サービスを利用することがあります。
+              </p>
+
+              <p>
+                本サービスはエンターテインメントを目的として提供しており、診断結果は医学的・心理学的判断を行うものではありません。
+              </p>
+
+              <p>
+                本ポリシーは、必要に応じて改定されることがあります。
+              </p>
+
+              <div>
+                <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
+                <a
+                  href="https://your-site.com/contact"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
+                >
+                  https://your-site.com/contact
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
+              <p>制定日：2026年4月19日</p>
+              <p className="mt-2">運営：NEKOBEE</p>
             </div>
           </div>
         </div>
