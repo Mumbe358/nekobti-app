@@ -786,7 +786,12 @@ function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
 }
 
-function getResultTypeTitleClass(type: CatType) { return ''; }
+function getResultTypeTitleClass(type: CatType) {
+  const length = type.length;
+
+  if (length >= 10) {
+    return "text-[28px] sm:text-[34px]";
+  }
 
   if (length >= 8) {
     return "text-[32px] sm:text-[38px]";
