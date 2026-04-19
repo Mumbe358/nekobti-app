@@ -1624,14 +1624,6 @@ ${shareUrl}`);
               </div>
             </div>
 
-            <div className="mt-6">
-              <button
-                onClick={openAbout}
-                className="text-sm font-semibold text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
-              >
-                ねこびーてぃあいについて
-              </button>
-            </div>
           </div>
 
           <div className="relative">
@@ -1685,6 +1677,17 @@ ${shareUrl}`);
           </div>
         </div>
       </section>
+
+      <div className="border-t border-[#f0dfd3] px-6 py-8 md:px-10">
+        <div className="mx-auto flex max-w-6xl justify-center">
+          <button
+            onClick={openAbout}
+            className="text-sm font-semibold text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
+          >
+            ねこびーてぃあいについて
+          </button>
+        </div>
+      </div>
 
       <div
         className={`fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/30 px-4 transition-all duration-500 ${
