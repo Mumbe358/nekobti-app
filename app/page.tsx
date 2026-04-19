@@ -2099,10 +2099,18 @@ ${shareUrl}`);
                 <p>猫タイプ診断コンテンツの企画・運営</p>
               </div>
 
-              <div>
-                <p className="text-sm font-bold text-[#9a7d69]">運営</p>
-                <p>NEKOBEE</p>
-              </div>
+<div>
+  <p className="text-sm font-bold text-[#9a7d69]">運営</p>
+
+  <div className="mt-2 flex items-center gap-3">
+    <img
+      src="/images/nekobee-logo.png"
+      alt="NEKOBEE logo"
+      className="h-12 w-auto rounded-xl object-contain"
+    />
+    <p className="text-[17px] font-semibold text-[#4e433d]">NEKOBEE</p>
+  </div>
+</div>
 
               <div>
                 <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
