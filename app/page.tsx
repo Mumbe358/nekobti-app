@@ -2101,11 +2101,13 @@ ${shareUrl}`);
 
 <div>
   <p className="text-sm font-bold text-[#9a7d69]">運営</p>
-  <img
-    src="/images/nekobee-logo.png"
-    alt="NEKOBEE logo"
-    className="mt-2 h-12 w-auto object-contain"
-  />
+  <div className="mt-2 flex justify-center">
+    <img
+      src="/images/nekobee-logo.png"
+      alt="NEKOBEE logo"
+      className="h-16 w-auto object-contain"
+    />
+  </div>
 </div>
 
               <div>
