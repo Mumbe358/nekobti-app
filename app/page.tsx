@@ -1526,14 +1526,12 @@ ${getShareUrl()}`;
           await nav.share({
             files: [file],
             text: shareText,
-            url: shareUrl,
           });
           return;
         }
 
         await nav.share({
           text: shareText,
-          url: shareUrl,
         });
         return;
       }
