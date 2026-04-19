@@ -1470,7 +1470,7 @@ ${getShareUrl()}`;
       // copyright / brand (footer)
       ctx.fillStyle = "#9a7d69";
       ctx.font = "700 36px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©2026 NEKOBEE All Rights Reserved.", width / 2, height - 70);
+      ctx.fillText("©ねこびーてぃあい", width / 2, height - 70);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
