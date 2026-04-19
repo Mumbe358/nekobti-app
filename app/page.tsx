@@ -1199,16 +1199,21 @@ export default function Home() {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
+      // copyright / brand (header)
+      ctx.fillStyle = "#9a7d69";
+      ctx.font = "700 42px 'Noto Sans JP', sans-serif";
+      ctx.fillText("©ねこびーてぃあい", width / 2, 30);
+
       // title
       ctx.fillStyle = "#8a6a57";
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
-      ctx.fillText("うちの子は…", width / 2, 52);
+      ctx.fillText("うちの子は…", width / 2, 88);
 
       // copy
       ctx.fillStyle = "#2b2b2b";
       ctx.font = "200 88px 'Kiwami'";
       const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
-      let copyY = 170;
+      let copyY = 172;
       copyLines.forEach((line) => {
         ctx.font = "200 88px 'Kiwami'";
         ctx.fillText(line, width / 2, copyY);
@@ -1217,25 +1222,30 @@ export default function Home() {
 
       // image
       const img = await loadImageForCanvas(resultImageSrc);
-      const imgBox = Math.round(width * 0.82);
-      const imgX = width / 2 - imgBox / 2;
-      const imgY = copyY + 12;
+      const imgBox = Math.round(width * 0.74);
+      const imgY = copyY + 8;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
         const drawH = img.naturalHeight * scale;
-        ctx.drawImage(img, width / 2 - drawW / 2, imgY + (imgBox - drawH) / 2, drawW, drawH);
+        ctx.drawImage(
+          img,
+          width / 2 - drawW / 2,
+          imgY + (imgBox - drawH) / 2,
+          drawW,
+          drawH
+        );
       }
 
       // type name
-      ctx.fillStyle = "#7a5c48";
-      ctx.font = "700 54px 'Noto Sans JP', sans-serif";
-      ctx.fillText(`${result.mainType}タイプ`, width / 2, imgY + imgBox + 20);
+      ctx.fillStyle = "#000000";
+      ctx.font = "200 58px 'Kiwami'";
+      ctx.fillText(result.mainType, width / 2, imgY + imgBox + 16);
 
-      // copyright / brand
-      ctx.fillStyle = "#9a7d69";
-      ctx.font = "700 42px 'Noto Sans JP', sans-serif";
-      ctx.fillText("©ねこびーてぃあい", width / 2, height - 82);
+      // type label
+      ctx.fillStyle = "#444444";
+      ctx.font = "700 28px 'Noto Sans JP', sans-serif";
+      ctx.fillText("タイプ", width / 2, imgY + imgBox + 88);
 
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((value) => resolve(value), "image/png");
