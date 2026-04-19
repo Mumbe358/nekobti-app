@@ -1320,11 +1320,13 @@ export default function Home() {
     }, 2200);
   };
 
-  const getShareText = () =>
-    result
-      ? `うちの猫のタイプは「${result.mainType}」でした🐱
-診断してみてね`
-      : "うちの猫のタイプ診断をやってみた🐱";
+const getShareText = () =>
+  result
+    ? `うちの猫のタイプは「${result.mainType}」でした🐱
+診断してみてね
+${getShareUrl()}`
+    : `うちの猫のタイプ診断をやってみた🐱
+${getShareUrl()}`;
 
   const getShareUrl = () => (typeof window !== "undefined" ? window.location.href : "");
 
