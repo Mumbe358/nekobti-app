@@ -1491,7 +1491,7 @@ export default function Home() {
   };
 
   const restartDiagnosis = async () => {
-    resetDiagnosisUi();
+
     await prepareFreshDiagnosis();
   };
 
