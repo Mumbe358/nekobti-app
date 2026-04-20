@@ -2189,95 +2189,34 @@ ${shareUrl}`);
                   ) : null}
 
                   <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => {
-                        void handleNativeShare();
-                      }}
-                      disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <span className="flex flex-col items-center justify-center gap-2">
-<span className="flex items-center justify-center gap-2" aria-hidden="true">
-  {/* X */}
-  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black shadow-sm">
-    <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
-      <path
-        d="M14 14h10.6L35 28.2 46.3 14H52L37.8 31.4 54 50H43.4L32.2 35.2 19.8 50H14l14.6-16.4L14 14Z"
-        fill="#ffffff"
-      />
-    </svg>
-  </span>
 
-  {/* LINE */}
-  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
-    <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-white">
-      <span className="text-[9px] font-black tracking-[0.02em] text-[#59c65f]">
-        LINE
+<button
+  onClick={() => {
+    void handleNativeShare();
+  }}
+  disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
+  className="rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+>
+  <span className="flex flex-col items-center justify-center gap-2">
+    <span className="flex items-center justify-center gap-2" aria-hidden="true">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black shadow-sm">
+        <span className="text-sm font-bold text-white">X</span>
       </span>
-      <span className="absolute bottom-[2px] left-[4px] h-2 w-2 rotate-12 bg-white [clip-path:polygon(0_0,100%_0,25%_100%)]" />
+
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
+        <span className="text-[9px] font-black text-white">LINE</span>
+      </span>
+
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
+        <span className="text-sm text-white">↗</span>
+      </span>
     </span>
+
+    <span className="text-xs font-semibold">シェア</span>
   </span>
+</button>
 
-  {/* グレー共有 */}
-  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
-    <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
-      <rect
-        x="20"
-        y="22"
-        width="24"
-        height="22"
-        rx="3"
-        ry="3"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="3.2"
-      />
-      <path
-        d="M26 22v-4.5c0-2.5 2-4.5 4.5-4.5h3c2.5 0 4.5 2 4.5 4.5V22"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  </span>
-</span>
-                          </span>
 
-                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black shadow-sm">
-                            <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden="true">
-                              <path
-                                d="M14 14h10.6L35 28.2 46.3 14H52L37.8 31.4 54 50H43.4L32.2 35.2 19.8 50H14.1l14.6-16.8L14 14Z"
-                                fill="#ffffff"
-                              />
-                            </svg>
-                          </span>
-
-                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
-                            <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden="true">
-                              <rect
-                                x="19"
-                                y="22"
-                                width="26"
-                                height="22"
-                                rx="4"
-                                fill="none"
-                                stroke="#ffffff"
-                                strokeWidth="4"
-                              />
-                              <path
-                                d="M26 22v-4.5c0-3 2.5-5.5 5.5-5.5h1c3 0 5.5 2.5 5.5 5.5V22"
-                                fill="none"
-                                stroke="#ffffff"
-                                strokeLinecap="round"
-                                strokeWidth="4"
-                              />
-                            </svg>
-                          </span>
-                        </span>
-                        <span className="text-xs font-semibold">シェア</span>
-                      </span>
-                    </button>
 
                     <button
                       onClick={closeSharePreview}
