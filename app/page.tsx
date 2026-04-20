@@ -2194,10 +2194,50 @@ ${shareUrl}`);
                         void handleNativeShare();
                       }}
                       disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-2xl">↗</span>
-                      <span className="text-xs font-semibold">シェア</span>
+                      <span className="flex flex-col items-center justify-center gap-2">
+                        <span className="flex items-center justify-center gap-3" aria-hidden="true">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
+                            <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white">
+                              <span className="text-[10px] font-black tracking-[0.02em] text-[#59c65f]">LINE</span>
+                              <span className="absolute bottom-[3px] left-[5px] h-2.5 w-2.5 -rotate-12 bg-white [clip-path:polygon(0_0,100%_0,25%_100%)]" />
+                            </span>
+                          </span>
+
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black shadow-sm">
+                            <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden="true">
+                              <path
+                                d="M14 14h10.6L35 28.2 46.3 14H52L37.8 31.4 54 50H43.4L32.2 35.2 19.8 50H14.1l14.6-16.8L14 14Z"
+                                fill="#ffffff"
+                              />
+                            </svg>
+                          </span>
+
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
+                            <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden="true">
+                              <rect
+                                x="19"
+                                y="22"
+                                width="26"
+                                height="22"
+                                rx="4"
+                                fill="none"
+                                stroke="#ffffff"
+                                strokeWidth="4"
+                              />
+                              <path
+                                d="M26 22v-4.5c0-3 2.5-5.5 5.5-5.5h1c3 0 5.5 2.5 5.5 5.5V22"
+                                fill="none"
+                                stroke="#ffffff"
+                                strokeLinecap="round"
+                                strokeWidth="4"
+                              />
+                            </svg>
+                          </span>
+                        </span>
+                        <span className="text-xs font-semibold">シェア</span>
+                      </span>
                     </button>
 
                     <button
