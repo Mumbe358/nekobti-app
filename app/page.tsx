@@ -2254,7 +2254,7 @@ ${shareUrl}`);
           />
         </svg>
       </span>
-    </span>
+
 
 
   </span>
