@@ -2223,8 +2223,8 @@ ${shareUrl}`);
 
       {/* LINE */}
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
-        <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-white">
-          <span className="text-[9px] font-black tracking-[0.02em] text-[#59c65f]">
+        <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white">
+          <span className="text-[8px] font-black tracking-[0.02em] text-[#59c65f]">
             LINE
           </span>
           <span className="absolute bottom-[2px] left-[4px] h-2 w-2 rotate-12 bg-white [clip-path:polygon(0_0,100%_0,25%_100%)]" />
@@ -2233,7 +2233,7 @@ ${shareUrl}`);
 
       {/* 共通 */}
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
-        <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
+        <svg viewBox="0 0 64 64" className="h-7 w-7" aria-hidden="true">
           <rect
             x="20"
             y="22"
