@@ -2282,7 +2282,7 @@ ${shareUrl}`);
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">ABOUT</p>
-              <h2 className="text-3xl font-bold">ねこびーてぃあいについて</h2>
+              <h2 className="text-xl font-bold">ねこびーてぃあいについて</h2>
             </div>
 
             <button
@@ -2321,24 +2321,24 @@ ${shareUrl}`);
               <div>
                 <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
                 <a
-                  href="https://your-site.com/contact"
+                  href="mailto:nekobee@example.com"
                   target="_blank"
                   rel="noreferrer"
                   className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
                 >
-                  https://your-site.com/contact
+                  nekobee@example.com
                 </a>
               </div>
 
               <div>
-                <p className="text-sm font-bold text-[#9a7d69]">プライバシーポリシー</p>
-                <button
-                  type="button"
-                  onClick={openPrivacy}
-                  className="break-all text-left text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4 transition hover:text-[#5f4739]"
-                >
-                  プライバシーポリシーを見る
-                </button>
+
+<a
+  href="/privacy"
+  className="text-sm font-bold text-[#9a7d69] underline decoration-[#d8c1b1]"
+>
+  プライバシーポリシー
+</a>
+
               </div>
             </div>
 
@@ -2377,7 +2377,7 @@ ${shareUrl}`);
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-[#f1e4da]">
-            <div className="space-y-5 text-[15px] leading-8 text-[#4e433d] sm:text-base">
+            <div className="space-y-5 text-[15px] leading-6 text-[#4e433d] sm:text-base">
               <p>
                 ねこびーてぃあい（以下、「本サービス」）は、診断結果の表示、サービス改善、不正利用防止、お問い合わせ対応のため、利用状況や端末情報等を取得することがあります。
               </p>
