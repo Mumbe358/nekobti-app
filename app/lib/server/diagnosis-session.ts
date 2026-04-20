@@ -2,14 +2,17 @@ import "server-only";
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 import type { NextRequest, NextResponse } from "next/server";
-import type { Question, QuestionOption } from "@/app/lib/server/diagnosis-engine";
+import type { Question } from "@/app/lib/server/diagnosis-engine";
+import { getQuestionById, getQuestionsByIds } from "@/app/lib/server/diagnosis-engine";
 
 export const DIAGNOSIS_SESSION_COOKIE = "nekobti_diagnosis_session";
 const COOKIE_MAX_AGE = 60 * 60; // 1 hour
 
+type AnswerIndex = 0 | 1 | null;
+
 type DiagnosisSession = {
-  questions: Question[];
-  answers: (QuestionOption | null)[];
+  questionIds: number[];
+  answerIndexes: AnswerIndex[];
   currentStep: number;
   createdAt: number;
 };
@@ -47,7 +50,12 @@ function decodeSession(token: string): DiagnosisSession | null {
     const decipher = createDecipheriv("aes-256-gcm", key, iv);
     decipher.setAuthTag(tag);
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
-    return JSON.parse(decrypted) as DiagnosisSession;
+    const parsed = JSON.parse(decrypted) as DiagnosisSession;
+
+    if (!Array.isArray(parsed.questionIds) || !Array.isArray(parsed.answerIndexes)) return null;
+    if (parsed.questionIds.length !== parsed.answerIndexes.length) return null;
+
+    return parsed;
   } catch {
     return null;
   }
@@ -55,8 +63,8 @@ function decodeSession(token: string): DiagnosisSession | null {
 
 export function createDiagnosisSession(questions: Question[]): DiagnosisSession {
   return {
-    questions,
-    answers: Array(questions.length).fill(null),
+    questionIds: questions.map((question) => question.id),
+    answerIndexes: Array(questions.length).fill(null),
     currentStep: 0,
     createdAt: Date.now(),
   };
@@ -94,17 +102,17 @@ export function clearDiagnosisSessionCookie(response: NextResponse) {
 
 export function applyDiagnosisAnswer(
   session: DiagnosisSession,
-  step: number,
   questionId: number,
   optionIndex: number,
 ) {
-  const question = session.questions[step];
+  const step = session.currentStep;
+  const expectedQuestionId = session.questionIds[step];
 
-  if (!question) {
-    throw new Error("Question step is out of range");
+  if (typeof expectedQuestionId !== "number") {
+    throw new Error("Current question not found");
   }
 
-  if (question.id !== questionId) {
+  if (expectedQuestionId !== questionId) {
     throw new Error("Question mismatch");
   }
 
@@ -112,32 +120,46 @@ export function applyDiagnosisAnswer(
     throw new Error("Invalid option index");
   }
 
-  const answers = [...session.answers];
-  answers[step] = question.options[optionIndex];
+  const question = getQuestionById(questionId);
 
-  for (let i = step + 1; i < answers.length; i += 1) {
-    answers[i] = null;
+  if (!question) {
+    throw new Error("Question not found");
+  }
+
+  const answerIndexes = [...session.answerIndexes];
+  answerIndexes[step] = optionIndex;
+
+  for (let i = step + 1; i < answerIndexes.length; i += 1) {
+    answerIndexes[i] = null;
   }
 
   const nextStep = step + 1;
-  const nextQuestion = nextStep < session.questions.length ? session.questions[nextStep] : null;
+  const nextQuestionId = nextStep < session.questionIds.length ? session.questionIds[nextStep] : null;
+  const nextQuestion = typeof nextQuestionId === "number" ? getQuestionById(nextQuestionId) : null;
 
   return {
     session: {
       ...session,
-      answers,
+      answerIndexes,
       currentStep: nextStep,
     },
     nextStep,
     nextQuestion,
-    totalQuestions: session.questions.length,
-    isAppearanceStep: nextStep >= session.questions.length,
+    totalQuestions: session.questionIds.length,
+    isAppearanceStep: nextStep >= session.questionIds.length,
   };
 }
 
 export function getSessionQuestionsAndAnswers(session: DiagnosisSession) {
+  const currentQuestions = getQuestionsByIds(session.questionIds);
+  const answers = currentQuestions.map((question, index) => {
+    const answerIndex = session.answerIndexes[index];
+    if (answerIndex !== 0 && answerIndex !== 1) return null;
+    return question.options[answerIndex] ?? null;
+  });
+
   return {
-    currentQuestions: session.questions,
-    answers: session.answers,
+    currentQuestions,
+    answers,
   };
 }

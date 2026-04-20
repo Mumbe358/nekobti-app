@@ -1255,6 +1255,7 @@ export default function Home() {
       const response = await fetch("/api/diagnosis/start", {
         method: "GET",
         cache: "no-store",
+        credentials: "same-origin",
       });
 
       const data = await readJsonSafely<StartResponse>(response);
@@ -1301,7 +1302,6 @@ export default function Home() {
 
   const openDiagnosis = async () => {
     void trackEvent("diagnosis_started");
-
     setIsOpen(true);
     await prepareFreshDiagnosis();
   };
@@ -1401,6 +1401,7 @@ export default function Home() {
         try {
           const response = await fetch("/api/diagnosis/answer", {
             method: "POST",
+            credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               step: activeStep,
@@ -1491,7 +1492,6 @@ export default function Home() {
   };
 
   const restartDiagnosis = async () => {
-
     await prepareFreshDiagnosis();
   };
 
@@ -1510,6 +1510,7 @@ export default function Home() {
 
       const response = await fetch("/api/diagnosis/finalize", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
