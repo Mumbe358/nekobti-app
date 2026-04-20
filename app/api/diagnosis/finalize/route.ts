@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/app/lib/server/supabase-admin";
-import { calculateDiagnosisResult } from "@/app/lib/server/diagnosis-engine";
-import { getCardCopy, getRandomAruaru } from "@/app/lib/server/diagnosis-content";
 import {
-  clearDiagnosisSessionCookie,
-  getDiagnosisSession,
-  getSessionQuestionsAndAnswers,
-} from "@/app/lib/server/diagnosis-session";
+  calculateDiagnosisResult,
+  type Question,
+  type QuestionOption,
+} from "@/app/lib/server/diagnosis-engine";
+import { getCardCopy, getRandomAruaru } from "@/app/lib/server/diagnosis-content";
 
 type FinalizePayload = {
   gender?: string;
@@ -21,6 +20,8 @@ type FinalizePayload = {
   utm_campaign?: string | null;
   user_agent?: string;
   timezone?: string;
+  current_questions?: Question[];
+  answers?: (QuestionOption | null)[];
 };
 
 type ShareRow = {
@@ -39,25 +40,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = getDiagnosisSession(request);
-
-    if (!session) {
+    if (!body.current_questions?.length || !body.answers?.length) {
       return NextResponse.json(
-        { ok: false, error: "Diagnosis session not found" },
+        { ok: false, error: "Missing diagnosis answers" },
         { status: 400 },
       );
     }
 
-    const { currentQuestions, answers } = getSessionQuestionsAndAnswers(session);
-
-    if (!currentQuestions.length || answers.some((answer) => !answer)) {
-      return NextResponse.json(
-        { ok: false, error: "Diagnosis answers are incomplete" },
-        { status: 400 },
-      );
-    }
-
-    const result = calculateDiagnosisResult(currentQuestions, answers);
+    const result = calculateDiagnosisResult(body.current_questions, body.answers);
 
     if (!result) {
       return NextResponse.json(
@@ -136,7 +126,7 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {});
 
-    const response = NextResponse.json({
+    return NextResponse.json({
       ok: true,
       typeShares,
       result: {
@@ -145,9 +135,6 @@ export async function POST(request: NextRequest) {
         cardCopy,
       },
     });
-
-    clearDiagnosisSessionCookie(response);
-    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });

@@ -142,17 +142,7 @@ type TypeSharesResponse = {
 
 type StartResponse = {
   ok: boolean;
-  question?: Question | null;
-  totalQuestions?: number;
-  error?: string;
-};
-
-type AnswerResponse = {
-  ok: boolean;
-  nextQuestion?: Question | null;
-  nextStep?: number;
-  totalQuestions?: number;
-  isAppearanceStep?: boolean;
+  questions?: Question[];
   error?: string;
 };
 
@@ -169,6 +159,8 @@ type ServerDiagnosisResult = {
 type FinalizePayload = ReturnType<typeof getTrackingMeta> & {
   gender: string;
   coat: string;
+  current_questions: Question[];
+  answers: (QuestionOption | null)[];
 };
 
 type FinalizeResponse = {
@@ -1116,8 +1108,7 @@ export default function Home() {
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-  const [questionHistory, setQuestionHistory] = useState<Question[]>([]);
-  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(QuestionOption | null)[]>([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
@@ -1222,11 +1213,12 @@ export default function Home() {
     void trackEvent("page_view");
   }, []);
 
+  const totalQuestions = currentQuestions.length;
   const totalSteps = totalQuestions > 0 ? totalQuestions + 1 : 1;
   const answeredCount = answers.filter(Boolean).length;
   const isQuestionSetReady = totalQuestions > 0;
   const isAppearanceStep = isQuestionSetReady && step === totalQuestions;
-  const currentQuestion = !isAppearanceStep ? questionHistory[step] ?? null : null;
+  const currentQuestion = !isAppearanceStep ? currentQuestions[step] ?? null : null;
 
   useEffect(() => {
     if (!result) return;
@@ -1255,45 +1247,55 @@ export default function Home() {
       const response = await fetch("/api/diagnosis/start", {
         method: "GET",
         cache: "no-store",
-        credentials: "same-origin",
       });
 
       const data = await readJsonSafely<StartResponse>(response);
 
-      if (!response.ok || !data?.ok || !data.question || !data.totalQuestions) {
+      if (!response.ok || !data?.ok || !data.questions?.length) {
         console.error("question fetch failed:", data?.error ?? response.statusText);
         return null;
       }
 
-      return {
-        question: data.question,
-        totalQuestions: data.totalQuestions,
-      };
+      return data.questions;
     } catch (error) {
       console.error("question fetch failed:", error);
       return null;
     }
   };
 
+  const resetDiagnosisUi = () => {
+    setStep(0);
+    setSelectedLabel(null);
+    setAnimating(false);
+    setDirection("next");
+    setIsCalculating(false);
+    setLoadingMessageIndex(0);
+    setShowResult(false);
+    setSelectedAruaru(null);
+    setResult(null);
+    setCardCopy("");
+    setSelectedGender("");
+    setSelectedCoat("");
+    setResultImageSrc("/images/silhouette.png");
+    setQuestionLoadError(null);
+  };
+
   const prepareFreshDiagnosis = async () => {
     setIsLoadingQuestions(true);
     setQuestionLoadError(null);
-    setQuestionHistory([]);
-    setTotalQuestions(0);
+    setCurrentQuestions([]);
     setAnswers([]);
 
     try {
-      const session = await fetchQuestionSet();
+      const nextQuestions = await fetchQuestionSet();
 
-      if (!session?.question || !session.totalQuestions) {
+      if (!nextQuestions?.length) {
         setQuestionLoadError("質問の読み込みに失敗しました。時間をおいてもう一度お試しください。");
         return false;
       }
 
-      setQuestionHistory([session.question]);
-      setTotalQuestions(session.totalQuestions);
-      setAnswers(Array(session.totalQuestions).fill(null));
-      setStep(0);
+      setCurrentQuestions(nextQuestions);
+      setAnswers(Array(nextQuestions.length).fill(null));
       return true;
     } finally {
       setIsLoadingQuestions(false);
@@ -1302,6 +1304,7 @@ export default function Home() {
 
   const openDiagnosis = async () => {
     void trackEvent("diagnosis_started");
+    resetDiagnosisUi();
     setIsOpen(true);
     await prepareFreshDiagnosis();
   };
@@ -1318,10 +1321,6 @@ export default function Home() {
     setCardCopy("");
     setSelectedAruaru(null);
     setQuestionLoadError(null);
-    setQuestionHistory([]);
-    setTotalQuestions(0);
-    setAnswers([]);
-    setStep(0);
   };
 
   const fetchTypeShares = async () => {
@@ -1374,15 +1373,6 @@ export default function Home() {
     if (!currentQuestion) return;
     if (selectedLabel || animating || isCalculating || isLoadingQuestions || transitionLockRef.current) return;
 
-    const optionIndex = currentQuestion.options.findIndex(
-      (candidate) =>
-        candidate.label === option.label &&
-        candidate.axis === option.axis &&
-        candidate.weight === option.weight
-    );
-
-    if (optionIndex < 0) return;
-
     if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
     if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
 
@@ -1390,75 +1380,29 @@ export default function Home() {
     setSelectedLabel(option.label);
     setDirection("next");
     setAnimating(true);
-    setQuestionLoadError(null);
 
     const advanceDelay = justWentBackRef.current ? 0 : 180;
     justWentBackRef.current = false;
-    const activeStep = step;
 
     stepTimerRef.current = window.setTimeout(() => {
-      void (async () => {
-        try {
-          const response = await fetch("/api/diagnosis/answer", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              step: activeStep,
-              question_id: currentQuestion.id,
-              option_index: optionIndex,
-            }),
-          });
+      setAnswers((prev) => {
+        const next = [...prev];
+        next[step] = option;
+        return next;
+      });
 
-          const data = await readJsonSafely<AnswerResponse>(response);
+      setSelectedLabel(null);
 
-          if (!response.ok || !data?.ok || typeof data.nextStep !== "number") {
-            throw new Error(data?.error ?? response.statusText);
-          }
+      if (step < totalQuestions - 1) {
+        setStep((prev) => prev + 1);
+      } else {
+        setStep(totalQuestions);
+      }
 
-          setAnswers((prev) => {
-            const next = [...prev];
-            next[activeStep] = option;
-            return next;
-          });
-
-          setSelectedLabel(null);
-
-          if (typeof data.totalQuestions === "number") {
-            setTotalQuestions(data.totalQuestions);
-          }
-
-          const nextTotalQuestions =
-            typeof data.totalQuestions === "number" ? data.totalQuestions : totalQuestions;
-
-          setQuestionHistory((prev) => {
-            const base = prev.slice(0, activeStep + 1);
-
-            if (data.nextQuestion && typeof data.nextStep === "number" && data.nextStep < nextTotalQuestions) {
-              base[data.nextStep] = data.nextQuestion;
-            }
-
-            return base;
-          });
-
-          if (data.isAppearanceStep) {
-            setStep(nextTotalQuestions);
-          } else {
-            setStep(data.nextStep);
-          }
-
-          unlockTimerRef.current = window.setTimeout(() => {
-            setAnimating(false);
-            transitionLockRef.current = false;
-          }, 320);
-        } catch (error) {
-          console.error("question advance failed:", error);
-          setQuestionLoadError("次の質問の読み込みに失敗しました。もう一度お試しください。");
-          setSelectedLabel(null);
-          setAnimating(false);
-          transitionLockRef.current = false;
-        }
-      })();
+      unlockTimerRef.current = window.setTimeout(() => {
+        setAnimating(false);
+        transitionLockRef.current = false;
+      }, 320);
     }, advanceDelay);
   };
 
@@ -1482,7 +1426,6 @@ export default function Home() {
       return next;
     });
 
-    setQuestionHistory((prev) => prev.slice(0, step));
     setStep((prev) => prev - 1);
 
     unlockTimerRef.current = window.setTimeout(() => {
@@ -1492,11 +1435,12 @@ export default function Home() {
   };
 
   const restartDiagnosis = async () => {
+    resetDiagnosisUi();
     await prepareFreshDiagnosis();
   };
 
   const saveDiagnosisResult = async () => {
-    if (!selectedGender || !selectedCoat || isSavingResult || !totalQuestions || answeredCount !== totalQuestions) return false;
+    if (!selectedGender || !selectedCoat || isSavingResult || !currentQuestions.length) return false;
 
     try {
       setIsSavingResult(true);
@@ -1506,11 +1450,12 @@ export default function Home() {
         ...meta,
         gender: selectedGender,
         coat: selectedCoat,
+        current_questions: currentQuestions,
+        answers,
       };
 
       const response = await fetch("/api/diagnosis/finalize", {
         method: "POST",
-        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

@@ -218,20 +218,6 @@ export function buildQuestionSet() {
   ]);
 }
 
-const questionById = new Map<number, Question>(
-  [...questionPool.EI, ...questionPool.SN, ...questionPool.TF, ...questionPool.JP].map((question) => [question.id, question])
-);
-
-export function getQuestionById(id: number): Question | null {
-  return questionById.get(id) ?? null;
-}
-
-export function getQuestionsByIds(ids: number[]): Question[] {
-  return ids
-    .map((id) => getQuestionById(id))
-    .filter((question): question is Question => !!question);
-}
-
 const catTypeMap: Record<string, CatType> = {
   ISTJ: "規律番ねこ",
   ISFJ: "よりそい守りねこ",
