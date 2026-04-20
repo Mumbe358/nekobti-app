@@ -5,7 +5,11 @@ import {
   type Question,
   type QuestionOption,
 } from "@/app/lib/server/diagnosis-engine";
-import { getCardCopy, getRandomAruaru } from "@/app/lib/server/diagnosis-content";
+import {
+  getCardCopy,
+  getRandomAruaru,
+  getResultPresentation,
+} from "@/app/lib/server/diagnosis-content";
 
 type FinalizePayload = {
   gender?: string;
@@ -58,6 +62,7 @@ export async function POST(request: NextRequest) {
 
     const selectedAruaru = getRandomAruaru(result.mainType);
     const cardCopy = getCardCopy(result.mainType, selectedAruaru);
+    const presentation = getResultPresentation(result.mainType);
 
     const supabase = getSupabaseAdmin();
 
@@ -133,6 +138,11 @@ export async function POST(request: NextRequest) {
         ...result,
         selectedAruaru,
         cardCopy,
+        emoji: presentation.emoji,
+        description: presentation.description,
+        traits: presentation.traits,
+        compatibility: presentation.compatibility,
+        bestMatch: presentation.bestMatch,
       },
     });
   } catch (error) {

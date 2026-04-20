@@ -601,3 +601,314 @@ export function getRandomAruaru(type: CatType) {
   const list = aruaruMap[type];
   return list[Math.floor(Math.random() * list.length)];
 }
+
+
+export type CompatibilityItem = {
+  type: string;
+  label: string;
+  hearts: number;
+};
+
+export type ResultPresentation = {
+  emoji: string;
+  description: string;
+  traits: string[];
+  compatibility: CompatibilityItem[];
+  bestMatch: string;
+};
+
+export type TypeListItem = {
+  type: CatType;
+  emoji: string;
+  description: string;
+  percentage?: number;
+};
+
+const ownerMbtiLabelMap: Record<string, string> = {
+  INTJ: "建築家",
+  INTP: "論理学者",
+  ENTJ: "指揮官",
+  ENTP: "討論者",
+  INFJ: "提唱者",
+  INFP: "仲介者",
+  ENFJ: "主人公",
+  ENFP: "運動家",
+  ISTJ: "管理者",
+  ISFJ: "擁護者",
+  ESTJ: "幹部",
+  ESFJ: "領事",
+  ISTP: "巨匠",
+  ISFP: "冒険家",
+  ESTP: "起業家",
+  ESFP: "エンターテイナー",
+};
+
+const ownerCompatibility: Record<CatType, { type: string; hearts: number }[]> = {
+  "規律番ねこ": [
+    { type: "ESTJ", hearts: 5 },
+    { type: "ESFJ", hearts: 4 },
+    { type: "ENFJ", hearts: 4 },
+  ],
+  "よりそい守りねこ": [
+    { type: "ESFJ", hearts: 5 },
+    { type: "ISFJ", hearts: 5 },
+    { type: "ENFJ", hearts: 4 },
+  ],
+  "しずか哲学ねこ": [
+    { type: "INFJ", hearts: 5 },
+    { type: "INTJ", hearts: 4 },
+    { type: "ENFJ", hearts: 4 },
+  ],
+  "戦略きれものねこ": [
+    { type: "ENTJ", hearts: 5 },
+    { type: "INTJ", hearts: 5 },
+    { type: "ESTJ", hearts: 4 },
+  ],
+  "無口クラフトねこ": [
+    { type: "ISTP", hearts: 5 },
+    { type: "ISFP", hearts: 4 },
+    { type: "ESTP", hearts: 4 },
+  ],
+  "ふわアートねこ": [
+    { type: "ISFP", hearts: 5 },
+    { type: "INFP", hearts: 5 },
+    { type: "ESFP", hearts: 4 },
+  ],
+  "ゆめふわロマンねこ": [
+    { type: "INFP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+    { type: "ISFP", hearts: 4 },
+  ],
+  "ひらめき遊びねこ": [
+    { type: "INTP", hearts: 5 },
+    { type: "ENTP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+  ],
+  "突撃アクティブねこ": [
+    { type: "ESTP", hearts: 5 },
+    { type: "ESFP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+  ],
+  "きらきらパーティーねこ": [
+    { type: "ESFP", hearts: 5 },
+    { type: "ENFP", hearts: 5 },
+    { type: "ESTP", hearts: 4 },
+  ],
+  "わくわく自由ねこ": [
+    { type: "ENFP", hearts: 5 },
+    { type: "ENTP", hearts: 5 },
+    { type: "ESFP", hearts: 4 },
+  ],
+  "いたずら天才ねこ": [
+    { type: "ENTP", hearts: 5 },
+    { type: "INTP", hearts: 5 },
+    { type: "ENFP", hearts: 4 },
+  ],
+  "しきり屋リーダーねこ": [
+    { type: "ESTJ", hearts: 5 },
+    { type: "ENTJ", hearts: 5 },
+    { type: "ESFJ", hearts: 4 },
+  ],
+  "みんな大好きねこ": [
+    { type: "ESFJ", hearts: 5 },
+    { type: "ENFJ", hearts: 5 },
+    { type: "ISFJ", hearts: 4 },
+  ],
+  "導きカリスマねこ": [
+    { type: "ENFJ", hearts: 5 },
+    { type: "INFJ", hearts: 4 },
+    { type: "ESFJ", hearts: 4 },
+  ],
+  "覇王ボスねこ": [
+    { type: "ENTJ", hearts: 5 },
+    { type: "ESTJ", hearts: 5 },
+    { type: "INTJ", hearts: 4 },
+  ],
+};
+
+const traitsMap: Record<CatType, string[]> = {
+  "規律番ねこ": ["ルールに正確", "いつも通りが安心", "確認してから動く"],
+  "よりそい守りねこ": ["そっと寄りそう", "安心感つよめ", "気づくと守ってる"],
+  "しずか哲学ねこ": ["静かに見てる", "空気を深読み", "一人時間が主戦場"],
+  "戦略きれものねこ": ["先読みが早い", "無駄がきらい", "一手先で動く"],
+  "無口クラフトねこ": ["手で試したい", "静かに職人肌", "触って理解する"],
+  "ふわアートねこ": ["感覚で決める", "好きがはっきり", "世界観を持ってる"],
+  "ゆめふわロマンねこ": ["自分の世界が濃い", "繊細さMAX", "距離感が独特"],
+  "ひらめき遊びねこ": ["発想が独特", "仕組みが気になる", "考え出すと止まらない"],
+  "突撃アクティブねこ": ["先に飛びこむ", "勢いで突破", "危なそうほど行く"],
+  "きらきらパーティーねこ": ["楽しさに敏感", "人の輪に入る", "場が明るくなる"],
+  "わくわく自由ねこ": ["好奇心が暴れる", "飽きるのも早い", "次がすぐ気になる"],
+  "いたずら天才ねこ": ["試したがり", "反応を見るの好き", "遊び方を発明する"],
+  "しきり屋リーダーねこ": ["仕切るのが自然", "乱れが気になる", "全体を回したい"],
+  "みんな大好きねこ": ["人懐っこさMAX", "誰とでも近い", "好かれ力つよめ"],
+  "導きカリスマねこ": ["気配りの達人", "自然に導く", "寄りそい上手"],
+  "覇王ボスねこ": ["主役ポジを取る", "迷わず決める", "圧があるのに強い"],
+};
+
+const bestMatchMap: Record<CatType, string> = {
+  "規律番ねこ": "きらきらパーティーねこ",
+  "よりそい守りねこ": "きらきらパーティーねこ",
+  "しずか哲学ねこ": "わくわく自由ねこ",
+  "戦略きれものねこ": "わくわく自由ねこ",
+  "無口クラフトねこ": "みんな大好きねこ",
+  "ふわアートねこ": "導きカリスマねこ",
+  "ゆめふわロマンねこ": "導きカリスマねこ",
+  "ひらめき遊びねこ": "覇王ボスねこ",
+  "突撃アクティブねこ": "よりそい守りねこ",
+  "きらきらパーティーねこ": "よりそい守りねこ",
+  "わくわく自由ねこ": "しずか哲学ねこ",
+  "いたずら天才ねこ": "しずか哲学ねこ",
+  "しきり屋リーダーねこ": "ふわアートねこ",
+  "みんな大好きねこ": "無口クラフトねこ",
+  "導きカリスマねこ": "ゆめふわロマンねこ",
+  "覇王ボスねこ": "ゆめふわロマンねこ",
+};
+
+const resultMeta: Record<
+  CatType,
+  {
+    emoji: string;
+    description: string;
+    features: string[];
+    patterns: string[];
+  }
+> = {
+  "規律番ねこ": {
+    emoji: "📋",
+    description: "きっちり守って整える。決まったことや日々の流れをしっかり支える、堅実なおうちの番人タイプ。",
+    features: ['ごはんや寝る時間のズレに敏感', 'いつもの流れがいちばん落ち着く', '自分の場所と順番を守る', '変化より安定が好き'],
+    patterns: ['毎日ほぼ同じ時間に動く', 'お気に入りの場所に戻る', '見慣れない変化はまず観察', '決まったルートで見回る'],
+  },
+  "よりそい守りねこ": {
+    emoji: "🤍",
+    description: "やさしく寄り添いながら相手を見守る。空気を乱さず、安心感で場を包む癒やし役タイプ。",
+    features: ['そっと近くにいてくれる', '空気を乱さず寄り添う', 'やさしい距離感を保つ', '安心感をつくる存在'],
+    patterns: ['静かに隣に座る', '困っていると近くに来る', '騒がしいと少し距離をとる', '信頼すると長くそばにいる'],
+  },
+  "しずか哲学ねこ": {
+    emoji: "🌙",
+    description: "静かに深く考え、表には出しすぎない。でも内面には強い世界観を持つ哲学者タイプ。",
+    features: ['じっと観察して考える', '簡単には動かない', '内側に強い世界を持つ', '静かな存在感'],
+    patterns: ['高い場所から全体を見る', '動く前に長く考える', '人の様子をよく見ている', '気づくと核心をついている'],
+  },
+  "戦略きれものねこ": {
+    emoji: "🧠",
+    description: "先を読んで動く設計者。感情より構造を見て、最適な流れを静かに組み立てるタイプ。",
+    features: ['無駄のない動き', '効率よく目的を達成する', '感情より最適解', '冷静で計画的'],
+    patterns: ['最短ルートで移動する', '必要な時だけ動く', '状況を見て位置を変える', '狙った場所を確実に取る'],
+  },
+  "無口クラフトねこ": {
+    emoji: "🛠️",
+    description: "多くを語らず、必要な時だけ動く。手を動かしながら答えを見つける職人気質タイプ。",
+    features: ['静かに手を動かす', '実際に触って理解する', '余計なことはしない', '職人タイプ'],
+    patterns: ['物を前足で確かめる', '気づくと何か作業している', '必要な分だけ動く', '終わるとすっと離れる'],
+  },
+  "ふわアートねこ": {
+    emoji: "🎨",
+    description: "感性のままに世界を受け取る。やわらかく穏やかな空気で、自分らしさを大切にするタイプ。",
+    features: ['感覚を大事にする', '心地よさに敏感', 'やわらかい雰囲気', '自分の世界を持つ'],
+    patterns: ['日なたを見つけてくつろぐ', '気分で場所を変える', '好きな人にはそっと近づく', 'イヤな空気は静かに避ける'],
+  },
+  "ゆめふわロマンねこ": {
+    emoji: "✨",
+    description: "現実よりも心の中の世界を大切にする。理想やときめきにまっすぐなロマン派タイプ。",
+    features: ['やさしくて繊細', '理想や雰囲気を大切にする', '内面の世界が豊か', '感情で動く'],
+    patterns: ['ぼーっと遠くを見る', '気分で甘えに来る', '好きなものに深くハマる', '静かな時間を好む'],
+  },
+  "ひらめき遊びねこ": {
+    emoji: "💡",
+    description: "考えること自体が遊び。ひらめきと仕組みが大好きな、知的いたずら好きタイプ。",
+    features: ['考えることが楽しい', '仕組みに興味がある', '一人遊びが得意', '知的好奇心が強い'],
+    patterns: ['動くものをじっと観察', '仕組みを理解しようとする', '一人で遊び続ける', '納得すると満足して離れる'],
+  },
+  "突撃アクティブねこ": {
+    emoji: "⚡",
+    description: "迷う前に飛び込む、瞬発力の冒険家。体感で世界をつかみにいくタイプ。",
+    features: ['迷う前に動く', 'スピード重視', '体で覚えるタイプ', '刺激が好き'],
+    patterns: ['見つけたらすぐ飛びつく', '高いところにも一気にジャンプ', 'その場で判断して動く', '失敗してもすぐ次へ'],
+  },
+  "きらきらパーティーねこ": {
+    emoji: "🎉",
+    description: "場の空気を明るくする人気者。楽しさを見つけるのが上手で、人を笑顔にするタイプ。",
+    features: ['場を明るくする', '人と一緒が好き', '楽しいこと最優先', '感情豊か'],
+    patterns: ['人の輪の中心にいる', '遊びにすぐ参加する', 'リアクションが大きい', '楽しそうな方へ移動する'],
+  },
+  "わくわく自由ねこ": {
+    emoji: "🌈",
+    description: "好奇心いっぱいで、自由に世界を広げる。ワクワクを原動力に動くタイプ。",
+    features: ['好奇心が止まらない', '自由に動き回る', '新しいものが好き', '束縛が苦手'],
+    patterns: ['新しい場所を探検する', '気になるものを全部試す', 'すぐ別の興味に移る', '自由に行動範囲を広げる'],
+  },
+  "いたずら天才ねこ": {
+    emoji: "🃏",
+    description: "発想でひっくり返すトリックスター。頭の回転が速く、遊びながら場を変えていくタイプ。",
+    features: ['思いついたらすぐ試す', '遊びながら変化を起こす', 'ルールに縛られない', '発想がユニーク'],
+    patterns: ['引き出しは必ず開ける', '「これ触ったらどうなる？」で動く', 'すぐ次の遊びに移る', '気づくと周りを巻き込んでいる'],
+  },
+  "しきり屋リーダーねこ": {
+    emoji: "📣",
+    description: "しっかり仕切って全体を動かす現場統率者。頼られると強い、実務派リーダータイプ。",
+    features: ['全体を仕切るのが得意', 'ルールを回す', '責任感が強い', '実行力がある'],
+    patterns: ['他の猫の動きを気にする', '場の流れを整える', '自分から動き出す', '決めたことはやりきる'],
+  },
+  "みんな大好きねこ": {
+    emoji: "💗",
+    description: "愛され上手で空気をあたためる。まわりを気づかいながら関係を育てるタイプ。",
+    features: ['人との関係を大切にする', '面倒見がいい', '空気をあたためる', '安心感がある'],
+    patterns: ['人の近くに集まる', '撫でられると嬉しそう', '周りの様子をよく見る', 'みんなと一緒に行動する'],
+  },
+  "導きカリスマねこ": {
+    emoji: "🌟",
+    description: "人を導くやさしい影響力。周囲の気持ちを動かしながら、前へ進めるカリスマタイプ。",
+    features: ['自然と人を引っ張る', '影響力がある', '理想を共有する', '情熱的'],
+    patterns: ['先に動いて周りを導く', '他の猫を引き寄せる', '空気を前向きに変える', '目的に向かって進む'],
+  },
+  "覇王ボスねこ": {
+    emoji: "👑",
+    description: "堂々と采配し、全体を前へ進める王者。圧倒的な存在感で空間を支配するタイプ。",
+    features: ['圧倒的な存在感', '迷わず決める', '主導権を握る', '結果を出す'],
+    patterns: ['一番いい場所を取る', '他の猫が道をあける', '迷わず動く', '全体を支配するように振る舞う'],
+  },
+};
+
+const typeList: CatType[] = [
+  "規律番ねこ",
+  "よりそい守りねこ",
+  "しずか哲学ねこ",
+  "戦略きれものねこ",
+  "無口クラフトねこ",
+  "ふわアートねこ",
+  "ゆめふわロマンねこ",
+  "ひらめき遊びねこ",
+  "突撃アクティブねこ",
+  "きらきらパーティーねこ",
+  "わくわく自由ねこ",
+  "いたずら天才ねこ",
+  "しきり屋リーダーねこ",
+  "みんな大好きねこ",
+  "導きカリスマねこ",
+  "覇王ボスねこ",
+];
+
+export function getResultPresentation(type: CatType): ResultPresentation {
+  return {
+    emoji: resultMeta[type].emoji,
+    description: resultMeta[type].description,
+    traits: traitsMap[type],
+    compatibility: ownerCompatibility[type].map((item) => ({
+      type: item.type,
+      label: ownerMbtiLabelMap[item.type] ?? item.type,
+      hearts: item.hearts,
+    })),
+    bestMatch: bestMatchMap[type],
+  };
+}
+
+export function listTypeItems(percentages: Record<string, number> = {}): TypeListItem[] {
+  return typeList.map((type) => ({
+    type,
+    emoji: resultMeta[type].emoji,
+    description: resultMeta[type].description,
+    percentage: percentages[type],
+  }));
+}
