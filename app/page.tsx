@@ -1304,7 +1304,7 @@ export default function Home() {
 
   const openDiagnosis = async () => {
     void trackEvent("diagnosis_started");
-    resetDiagnosisUi();
+
     setIsOpen(true);
     await prepareFreshDiagnosis();
   };
