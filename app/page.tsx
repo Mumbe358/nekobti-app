@@ -140,15 +140,26 @@ type TypeSharesResponse = {
   error?: string;
 };
 
-type FinalizePayload = ReturnType<typeof getTrackingMeta> & {
-  result_type: string;
+type ServerDiagnosisResult = {
   mbti: string;
+  mainType: CatType;
+  closeSegments: Segment[];
+  tiedSegments: Segment[];
+  decisiveQuestionId: number | null;
+  selectedAruaru: AruaruSet | null;
+  cardCopy: string;
+};
+
+type FinalizePayload = ReturnType<typeof getTrackingMeta> & {
   gender: string;
   coat: string;
+  current_questions: Question[];
+  answers: (QuestionOption | null)[];
 };
 
 type FinalizeResponse = {
   ok: boolean;
+  result?: ServerDiagnosisResult;
   typeShares?: Record<string, number>;
   error?: string;
 };
@@ -1391,6 +1402,8 @@ export default function Home() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedAruaru, setSelectedAruaru] = useState<AruaruSet | null>(null);
+  const [result, setResult] = useState<ServerDiagnosisResult | null>(null);
+  const [cardCopy, setCardCopy] = useState("");
   const [selectedGender, setSelectedGender] = useState<GenderOption>("");
   const [selectedCoat, setSelectedCoat] = useState<CoatOption>("");
   const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
@@ -1487,46 +1500,12 @@ export default function Home() {
   const answeredCount = answers.filter(Boolean).length;
   const isAppearanceStep = step === totalQuestions;
 
-  const result = useMemo(() => {
-    if (answeredCount !== totalQuestions) return null;
-
-    const scores = { ...initialScores };
-
-    answers.forEach((answer) => {
-      if (!answer) return;
-      scores[answer.axis] += answer.weight;
-    });
-
-    const mbtiResult = getMbtiType(scores, currentQuestions, answers);
-    const mainType = catTypeMap[mbtiResult.mbti];
-    const decisiveQuestionId = getDecisiveQuestionId(mbtiResult.mbti, currentQuestions, answers);
-
-    return {
-      scores,
-      mbti: mbtiResult.mbti,
-      mainType,
-      closeSegments: mbtiResult.closeSegments,
-      tiedSegments: mbtiResult.tiedSegments,
-      decisiveQuestionId,
-    };
-  }, [answers, answeredCount, currentQuestions, totalQuestions]);
-
-  const cardCopy = useMemo(() => {
-    if (!result) return "";
-    return getCardCopy(result.mainType, selectedAruaru);
-  }, [result, selectedAruaru]);
-
-  useEffect(() => {
-    if (!showResult || !result) return;
-
-    setSelectedAruaru(getRandomAruaru(result.mainType));
-  }, [showResult, result]);
-
   useEffect(() => {
     if (!result) return;
 
     setResultImageSrc(getResultImagePath(result.mbti, selectedGender, selectedCoat));
   }, [result, selectedGender, selectedCoat]);
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1557,6 +1536,8 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
+    setResult(null);
+    setCardCopy("");
     setSelectedGender("");
     setSelectedCoat("");
     setResultImageSrc("/images/silhouette.png");
@@ -1569,6 +1550,9 @@ export default function Home() {
     setIsCalculating(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
+    setResult(null);
+    setCardCopy("");
+    setSelectedAruaru(null);
   };
 
   const fetchTypeShares = async () => {
@@ -1693,13 +1677,15 @@ export default function Home() {
     setLoadingMessageIndex(0);
     setShowResult(false);
     setSelectedAruaru(null);
+    setResult(null);
+    setCardCopy("");
     setSelectedGender("");
     setSelectedCoat("");
     setResultImageSrc("/images/silhouette.png");
   };
 
   const saveDiagnosisResult = async () => {
-    if (!result || !selectedGender || !selectedCoat || isSavingResult) return;
+    if (!selectedGender || !selectedCoat || isSavingResult) return false;
 
     try {
       setIsSavingResult(true);
@@ -1707,10 +1693,10 @@ export default function Home() {
       const meta = getTrackingMeta();
       const payload: FinalizePayload = {
         ...meta,
-        result_type: result.mainType,
-        mbti: result.mbti,
         gender: selectedGender,
         coat: selectedCoat,
+        current_questions: currentQuestions,
+        answers,
       };
 
       const response = await fetch("/api/diagnosis/finalize", {
@@ -1721,16 +1707,23 @@ export default function Home() {
 
       const data = await readJsonSafely<FinalizeResponse>(response);
 
-      if (!response.ok || !data?.ok) {
+      if (!response.ok || !data?.ok || !data.result) {
         console.error("result save failed:", data?.error ?? response.statusText);
-        return;
+        return false;
       }
+
+      setResult(data.result);
+      setSelectedAruaru(data.result.selectedAruaru ?? null);
+      setCardCopy(data.result.cardCopy ?? "");
 
       if (data.typeShares) {
         setTypeShares(data.typeShares);
       }
+
+      return true;
     } catch (error) {
       console.error("result save failed:", error);
+      return false;
     } finally {
       setIsSavingResult(false);
     }
@@ -1751,9 +1744,11 @@ export default function Home() {
     }, 1400);
 
     window.setTimeout(async () => {
-      await saveDiagnosisResult();
+      const saved = await saveDiagnosisResult();
       setIsCalculating(false);
-      setShowResult(true);
+      if (saved) {
+        setShowResult(true);
+      }
     }, 2200);
   };
 

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/app/lib/server/supabase-admin";
+import {
+  calculateDiagnosisResult,
+  type Question,
+  type QuestionOption,
+} from "@/app/lib/server/diagnosis-engine";
+import { getCardCopy, getRandomAruaru } from "@/app/lib/server/diagnosis-content";
 
 type FinalizePayload = {
-  result_type?: string;
-  mbti?: string;
   gender?: string;
   coat?: string;
   session_id?: string;
@@ -16,6 +20,8 @@ type FinalizePayload = {
   utm_campaign?: string | null;
   user_agent?: string;
   timezone?: string;
+  current_questions?: Question[];
+  answers?: (QuestionOption | null)[];
 };
 
 type ShareRow = {
@@ -27,18 +33,37 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as FinalizePayload;
 
-    if (!body?.result_type || !body.mbti || !body.gender || !body.coat) {
+    if (!body?.gender || !body?.coat) {
       return NextResponse.json(
-        { ok: false, error: "Missing required diagnosis fields" },
+        { ok: false, error: "Missing required appearance fields" },
         { status: 400 },
       );
     }
 
+    if (!body.current_questions?.length || !body.answers?.length) {
+      return NextResponse.json(
+        { ok: false, error: "Missing diagnosis answers" },
+        { status: 400 },
+      );
+    }
+
+    const result = calculateDiagnosisResult(body.current_questions, body.answers);
+
+    if (!result) {
+      return NextResponse.json(
+        { ok: false, error: "Failed to calculate diagnosis result" },
+        { status: 400 },
+      );
+    }
+
+    const selectedAruaru = getRandomAruaru(result.mainType);
+    const cardCopy = getCardCopy(result.mainType, selectedAruaru);
+
     const supabase = getSupabaseAdmin();
 
     const { error: resultError } = await supabase.from("diagnosis_results").insert({
-      result_type: body.result_type,
-      mbti: body.mbti,
+      result_type: result.mainType,
+      mbti: result.mbti,
       gender: body.gender,
       coat: body.coat,
       session_id: body.session_id ?? "",
@@ -71,8 +96,8 @@ export async function POST(request: NextRequest) {
       utm_campaign: body.utm_campaign ?? null,
       user_agent: body.user_agent ?? request.headers.get("user-agent") ?? "",
       timezone: body.timezone ?? "",
-      result_type: body.result_type,
-      mbti: body.mbti,
+      result_type: result.mainType,
+      mbti: result.mbti,
       gender: body.gender,
       coat: body.coat,
     });
@@ -101,7 +126,15 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {});
 
-    return NextResponse.json({ ok: true, typeShares });
+    return NextResponse.json({
+      ok: true,
+      typeShares,
+      result: {
+        ...result,
+        selectedAruaru,
+        cardCopy,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
