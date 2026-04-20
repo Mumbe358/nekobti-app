@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Noto_Sans_JP } from "next/font/google";
 
 type Axis = "E" | "I" | "S" | "N" | "T" | "F" | "J" | "P";
@@ -122,45 +123,6 @@ function shouldTrackOncePerSession(eventName: string, pagePath: string) {
   window.sessionStorage.setItem(key, "1");
   return true;
 }
-
-type TrackEventExtra = Partial<{
-  result_type: string;
-  mbti: string;
-  gender: string;
-  coat: string;
-}>;
-
-type AnalyticsTrackPayload = ReturnType<typeof getTrackingMeta> & {
-  event_name: string;
-} & TrackEventExtra;
-
-type TypeSharesResponse = {
-  ok: boolean;
-  typeShares?: Record<string, number>;
-  error?: string;
-};
-
-type FinalizePayload = ReturnType<typeof getTrackingMeta> & {
-  result_type: string;
-  mbti: string;
-  gender: string;
-  coat: string;
-};
-
-type FinalizeResponse = {
-  ok: boolean;
-  typeShares?: Record<string, number>;
-  error?: string;
-};
-
-async function readJsonSafely<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
-
 
 const questionPool: Record<Segment, Question[]> = {
   EI: [
@@ -1410,29 +1372,36 @@ export default function Home() {
   const unlockTimerRef = useRef<number | null>(null);
   const justWentBackRef = useRef(false);
 
-  const trackEvent = async (eventName: string, extra: TrackEventExtra = {}) => {
+  const trackEvent = async (
+    eventName: string,
+    extra: Partial<{
+      result_type: string;
+      mbti: string;
+      gender: string;
+      coat: string;
+    }> = {},
+  ) => {
     const meta = getTrackingMeta();
-    const payload: AnalyticsTrackPayload = {
+
+    const { error } = await supabase.from("events").insert({
       event_name: eventName,
-      ...meta,
-      result_type: extra.result_type ?? undefined,
-      mbti: extra.mbti ?? undefined,
-      gender: extra.gender ?? undefined,
-      coat: extra.coat ?? undefined,
-    };
+      session_id: meta.session_id,
+      visitor_id: meta.visitor_id,
+      page_path: meta.page_path,
+      page_url: meta.page_url,
+      referrer: meta.referrer,
+      utm_source: meta.utm_source,
+      utm_medium: meta.utm_medium,
+      utm_campaign: meta.utm_campaign,
+      user_agent: meta.user_agent,
+      timezone: meta.timezone,
+      result_type: extra.result_type ?? null,
+      mbti: extra.mbti ?? null,
+      gender: extra.gender ?? null,
+      coat: extra.coat ?? null,
+    });
 
-    try {
-      const response = await fetch("/api/analytics/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const data = await readJsonSafely<{ error?: string }>(response);
-        console.error(`event track failed: ${eventName}`, data?.error ?? response.statusText);
-      }
-    } catch (error) {
+    if (error) {
       console.error(`event track failed: ${eventName}`, error);
     }
   };
@@ -1572,23 +1541,22 @@ export default function Home() {
   };
 
   const fetchTypeShares = async () => {
-    try {
-      const response = await fetch("/api/analytics/type-shares", {
-        method: "GET",
-        cache: "no-store",
-      });
+    const { data, error } = await supabase
+      .from("diagnosis_type_share")
+      .select("result_type, percentage");
 
-      const data = await readJsonSafely<TypeSharesResponse>(response);
-
-      if (!response.ok || !data?.ok || !data.typeShares) {
-        console.error("type share fetch failed:", data?.error ?? response.statusText);
-        return;
-      }
-
-      setTypeShares(data.typeShares);
-    } catch (error) {
+    if (error) {
       console.error("type share fetch failed:", error);
+      return;
     }
+
+    const next: Record<string, number> = {};
+
+    (data ?? []).forEach((row: { result_type: string; percentage: number | string }) => {
+      next[row.result_type] = Number(row.percentage);
+    });
+
+    setTypeShares(next);
   };
 
   const openTypeList = async () => {
@@ -1705,32 +1673,36 @@ export default function Home() {
       setIsSavingResult(true);
 
       const meta = getTrackingMeta();
-      const payload: FinalizePayload = {
-        ...meta,
+
+      const { error } = await supabase.from("diagnosis_results").insert({
         result_type: result.mainType,
         mbti: result.mbti,
         gender: selectedGender,
         coat: selectedCoat,
-      };
-
-      const response = await fetch("/api/diagnosis/finalize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        session_id: meta.session_id,
+        visitor_id: meta.visitor_id,
+        page_path: meta.page_path,
+        referrer: meta.referrer,
+        utm_source: meta.utm_source,
+        utm_medium: meta.utm_medium,
+        utm_campaign: meta.utm_campaign,
+        user_agent: meta.user_agent,
+        timezone: meta.timezone,
       });
 
-      const data = await readJsonSafely<FinalizeResponse>(response);
-
-      if (!response.ok || !data?.ok) {
-        console.error("result save failed:", data?.error ?? response.statusText);
+      if (error) {
+        console.error("result save failed:", error);
         return;
       }
 
-      if (data.typeShares) {
-        setTypeShares(data.typeShares);
-      }
-    } catch (error) {
-      console.error("result save failed:", error);
+      await trackEvent("diagnosis_completed", {
+        result_type: result.mainType,
+        mbti: result.mbti,
+        gender: selectedGender,
+        coat: selectedCoat,
+      });
+
+      await fetchTypeShares();
     } finally {
       setIsSavingResult(false);
     }
