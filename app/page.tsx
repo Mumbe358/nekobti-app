@@ -1734,8 +1734,7 @@ export default function Home() {
 const getShareText = () =>
   result
     ? `うちの猫のタイプは「${result.mainType}」でした🐱
-${cardCopy.replace(/
-/g, " ")}
+${cardCopy.replace(/\n/g, " ")}
 診断してみてね
 ${getShareUrl()}`
     : `うちの猫のタイプ診断をやってみた🐱
