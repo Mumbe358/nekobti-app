@@ -159,6 +159,11 @@ type StartResponse = {
   error?: string;
 };
 
+type AruaruSet = {
+  text: string;
+  quote: string;
+};
+
 type ServerDiagnosisResult = {
   mbti: string;
   mainType: CatType;
