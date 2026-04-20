@@ -2332,12 +2332,13 @@ ${shareUrl}`);
 
               <div>
 
-<a
-  href="/privacy"
+<button
+  type="button"
+  onClick={openPrivacy}
   className="text-sm font-bold text-[#9a7d69] underline decoration-[#d8c1b1]"
 >
   プライバシーポリシー
-</a>
+</button>
 
               </div>
             </div>
