@@ -2199,23 +2199,18 @@ ${shareUrl}`);
                       共有画像を準備できませんでした
                     </div>
                   )}
-                </div>
-
-                <div className="border-t border-[#f1e4da] bg-white p-4">
-                  {shareImageError ? (
-                    <p className="mb-3 text-center text-sm font-semibold text-[#c2644f]">{shareImageError}</p>
-                  ) : null}
-
-                  <div className="grid grid-cols-1 gap-3">
-<button
-  onClick={() => {
-    void handleNativeShare();
-  }}
-  disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-  className="rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
->
-  <span className="flex flex-col items-center justify-center gap-1">
+                
+<div className="flex justify-center">
+  <button
+    onClick={() => {
+      void handleNativeShare();
+    }}
+    disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
+    className="inline-flex items-center justify-center rounded-2xl bg-[#f4e7dc] px-2.5 py-2.5 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+  >
     <span className="flex items-center justify-center gap-2" aria-hidden="true">
+
+
       {/* X */}
       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black shadow-sm">
         <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
