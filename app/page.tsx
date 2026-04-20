@@ -2261,7 +2261,7 @@ ${shareUrl}`);
       </span>
     </span>
 
-    <span className="text-xs font-semibold">シェア</span>
+
   </span>
 </button>
                   </div>
