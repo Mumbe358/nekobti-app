@@ -140,6 +140,12 @@ type TypeSharesResponse = {
   error?: string;
 };
 
+type StartResponse = {
+  ok: boolean;
+  questions?: Question[];
+  error?: string;
+};
+
 type ServerDiagnosisResult = {
   mbti: string;
   mainType: CatType;
@@ -172,200 +178,6 @@ async function readJsonSafely<T>(response: Response): Promise<T | null> {
   }
 }
 
-
-const questionPool: Record<Segment, Question[]> = {
-  EI: [
-    {
-      id: 1,
-      text: "初めて会う人が家に来た直後、どちらの行動をしやすい？",
-      segment: "EI",
-      options: [
-        { label: "A.ちょっと近くで見るにゃ", axis: "E", weight: 1.35 },
-        { label: "B.ここから様子見るにゃ", axis: "I", weight: 1.35 },
-      ],
-    },
-    {
-      id: 2,
-      text: "見慣れない新しいおもちゃを見つけたとき、まずどちらをしやすい？",
-      segment: "EI",
-      options: [
-        { label: "A.すぐ触ってみるにゃ", axis: "E", weight: 1.15 },
-        { label: "B.少し見てから触るにゃ", axis: "I", weight: 1.15 },
-      ],
-    },
-    {
-      id: 3,
-      text: "家で落ち着いて過ごしたいとき、どちらの場所を選びやすい？",
-      segment: "EI",
-      options: [
-        { label: "A.気配あるとこがいいにゃ", axis: "E", weight: 1.35 },
-        { label: "B.静かなとこがいいにゃ", axis: "I", weight: 1.35 },
-      ],
-    },
-    {
-      id: 4,
-      text: "知らない猫や他の猫が近くにいるとき、どちらの動きをしやすい？",
-      segment: "EI",
-      options: [
-        { label: "A.自分から行ってみるにゃ", axis: "E", weight: 1.15 },
-        { label: "B.ちょっと距離とるにゃ", axis: "I", weight: 1.15 },
-      ],
-    },
-  ],
-  SN: [
-    {
-      id: 7,
-      text: "遊び始めるとき、まずどちらの動き方になりやすい？",
-      segment: "SN",
-      options: [
-        { label: "A.まず動いてみるにゃ", axis: "S", weight: 1.15 },
-        { label: "B.流れ見てから行くにゃ", axis: "N", weight: 1.15 },
-      ],
-    },
-    {
-      id: 8,
-      text: "別の場所で気になる音がしたとき、最初にどちらをしやすい？",
-      segment: "SN",
-      options: [
-        { label: "A.見に行って確かめるにゃ", axis: "S", weight: 1.35 },
-        { label: "B.何か考えて様子見るにゃ", axis: "N", weight: 1.35 },
-      ],
-    },
-    {
-      id: 9,
-      text: "高い場所や棚の上が気になったとき、どちらの意識が強くなりやすい？",
-      segment: "SN",
-      options: [
-        { label: "A.登れるか試すにゃ", axis: "S", weight: 0.9 },
-        { label: "B.上から見たくなるにゃ", axis: "N", weight: 0.9 },
-      ],
-    },
-    {
-      id: 10,
-      text: "窓の外をじっと見ているとき、どちらの見方になりやすい？",
-      segment: "SN",
-      options: [
-        { label: "A.動くもの追うにゃ", axis: "S", weight: 1.15 },
-        { label: "B.空気ごと見てるにゃ", axis: "N", weight: 1.15 },
-      ],
-    },
-  ],
-  TF: [
-    {
-      id: 13,
-      text: "飼い主が近くにいるとき、ふだんの距離感はどちらに近い？",
-      segment: "TF",
-      options: [
-        { label: "A.わりとそばにいるにゃ", axis: "F", weight: 0.9 },
-        { label: "B.気が向いたら行くにゃ", axis: "T", weight: 0.9 },
-      ],
-    },
-    {
-      id: 14,
-      text: "飼い主に遊びへ誘われたとき、気分が普通ならどちらを選びやすい？",
-      segment: "TF",
-      options: [
-        { label: "A.すぐ乗ってみるにゃ", axis: "F", weight: 0.9 },
-        { label: "B.そのとき決めるにゃ", axis: "T", weight: 0.9 },
-      ],
-    },
-    {
-      id: 15,
-      text: "自分のお気に入りの場所を使うとき、どちらの傾向が強い？",
-      segment: "TF",
-      options: [
-        { label: "A.そこは譲りたくないにゃ", axis: "T", weight: 1.35 },
-        { label: "B.別のとこでもいいにゃ", axis: "F", weight: 1.35 },
-      ],
-    },
-    {
-      id: 16,
-      text: "飼い主に何かしてほしい合図をされたとき、どちらの反応をしやすい？",
-      segment: "TF",
-      options: [
-        { label: "A.わかったにゃ、やるにゃ", axis: "F", weight: 1.35 },
-        { label: "B.自分のタイミングでやるにゃ", axis: "T", weight: 1.35 },
-      ],
-    },
-  ],
-  JP: [
-    {
-      id: 19,
-      text: "いつものごはん時間が少し遅れたとき、どちらの反応に近い？",
-      segment: "JP",
-      options: [
-        { label: "A.そのまま待てるにゃ", axis: "P", weight: 1.35 },
-        { label: "B.ちゃんと知らせるにゃ", axis: "J", weight: 1.35 },
-      ],
-    },
-    {
-      id: 20,
-      text: "新しい部屋や初めての場所に入った直後、まずどちらをしやすい？",
-      segment: "JP",
-      options: [
-        { label: "A.気になったら行くにゃ", axis: "P", weight: 1.35 },
-        { label: "B.まず様子見るにゃ", axis: "J", weight: 1.35 },
-      ],
-    },
-    {
-      id: 21,
-      text: "家でくつろぐ場所を決めるとき、どちらになりやすい？",
-      segment: "JP",
-      options: [
-        { label: "A.どこでもくつろぐにゃ", axis: "P", weight: 1.15 },
-        { label: "B.いつもの場所がいいにゃ", axis: "J", weight: 1.15 },
-      ],
-    },
-    {
-      id: 22,
-      text: "眠くなってきたとき、どちらの行動を取りやすい？",
-      segment: "JP",
-      options: [
-        { label: "A.ここで寝るにゃ", axis: "P", weight: 1.15 },
-        { label: "B.落ち着く場所行くにゃ", axis: "J", weight: 1.15 },
-      ],
-    },
-  ],
-};
-
-function shuffleArray<T>(array: T[]) {
-  const copied = [...array];
-
-  for (let i = copied.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copied[i], copied[j]] = [copied[j], copied[i]];
-  }
-
-  return copied;
-}
-
-function buildQuestionSet() {
-  return shuffleArray([
-    ...questionPool.EI,
-    ...questionPool.SN,
-    ...questionPool.TF,
-    ...questionPool.JP,
-  ]);
-}
-
-const catTypeMap: Record<string, CatType> = {
-  ISTJ: "規律番ねこ",
-  ISFJ: "よりそい守りねこ",
-  INFJ: "しずか哲学ねこ",
-  INTJ: "戦略きれものねこ",
-  ISTP: "無口クラフトねこ",
-  ISFP: "ふわアートねこ",
-  INFP: "ゆめふわロマンねこ",
-  INTP: "ひらめき遊びねこ",
-  ESTP: "突撃アクティブねこ",
-  ESFP: "きらきらパーティーねこ",
-  ENFP: "わくわく自由ねこ",
-  ENTP: "いたずら天才ねこ",
-  ESTJ: "しきり屋リーダーねこ",
-  ESFJ: "みんな大好きねこ",
-  ENFJ: "導きカリスマねこ",
-  ENTJ: "覇王ボスねこ",
-};
 
 const mbtiSubMap: Record<CatType, string> = {
   "規律番ねこ": "ISTJ",
@@ -1272,100 +1084,6 @@ const typeList: CatType[] = [
   "覇王ボスねこ",
 ];
 
-const initialScores: Record<Axis, number> = {
-  E: 0,
-  I: 0,
-  S: 0,
-  N: 0,
-  T: 0,
-  F: 0,
-  J: 0,
-  P: 0,
-};
-
-function resolveSegmentLetter(
-  segment: Segment,
-  left: Axis,
-  right: Axis,
-  scores: Record<Axis, number>,
-  currentQuestions: Question[],
-  answers: (QuestionOption | null)[]
-) {
-  const leftScore = scores[left];
-  const rightScore = scores[right];
-  const diff = Math.abs(leftScore - rightScore);
-
-  if (leftScore > rightScore) {
-    return { letter: left, close: diff <= 0.35, tied: false };
-  }
-
-  if (rightScore > leftScore) {
-    return { letter: right, close: diff <= 0.35, tied: false };
-  }
-
-  const ranked = currentQuestions
-    .map((question, index) => ({ question, answer: answers[index] }))
-    .filter(
-      (item): item is { question: Question; answer: QuestionOption } =>
-        item.question.segment === segment && !!item.answer
-    )
-    .sort((a, b) => {
-      if (b.answer.weight !== a.answer.weight) return b.answer.weight - a.answer.weight;
-      return a.question.id - b.question.id;
-    });
-
-  const tiedLetter = ranked[0]?.answer.axis === right ? right : left;
-  return { letter: tiedLetter, close: true, tied: true };
-}
-
-function getMbtiType(
-  scores: Record<Axis, number>,
-  currentQuestions: Question[],
-  answers: (QuestionOption | null)[]
-) {
-  const ei = resolveSegmentLetter("EI", "E", "I", scores, currentQuestions, answers);
-  const sn = resolveSegmentLetter("SN", "S", "N", scores, currentQuestions, answers);
-  const tf = resolveSegmentLetter("TF", "T", "F", scores, currentQuestions, answers);
-  const jp = resolveSegmentLetter("JP", "J", "P", scores, currentQuestions, answers);
-
-  return {
-    mbti: `${ei.letter}${sn.letter}${tf.letter}${jp.letter}`,
-    closeSegments: ([
-      ei.close ? "EI" : null,
-      sn.close ? "SN" : null,
-      tf.close ? "TF" : null,
-      jp.close ? "JP" : null,
-    ].filter(Boolean) as Segment[]),
-    tiedSegments: ([
-      ei.tied ? "EI" : null,
-      sn.tied ? "SN" : null,
-      tf.tied ? "TF" : null,
-      jp.tied ? "JP" : null,
-    ].filter(Boolean) as Segment[]),
-  };
-}
-
-function getDecisiveQuestionId(
-  mbti: string,
-  currentQuestions: Question[],
-  answers: (QuestionOption | null)[]
-) {
-  const mbtiAxes = new Set<Axis>(mbti.split("") as Axis[]);
-
-  const ranked = currentQuestions
-    .map((question, index) => ({ question, answer: answers[index] }))
-    .filter(
-      (item): item is { question: Question; answer: QuestionOption } =>
-        !!item.answer && mbtiAxes.has(item.answer.axis)
-    )
-    .sort((a, b) => {
-      if (b.answer.weight !== a.answer.weight) return b.answer.weight - a.answer.weight;
-      return a.question.id - b.question.id;
-    });
-
-  return ranked[0]?.question.id ?? null;
-}
-
 function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption) {
   if (!gender || !coat) return "/images/silhouette.png";
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
@@ -1390,11 +1108,11 @@ export default function Home() {
   const [isTypeListOpen, setIsTypeListOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-  const [currentQuestions, setCurrentQuestions] = useState<Question[]>(() => buildQuestionSet());
+  const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<(QuestionOption | null)[]>(() =>
-    Array(16).fill(null)
-  );
+  const [answers, setAnswers] = useState<(QuestionOption | null)[]>([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [questionLoadError, setQuestionLoadError] = useState<string | null>(null);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [animating, setAnimating] = useState(false);
@@ -1496,9 +1214,11 @@ export default function Home() {
   }, []);
 
   const totalQuestions = currentQuestions.length;
-  const totalSteps = totalQuestions + 1;
+  const totalSteps = totalQuestions > 0 ? totalQuestions + 1 : 1;
   const answeredCount = answers.filter(Boolean).length;
-  const isAppearanceStep = step === totalQuestions;
+  const isQuestionSetReady = totalQuestions > 0;
+  const isAppearanceStep = isQuestionSetReady && step === totalQuestions;
+  const currentQuestion = !isAppearanceStep ? currentQuestions[step] ?? null : null;
 
   useEffect(() => {
     if (!result) return;
@@ -1522,13 +1242,29 @@ export default function Home() {
     return () => window.removeEventListener("resize", detectMobile);
   }, []);
 
-  const openDiagnosis = () => {
-    void trackEvent("diagnosis_started");
-    setIsOpen(true);
+  const fetchQuestionSet = async () => {
+    try {
+      const response = await fetch("/api/diagnosis/start", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await readJsonSafely<StartResponse>(response);
+
+      if (!response.ok || !data?.ok || !data.questions?.length) {
+        console.error("question fetch failed:", data?.error ?? response.statusText);
+        return null;
+      }
+
+      return data.questions;
+    } catch (error) {
+      console.error("question fetch failed:", error);
+      return null;
+    }
+  };
+
+  const resetDiagnosisUi = () => {
     setStep(0);
-    const nextQuestions = buildQuestionSet();
-    setCurrentQuestions(nextQuestions);
-    setAnswers(Array(nextQuestions.length).fill(null));
     setSelectedLabel(null);
     setAnimating(false);
     setDirection("next");
@@ -1541,6 +1277,36 @@ export default function Home() {
     setSelectedGender("");
     setSelectedCoat("");
     setResultImageSrc("/images/silhouette.png");
+    setQuestionLoadError(null);
+  };
+
+  const prepareFreshDiagnosis = async () => {
+    setIsLoadingQuestions(true);
+    setQuestionLoadError(null);
+    setCurrentQuestions([]);
+    setAnswers([]);
+
+    try {
+      const nextQuestions = await fetchQuestionSet();
+
+      if (!nextQuestions?.length) {
+        setQuestionLoadError("質問の読み込みに失敗しました。時間をおいてもう一度お試しください。");
+        return false;
+      }
+
+      setCurrentQuestions(nextQuestions);
+      setAnswers(Array(nextQuestions.length).fill(null));
+      return true;
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
+
+  const openDiagnosis = async () => {
+    void trackEvent("diagnosis_started");
+    resetDiagnosisUi();
+    setIsOpen(true);
+    await prepareFreshDiagnosis();
   };
 
   const closeDiagnosis = () => {
@@ -1548,11 +1314,13 @@ export default function Home() {
     setSelectedLabel(null);
     setAnimating(false);
     setIsCalculating(false);
+    setIsLoadingQuestions(false);
     setLoadingMessageIndex(0);
     setShowResult(false);
     setResult(null);
     setCardCopy("");
     setSelectedAruaru(null);
+    setQuestionLoadError(null);
   };
 
   const fetchTypeShares = async () => {
@@ -1602,7 +1370,8 @@ export default function Home() {
   };
 
   const handleAnswer = (option: QuestionOption) => {
-    if (selectedLabel || animating || isCalculating || transitionLockRef.current) return;
+    if (!currentQuestion) return;
+    if (selectedLabel || animating || isCalculating || isLoadingQuestions || transitionLockRef.current) return;
 
     if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
     if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
@@ -1665,27 +1434,13 @@ export default function Home() {
     }, 320);
   };
 
-  const restartDiagnosis = () => {
-    setStep(0);
-    const nextQuestions = buildQuestionSet();
-    setCurrentQuestions(nextQuestions);
-    setAnswers(Array(nextQuestions.length).fill(null));
-    setSelectedLabel(null);
-    setAnimating(false);
-    setDirection("next");
-    setIsCalculating(false);
-    setLoadingMessageIndex(0);
-    setShowResult(false);
-    setSelectedAruaru(null);
-    setResult(null);
-    setCardCopy("");
-    setSelectedGender("");
-    setSelectedCoat("");
-    setResultImageSrc("/images/silhouette.png");
+  const restartDiagnosis = async () => {
+    resetDiagnosisUi();
+    await prepareFreshDiagnosis();
   };
 
   const saveDiagnosisResult = async () => {
-    if (!selectedGender || !selectedCoat || isSavingResult) return false;
+    if (!selectedGender || !selectedCoat || isSavingResult || !currentQuestions.length) return false;
 
     try {
       setIsSavingResult(true);
@@ -2193,15 +1948,31 @@ ${shareUrl}`);
                       : "animate-[slideInLeft_.28s_ease-out]"
                   }`}
                 >
-                  {!isAppearanceStep ? (
+                  {questionLoadError ? (
+                    <div className="grid gap-4 py-6">
+                      <p className="text-sm leading-7 text-[#8f5f50]">{questionLoadError}</p>
+                      <button
+                        onClick={() => {
+                          void restartDiagnosis();
+                        }}
+                        className="rounded-2xl border border-[#ead8ca] bg-[#fff7f2] px-4 py-3 font-bold text-[#7a5c48] transition hover:bg-[#fff0e4]"
+                      >
+                        もう一度読み込む
+                      </button>
+                    </div>
+                  ) : isLoadingQuestions || !isQuestionSetReady ? (
+                    <div className="py-10 text-center text-sm leading-7 text-[#9a7d69]">
+                      質問を読み込んでいます...
+                    </div>
+                  ) : !isAppearanceStep && currentQuestion ? (
                     <>
                       <div className="mb-6 min-h-[84px]">
                         <p className="break-words text-lg font-semibold leading-7">
-                          {currentQuestions[step].text}
+                          {currentQuestion.text}
                         </p>
                       </div>
                       <div className="grid gap-3">
-                        {currentQuestions[step].options.map((option) => {
+                        {currentQuestion.options.map((option) => {
                           const isSelected = selectedLabel === option.label;
                           const isAnsweredThisStep = answers[step] !== null;
 
@@ -2213,7 +1984,7 @@ ${shareUrl}`);
                                   handleAnswer(option);
                                 }
                               }}
-                              disabled={selectedLabel !== null || animating}
+                              disabled={selectedLabel !== null || animating || isLoadingQuestions}
                               className={`w-full rounded-2xl border px-4 py-4 font-bold text-left break-words transition sm:px-5 ${
                                 isSelected
                                   ? "scale-[0.99] border-[#c28f71] bg-[#fff0e4] shadow-sm"
