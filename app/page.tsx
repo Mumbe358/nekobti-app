@@ -202,6 +202,12 @@ async function readJsonSafely<T>(response: Response): Promise<T | null> {
 }
 
 
+
+function renderHearts(count: number) {
+  const safeCount = Math.max(0, Math.min(5, Math.round(count || 0)));
+  return "♡".repeat(safeCount);
+}
+
 const Paw = ({ active }: { active: boolean }) => (
   <svg
     viewBox="0 0 24 24"
