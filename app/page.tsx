@@ -2366,7 +2366,7 @@ ${shareUrl}`);
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <p className="mb-2 text-sm tracking-[0.18em] text-[#b07d62]">PRIVACY POLICY</p>
-              <h2 className="text-3xl font-bold">プライバシーポリシー</h2>
+              <h2 className="text-xl font-bold">プライバシーポリシー</h2>
             </div>
 
             <button
@@ -2406,14 +2406,15 @@ ${shareUrl}`);
               <div>
                 <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
                 <a
-                  href="https://your-site.com/contact"
+                  href="mailto:nekobee@example.com"
                   target="_blank"
                   rel="noreferrer"
                   className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
                 >
-                  https://your-site.com/contact
+                  nekobee@example.com
                 </a>
               </div>
+
             </div>
 
             <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
