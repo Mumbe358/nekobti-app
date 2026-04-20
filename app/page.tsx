@@ -1488,9 +1488,7 @@ export default function Home() {
   useEffect(() => {
     if (!showResult || !result) return;
 
-    const list = aruaruMap[result.mainType];
-    const baseIndex = result.decisiveQuestionId ? (result.decisiveQuestionId - 1) % list.length : 0;
-    setSelectedAruaru(list[baseIndex] ?? list[0]);
+    setSelectedAruaru(getRandomAruaru(result.mainType));
   }, [showResult, result]);
 
   useEffect(() => {
