@@ -2172,7 +2172,25 @@ ${shareUrl}`);
             </div>
           ) : (
             <div className="w-full max-w-[380px]" onClick={(e) => e.stopPropagation()}>
-              <div className="overflow-hidden rounded-[32px] bg-white shadow-2xl ring-1 ring-[#f1e4da]">
+              <div className="relative overflow-hidden rounded-[32px] bg-white shadow-2xl ring-1 ring-[#f1e4da]">
+                <button
+                  type="button"
+                  onClick={closeSharePreview}
+                  disabled={isPreparingShareImage || isNativeSharing}
+                  aria-label="閉じる"
+                  className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#8b6f5d] shadow-md ring-1 ring-black/5 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                    <path
+                      d="M6 6l12 12M18 6L6 18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+
                 <div className="bg-[#fffdfb] p-3">
                   {shareImageUrl ? (
                     <img src={shareImageUrl} alt="共有カード" className="block w-full rounded-[24px]" />
@@ -2188,43 +2206,17 @@ ${shareUrl}`);
                     <p className="mb-3 text-center text-sm font-semibold text-[#c2644f]">{shareImageError}</p>
                   ) : null}
 
-                  <div className="grid grid-cols-2 gap-3">
-
-<button
-  onClick={() => {
-    void handleNativeShare();
-  }}
-  disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-  className="rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
->
-  <span className="flex flex-col items-center justify-center gap-2">
-    <span className="flex items-center justify-center gap-2" aria-hidden="true">
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black shadow-sm">
-        <span className="text-sm font-bold text-white">X</span>
-      </span>
-
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
-        <span className="text-[9px] font-black text-white">LINE</span>
-      </span>
-
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
-        <span className="text-sm text-white">↗</span>
-      </span>
-    </span>
-
-    <span className="text-xs font-semibold">シェア</span>
-  </span>
-</button>
-
-
-
+                  <div className="grid grid-cols-1 gap-3">
                     <button
-                      onClick={closeSharePreview}
-                      disabled={isPreparingShareImage || isNativeSharing}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#ead8ca] bg-white px-3 py-4 text-[#7a5c48] transition hover:bg-[#fff4ec] disabled:cursor-not-allowed disabled:opacity-60"
+                      type="button"
+                      onClick={() => {
+                        void handleNativeShare();
+                      }}
+                      disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#f4e7dc] px-3 py-4 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="text-2xl">✕</span>
-                      <span className="text-xs font-semibold">閉じる</span>
+                      <span className="text-2xl">↗</span>
+                      <span className="text-xs font-semibold">シェア</span>
                     </button>
                   </div>
                 </div>
