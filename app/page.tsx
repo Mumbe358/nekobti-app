@@ -2200,7 +2200,7 @@ ${shareUrl}`);
                     </div>
                   )}
                 
-<div className="flex justify-center">
+<div className="mt-6 flex justify-center">
   <button
     onClick={() => {
       void handleNativeShare();
