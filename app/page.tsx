@@ -2206,13 +2206,13 @@ ${shareUrl}`);
       void handleNativeShare();
     }}
     disabled={isPreparingShareImage || isNativeSharing || !shareImageFile}
-    className="inline-flex items-center justify-center rounded-2xl bg-[#f4e7dc] px-2.5 py-2.5 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+    className="inline-flex items-center justify-center rounded-2xl bg-[#f4e7dc] px-3 py-3 text-[#7a5c48] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
   >
     <span className="flex items-center justify-center gap-2" aria-hidden="true">
 
 
       {/* X */}
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black shadow-sm">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black shadow-sm">
         <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
           <path
             d="M14 14h10.6L35 28.2 46.3 14H52L37.8 31.4 54 50H43.4L32.2 35.2 19.8 50H14l14.6-16.4L14 14Z"
@@ -2222,9 +2222,9 @@ ${shareUrl}`);
       </span>
 
       {/* LINE */}
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
-        <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white">
-          <span className="text-[8px] font-black tracking-[0.02em] text-[#59c65f]">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#59c65f] shadow-sm">
+        <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-white">
+          <span className="text-[9px] font-black tracking-[0.02em] text-[#59c65f]">
             LINE
           </span>
           <span className="absolute bottom-[2px] left-[4px] h-2 w-2 rotate-12 bg-white [clip-path:polygon(0_0,100%_0,25%_100%)]" />
@@ -2232,7 +2232,7 @@ ${shareUrl}`);
       </span>
 
       {/* 共通 */}
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b9b9b9] shadow-sm">
         <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
           <rect
             x="20"
