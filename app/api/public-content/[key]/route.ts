@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPublicContent } from "@/app/lib/server/public-content";
+import {
+  getPublicContent,
+  type PublicContentKey,
+} from "@/app/lib/server/public-content";
 
 type Params = {
   params: Promise<{
@@ -7,18 +10,22 @@ type Params = {
   }>;
 };
 
+function isPublicContentKey(value: string): value is PublicContentKey {
+  return value === "about" || value === "privacy";
+}
+
 export async function GET(_request: NextRequest, context: Params) {
   try {
     const { key } = await context.params;
 
-    const content = getPublicContent(key);
-
-    if (!content) {
+    if (!isPublicContentKey(key)) {
       return NextResponse.json(
         { ok: false, error: "Content not found" },
         { status: 404 }
       );
     }
+
+    const content = getPublicContent(key);
 
     return NextResponse.json({
       ok: true,
