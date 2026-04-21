@@ -859,7 +859,7 @@ ${getShareUrl()}`;
       // copy
       ctx.fillStyle = "#2b2b2b";
       ctx.font = "200 88px 'Kiwami'";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 880).slice(0, 3);
+      const copyLines = wrapCanvasText(ctx, cardCopy, 960).slice(0, 3);
       let copyY = 140;
       copyLines.forEach((line) => {
         ctx.font = "200 88px 'Kiwami'";
