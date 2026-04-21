@@ -25,12 +25,18 @@ export async function GET(_request: NextRequest, context: Params) {
       );
     }
 
-    const content = getPublicContent(key);
+    const item = getPublicContent(key);
+
+    if (!item) {
+      return NextResponse.json(
+        { ok: false, error: "Content not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       ok: true,
-      key,
-      content,
+      item,
     });
   } catch (error) {
     console.error("[api/public-content/[key]] GET error:", error);
