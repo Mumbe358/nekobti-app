@@ -1,8 +1,6 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import type { ReactNode } from "react";
 import { Noto_Sans_JP } from "next/font/google";
+import { getSupabaseAdmin } from "@/app/lib/server/supabase-admin";
 
 type EventRow = {
   id: number;
@@ -116,60 +114,55 @@ function sortDailyDesc(rows: DailyRow[]) {
   return [...rows].sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
-export default function AdminPage() {
-  const [events, setEvents] = useState<EventRow[]>([]);
-  const [results, setResults] = useState<DiagnosisResultRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function buildOverview(events: EventRow[]): Overview {
+  const pvSessions = groupByDistinctSession(events, (row) => row.event_name === "page_view");
+  const startedSessions = groupByDistinctSession(events, (row) => row.event_name === "diagnosis_started");
+  const completedSessions = groupByDistinctSession(events, (row) => row.event_name === "diagnosis_completed");
+  const sharedSessions = groupByDistinctSession(events, (row) => row.event_name === "share_clicked");
 
-  useEffect(() => {
-    let mounted = true;
+  return {
+    pvSessions,
+    startedSessions,
+    completedSessions,
+    sharedSessions,
+    startRate: pvSessions > 0 ? (startedSessions / pvSessions) * 100 : 0,
+    completionRate: startedSessions > 0 ? (completedSessions / startedSessions) * 100 : 0,
+    shareRate: completedSessions > 0 ? (sharedSessions / completedSessions) * 100 : 0,
+  };
+}
 
-    async function load() {
-      setLoading(true);
-      setError(null);
+function buildDailySummary(events: EventRow[]): DailyRow[] {
+  const map = new Map<string, { pv: Set<string>; started: Set<string>; completed: Set<string>; shared: Set<string> }>();
 
-      const [{ data: eventsData, error: eventsError }, { data: resultsData, error: resultsError }] =
-        await Promise.all([
-          supabase
-            .from("events")
-            .select(
-              "id, event_name, session_id, result_type, utm_source, utm_medium, utm_campaign, referrer, created_at"
-            )
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("diagnosis_results")
-            .select("id, session_id, result_type, mbti, gender, coat, created_at")
-            .order("created_at", { ascending: false }),
-        ]);
+  for (const row of events) {
+    const dateKey = toJstDateKey(row.created_at);
+    const sessionId = row.session_id;
+    if (!sessionId) continue;
 
-      if (!mounted) return;
-
-      if (eventsError || resultsError) {
-        setError(eventsError?.message || resultsError?.message || "データ取得に失敗しました。");
-        setLoading(false);
-        return;
-      }
-
-      setEvents((eventsData as EventRow[]) ?? []);
-      setResults((resultsData as DiagnosisResultRow[]) ?? []);
-      setLoading(false);
+    if (!map.has(dateKey)) {
+      map.set(dateKey, {
+        pv: new Set<string>(),
+        started: new Set<string>(),
+        completed: new Set<string>(),
+        shared: new Set<string>(),
+      });
     }
 
-    void load();
+    const bucket = map.get(dateKey)!;
+    if (row.event_name === "page_view") bucket.pv.add(sessionId);
+    if (row.event_name === "diagnosis_started") bucket.started.add(sessionId);
+    if (row.event_name === "diagnosis_completed") bucket.completed.add(sessionId);
+    if (row.event_name === "share_clicked") bucket.shared.add(sessionId);
+  }
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const overview = useMemo<Overview>(() => {
-    const pvSessions = groupByDistinctSession(events, (row) => row.event_name === "page_view");
-    const startedSessions = groupByDistinctSession(events, (row) => row.event_name === "diagnosis_started");
-    const completedSessions = groupByDistinctSession(events, (row) => row.event_name === "diagnosis_completed");
-    const sharedSessions = groupByDistinctSession(events, (row) => row.event_name === "share_clicked");
+  const rows: DailyRow[] = [...map.entries()].map(([date, bucket]) => {
+    const pvSessions = bucket.pv.size;
+    const startedSessions = bucket.started.size;
+    const completedSessions = bucket.completed.size;
+    const sharedSessions = bucket.shared.size;
 
     return {
+      date,
       pvSessions,
       startedSessions,
       completedSessions,
@@ -178,146 +171,145 @@ export default function AdminPage() {
       completionRate: startedSessions > 0 ? (completedSessions / startedSessions) * 100 : 0,
       shareRate: completedSessions > 0 ? (sharedSessions / completedSessions) * 100 : 0,
     };
-  }, [events]);
+  });
 
-  const dailySummary = useMemo<DailyRow[]>(() => {
-    const map = new Map<string, { pv: Set<string>; started: Set<string>; completed: Set<string>; shared: Set<string> }>();
+  return sortDailyDesc(rows);
+}
 
-    for (const row of events) {
-      const dateKey = toJstDateKey(row.created_at);
-      const sessionId = row.session_id;
-      if (!sessionId) continue;
+function buildTypeDistribution(events: EventRow[], results: DiagnosisResultRow[]): TypeRow[] {
+  const completedSessionToType = new Map<string, string>();
+  const sharedSessionIds = new Set<string>();
 
-      if (!map.has(dateKey)) {
-        map.set(dateKey, {
-          pv: new Set<string>(),
-          started: new Set<string>(),
-          completed: new Set<string>(),
-          shared: new Set<string>(),
-        });
-      }
+  for (const row of events) {
+    if (row.event_name === "diagnosis_completed" && row.session_id && row.result_type) {
+      completedSessionToType.set(row.session_id, row.result_type);
+    }
+    if (row.event_name === "share_clicked" && row.session_id) {
+      sharedSessionIds.add(row.session_id);
+    }
+  }
 
-      const bucket = map.get(dateKey)!;
-      if (row.event_name === "page_view") bucket.pv.add(sessionId);
-      if (row.event_name === "diagnosis_started") bucket.started.add(sessionId);
-      if (row.event_name === "diagnosis_completed") bucket.completed.add(sessionId);
-      if (row.event_name === "share_clicked") bucket.shared.add(sessionId);
+  const resultCountMap = new Map<string, number>();
+  for (const row of results) {
+    const key = row.result_type || "不明";
+    resultCountMap.set(key, (resultCountMap.get(key) ?? 0) + 1);
+  }
+
+  const shareCountMap = new Map<string, number>();
+  for (const sessionId of sharedSessionIds) {
+    const type = completedSessionToType.get(sessionId);
+    if (!type) continue;
+    shareCountMap.set(type, (shareCountMap.get(type) ?? 0) + 1);
+  }
+
+  const total = [...resultCountMap.values()].reduce((sum, count) => sum + count, 0);
+
+  return [...resultCountMap.entries()]
+    .map(([resultType, count]) => {
+      const shareSessions = shareCountMap.get(resultType) ?? 0;
+      return {
+        resultType,
+        count,
+        shareSessions,
+        shareRate: count > 0 ? (shareSessions / count) * 100 : 0,
+        ratio: total > 0 ? (count / total) * 100 : 0,
+      };
+    })
+    .sort((a, b) => b.count - a.count);
+}
+
+function buildSourceSummary(events: EventRow[]): SourceRow[] {
+  const map = new Map<string, { pv: Set<string>; started: Set<string>; completed: Set<string>; shared: Set<string> }>();
+
+  for (const row of events) {
+    const label = normalizeSourceLabel(row);
+    const sessionId = row.session_id;
+    if (!sessionId) continue;
+
+    if (!map.has(label)) {
+      map.set(label, {
+        pv: new Set<string>(),
+        started: new Set<string>(),
+        completed: new Set<string>(),
+        shared: new Set<string>(),
+      });
     }
 
-    const rows: DailyRow[] = [...map.entries()].map(([date, bucket]) => {
+    const bucket = map.get(label)!;
+    if (row.event_name === "page_view") bucket.pv.add(sessionId);
+    if (row.event_name === "diagnosis_started") bucket.started.add(sessionId);
+    if (row.event_name === "diagnosis_completed") bucket.completed.add(sessionId);
+    if (row.event_name === "share_clicked") bucket.shared.add(sessionId);
+  }
+
+  return [...map.entries()]
+    .map(([label, bucket]) => {
       const pvSessions = bucket.pv.size;
       const startedSessions = bucket.started.size;
       const completedSessions = bucket.completed.size;
       const sharedSessions = bucket.shared.size;
 
       return {
-        date,
+        label,
         pvSessions,
         startedSessions,
         completedSessions,
         sharedSessions,
-        startRate: pvSessions > 0 ? (startedSessions / pvSessions) * 100 : 0,
         completionRate: startedSessions > 0 ? (completedSessions / startedSessions) * 100 : 0,
         shareRate: completedSessions > 0 ? (sharedSessions / completedSessions) * 100 : 0,
       };
-    });
+    })
+    .sort((a, b) => b.completedSessions - a.completedSessions || b.pvSessions - a.pvSessions);
+}
 
-    return sortDailyDesc(rows);
-  }, [events]);
+function buildRawCounts(events: EventRow[], results: DiagnosisResultRow[]) {
+  return {
+    eventsRows: events.length,
+    eventsSessions: uniqueSessionCount(events),
+    resultRows: results.length,
+  };
+}
 
-  const typeDistribution = useMemo<TypeRow[]>(() => {
-    const completedSessionToType = new Map<string, string>();
-    const sharedSessionIds = new Set<string>();
+async function getAdminDashboardData() {
+  const supabase = getSupabaseAdmin();
 
-    for (const row of events) {
-      if (row.event_name === "diagnosis_completed" && row.session_id && row.result_type) {
-        completedSessionToType.set(row.session_id, row.result_type);
-      }
-      if (row.event_name === "share_clicked" && row.session_id) {
-        sharedSessionIds.add(row.session_id);
-      }
-    }
+  const [{ data: eventsData, error: eventsError }, { data: resultsData, error: resultsError }] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select(
+          "id, event_name, session_id, result_type, utm_source, utm_medium, utm_campaign, referrer, created_at"
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("diagnosis_results")
+        .select("id, session_id, result_type, mbti, gender, coat, created_at")
+        .order("created_at", { ascending: false }),
+    ]);
 
-    const resultCountMap = new Map<string, number>();
-    for (const row of results) {
-      const key = row.result_type || "不明";
-      resultCountMap.set(key, (resultCountMap.get(key) ?? 0) + 1);
-    }
-
-    const shareCountMap = new Map<string, number>();
-    for (const sessionId of sharedSessionIds) {
-      const type = completedSessionToType.get(sessionId);
-      if (!type) continue;
-      shareCountMap.set(type, (shareCountMap.get(type) ?? 0) + 1);
-    }
-
-    const total = [...resultCountMap.values()].reduce((sum, count) => sum + count, 0);
-
-    return [...resultCountMap.entries()]
-      .map(([resultType, count]) => {
-        const shareSessions = shareCountMap.get(resultType) ?? 0;
-        return {
-          resultType,
-          count,
-          shareSessions,
-          shareRate: count > 0 ? (shareSessions / count) * 100 : 0,
-          ratio: total > 0 ? (count / total) * 100 : 0,
-        };
-      })
-      .sort((a, b) => b.count - a.count);
-  }, [events, results]);
-
-  const sourceSummary = useMemo<SourceRow[]>(() => {
-    const map = new Map<string, { pv: Set<string>; started: Set<string>; completed: Set<string>; shared: Set<string> }>();
-
-    for (const row of events) {
-      const label = normalizeSourceLabel(row);
-      const sessionId = row.session_id;
-      if (!sessionId) continue;
-
-      if (!map.has(label)) {
-        map.set(label, {
-          pv: new Set<string>(),
-          started: new Set<string>(),
-          completed: new Set<string>(),
-          shared: new Set<string>(),
-        });
-      }
-
-      const bucket = map.get(label)!;
-      if (row.event_name === "page_view") bucket.pv.add(sessionId);
-      if (row.event_name === "diagnosis_started") bucket.started.add(sessionId);
-      if (row.event_name === "diagnosis_completed") bucket.completed.add(sessionId);
-      if (row.event_name === "share_clicked") bucket.shared.add(sessionId);
-    }
-
-    return [...map.entries()]
-      .map(([label, bucket]) => {
-        const pvSessions = bucket.pv.size;
-        const startedSessions = bucket.started.size;
-        const completedSessions = bucket.completed.size;
-        const sharedSessions = bucket.shared.size;
-
-        return {
-          label,
-          pvSessions,
-          startedSessions,
-          completedSessions,
-          sharedSessions,
-          completionRate: startedSessions > 0 ? (completedSessions / startedSessions) * 100 : 0,
-          shareRate: completedSessions > 0 ? (sharedSessions / completedSessions) * 100 : 0,
-        };
-      })
-      .sort((a, b) => b.completedSessions - a.completedSessions || b.pvSessions - a.pvSessions);
-  }, [events]);
-
-  const rawCounts = useMemo(() => {
+  if (eventsError || resultsError) {
     return {
-      eventsRows: events.length,
-      eventsSessions: uniqueSessionCount(events),
-      resultRows: results.length,
+      error: eventsError?.message || resultsError?.message || "データ取得に失敗しました。",
+      events: [] as EventRow[],
+      results: [] as DiagnosisResultRow[],
     };
-  }, [events, results]);
+  }
+
+  return {
+    error: null,
+    events: ((eventsData as EventRow[] | null) ?? []),
+    results: ((resultsData as DiagnosisResultRow[] | null) ?? []),
+  };
+}
+
+export default async function AdminPage() {
+  const { events, results, error } = await getAdminDashboardData();
+
+  const overview = buildOverview(events);
+  const dailySummary = buildDailySummary(events);
+  const typeDistribution = buildTypeDistribution(events, results);
+  const sourceSummary = buildSourceSummary(events);
+  const rawCounts = buildRawCounts(events, results);
 
   return (
     <main className={`${notoSans.className} min-h-screen bg-[#f6f6f6] text-[#111]`}>
@@ -363,9 +355,7 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black sm:text-4xl">日次サマリー</h2>
           </div>
 
-          {loading ? (
-            <p className="text-sm text-[#666]">読み込み中...</p>
-          ) : dailySummary.length === 0 ? (
+          {dailySummary.length === 0 ? (
             <p className="text-sm text-[#666]">まだ events データがありません。</p>
           ) : (
             <div className="overflow-x-auto">
@@ -406,9 +396,7 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black sm:text-4xl">流入元別サマリー</h2>
           </div>
 
-          {loading ? (
-            <p className="text-sm text-[#666]">読み込み中...</p>
-          ) : sourceSummary.length === 0 ? (
+          {sourceSummary.length === 0 ? (
             <p className="text-sm text-[#666]">まだ流入元データがありません。</p>
           ) : (
             <div className="overflow-x-auto">
@@ -447,9 +435,7 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black sm:text-4xl">猫タイプ分布</h2>
           </div>
 
-          {loading ? (
-            <p className="text-sm text-[#666]">読み込み中...</p>
-          ) : typeDistribution.length === 0 ? (
+          {typeDistribution.length === 0 ? (
             <p className="text-sm text-[#666]">まだ diagnosis_results データがありません。</p>
           ) : (
             <div className="overflow-x-auto">
@@ -502,7 +488,7 @@ function MiniCard({ label, value, isText = false }: { label: string; value: numb
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: { children: ReactNode }) {
   return (
     <th className="border-b border-[#ececec] bg-[#fafafa] px-4 py-4 font-black text-[#111] sm:px-6 sm:py-5">
       {children}
@@ -510,7 +496,7 @@ function Th({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Td({ children, strong = false }: { children: React.ReactNode; strong?: boolean }) {
+function Td({ children, strong = false }: { children: ReactNode; strong?: boolean }) {
   return (
     <td className={`border-b border-[#f0f0f0] px-4 py-4 sm:px-6 sm:py-5 ${strong ? "font-bold" : "font-medium"}`}>
       {children}
