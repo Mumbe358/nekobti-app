@@ -153,6 +153,33 @@ type TypeListResponse = {
   error?: string;
 };
 
+type PublicContentKey = "about" | "privacy";
+
+type PublicContentField = {
+  label: string;
+  type?: "text" | "email" | "image" | "link";
+  value?: string;
+  href?: string;
+  src?: string;
+  alt?: string;
+  action?: "open-privacy";
+};
+
+type PublicContentData = {
+  key: PublicContentKey;
+  eyebrow: string;
+  title: string;
+  paragraphs?: string[];
+  fields?: PublicContentField[];
+  footerLines?: string[];
+};
+
+type PublicContentResponse = {
+  ok: boolean;
+  item?: PublicContentData;
+  error?: string;
+};
+
 type StartResponse = {
   ok: boolean;
   questions?: Question[];
@@ -270,6 +297,12 @@ export default function DiagnosisClient() {
   const [typeListItems, setTypeListItems] = useState<TypeListItem[]>([]);
   const [isLoadingTypeList, setIsLoadingTypeList] = useState(false);
   const [typeListError, setTypeListError] = useState<string | null>(null);
+  const [aboutContent, setAboutContent] = useState<PublicContentData | null>(null);
+  const [privacyContent, setPrivacyContent] = useState<PublicContentData | null>(null);
+  const [isLoadingAbout, setIsLoadingAbout] = useState(false);
+  const [isLoadingPrivacy, setIsLoadingPrivacy] = useState(false);
+  const [aboutError, setAboutError] = useState<string | null>(null);
+  const [privacyError, setPrivacyError] = useState<string | null>(null);
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [isSharePreviewOpen, setIsSharePreviewOpen] = useState(false);
   const [isOpeningSharePreview, setIsOpeningSharePreview] = useState(false);
@@ -467,6 +500,27 @@ export default function DiagnosisClient() {
     setQuestionLoadError(null);
   };
 
+  const fetchPublicContent = async (key: PublicContentKey) => {
+    try {
+      const response = await fetch(`/api/public-content/${key}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await readJsonSafely<PublicContentResponse>(response);
+
+      if (!response.ok || !data?.ok || !data.item) {
+        console.error(`public content fetch failed: ${key}`, data?.error ?? response.statusText);
+        return null;
+      }
+
+      return data.item;
+    } catch (error) {
+      console.error(`public content fetch failed: ${key}`, error);
+      return null;
+    }
+  };
+
   const fetchTypeList = async () => {
     try {
       setIsLoadingTypeList(true);
@@ -496,15 +550,28 @@ export default function DiagnosisClient() {
 
   const openTypeList = async () => {
     setIsTypeListOpen(true);
-    await fetchTypeList();
+    if (typeListItems.length === 0) {
+      await fetchTypeList();
+    }
   };
 
   const closeTypeList = () => {
     setIsTypeListOpen(false);
   };
 
-  const openAbout = () => {
+  const openAbout = async () => {
     setIsAboutOpen(true);
+    if (aboutContent) return;
+
+    setIsLoadingAbout(true);
+    setAboutError(null);
+    const item = await fetchPublicContent("about");
+    if (!item) {
+      setAboutError("内容の読み込みに失敗しました。");
+    } else {
+      setAboutContent(item);
+    }
+    setIsLoadingAbout(false);
   };
 
   const closeAbout = () => {
@@ -512,8 +579,19 @@ export default function DiagnosisClient() {
     setIsAboutOpen(false);
   };
 
-  const openPrivacy = () => {
+  const openPrivacy = async () => {
     setIsPrivacyOpen(true);
+    if (privacyContent) return;
+
+    setIsLoadingPrivacy(true);
+    setPrivacyError(null);
+    const item = await fetchPublicContent("privacy");
+    if (!item) {
+      setPrivacyError("内容の読み込みに失敗しました。");
+    } else {
+      setPrivacyContent(item);
+    }
+    setIsLoadingPrivacy(false);
   };
 
   const closePrivacy = () => {
@@ -1490,59 +1568,83 @@ ${shareUrl}`);
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-[#f1e4da]">
-            <h3 className="mb-5 text-xl font-bold text-[#2b2b2b]">運営情報</h3>
+            {isLoadingAbout ? (
+              <div className="py-10 text-center text-sm text-[#7a5c48]">読み込み中...</div>
+            ) : aboutError ? (
+              <div className="py-10 text-center text-sm text-[#b2685b]">{aboutError}</div>
+            ) : aboutContent ? (
+              <>
+                <div className="space-y-5 text-[15px] leading-8 text-[#4e433d] sm:text-base">
+                  {(aboutContent.paragraphs ?? []).map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
 
-            <div className="space-y-5 text-[15px] leading-8 text-[#4e433d] sm:text-base">
-              <div>
-                <p className="text-sm font-bold text-[#9a7d69]">サービス名</p>
-                <p>ねこびーてぃあい（NEKOBTI）</p>
-              </div>
+                  {(aboutContent.fields ?? []).map((field) => {
+                    if (field.type === "image" && field.src) {
+                      return (
+                        <div key={field.label}>
+                          <p className="text-sm font-bold text-[#9a7d69]">{field.label}</p>
+                          <div className="mt-2 flex justify-center">
+                            <img
+                              src={field.src}
+                              alt={field.alt ?? field.label}
+                              className="h-24 w-auto object-contain"
+                            />
+                          </div>
+                        </div>
+                      );
+                    }
 
-              <div>
-                <p className="text-sm font-bold text-[#9a7d69]">内容</p>
-                <p>猫タイプ診断コンテンツの企画・運営</p>
-              </div>
+                    if (field.type === "email" && field.value) {
+                      return (
+                        <div key={field.label}>
+                          <p className="text-sm font-bold text-[#9a7d69]">{field.label}</p>
+                          <a
+                            href={`mailto:${field.value}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
+                          >
+                            {field.value}
+                          </a>
+                        </div>
+                      );
+                    }
 
-<div>
-  <p className="text-sm font-bold text-[#9a7d69]">運営</p>
-  <div className="mt-2 flex justify-center">
-    <img
-      src="/images/nekobee-logo.png"
-      alt="NEKOBEE logo"
-      className="h-24 w-auto object-contain"
-    />
-  </div>
-</div>
+                    if (field.type === "link" && field.action === "open-privacy") {
+                      return (
+                        <div key={field.label}>
+                          <button
+                            type="button"
+                            onClick={openPrivacy}
+                            className="text-sm font-bold text-[#9a7d69] underline decoration-[#d8c1b1]"
+                          >
+                            {field.value ?? field.label}
+                          </button>
+                        </div>
+                      );
+                    }
 
-              <div>
-                <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
-                <a
-                  href="mailto:nekobee@example.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
-                >
-                  nekobee@example.com
-                </a>
-              </div>
+                    return (
+                      <div key={field.label}>
+                        <p className="text-sm font-bold text-[#9a7d69]">{field.label}</p>
+                        <p>{field.value}</p>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              <div>
-
-<button
-  type="button"
-  onClick={openPrivacy}
-  className="text-sm font-bold text-[#9a7d69] underline decoration-[#d8c1b1]"
->
-  プライバシーポリシー
-</button>
-
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
-              <p>※本サービスはエンターテインメントを目的としています。</p>
-              <p className="mt-2">© NEKOBEE All Rights Reserved.</p>
-            </div>
+                {(aboutContent.footerLines?.length ?? 0) > 0 ? (
+                  <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
+                    {aboutContent.footerLines?.map((line, index) => (
+                      <p key={line} className={index > 0 ? "mt-2" : undefined}>
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -1574,49 +1676,54 @@ ${shareUrl}`);
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-[#f1e4da]">
-            <div className="space-y-5 text-[15px] leading-6 text-[#4e433d] sm:text-base">
-              <p>
-                ねこびーてぃあい（以下、「本サービス」）は、診断結果の表示、サービス改善、不正利用防止、お問い合わせ対応のため、利用状況や端末情報等を取得することがあります。
-              </p>
+            {isLoadingPrivacy ? (
+              <div className="py-10 text-center text-sm text-[#7a5c48]">読み込み中...</div>
+            ) : privacyError ? (
+              <div className="py-10 text-center text-sm text-[#b2685b]">{privacyError}</div>
+            ) : privacyContent ? (
+              <>
+                <div className="space-y-5 text-[15px] leading-6 text-[#4e433d] sm:text-base">
+                  {(privacyContent.paragraphs ?? []).map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
 
-              <p>
-                本サービスでは、利便性向上やアクセス解析のため、Cookie等を利用する場合があります。
-              </p>
+                  {(privacyContent.fields ?? []).map((field) => {
+                    if (field.type === "email" && field.value) {
+                      return (
+                        <div key={field.label}>
+                          <p className="text-sm font-bold text-[#9a7d69]">{field.label}</p>
+                          <a
+                            href={`mailto:${field.value}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
+                          >
+                            {field.value}
+                          </a>
+                        </div>
+                      );
+                    }
 
-              <p>
-                取得した情報は、法令に基づく場合等を除き、本人の同意なく第三者に提供しません。
-              </p>
+                    return (
+                      <div key={field.label}>
+                        <p className="text-sm font-bold text-[#9a7d69]">{field.label}</p>
+                        <p>{field.value}</p>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              <p>
-                本サービスは、必要な範囲で外部サービスを利用することがあります。
-              </p>
-
-              <p>
-                本サービスはエンターテインメントを目的として提供しており、診断結果は医学的・心理学的判断を行うものではありません。
-              </p>
-
-              <p>
-                本ポリシーは、必要に応じて改定されることがあります。
-              </p>
-
-              <div>
-                <p className="text-sm font-bold text-[#9a7d69]">お問い合わせ</p>
-                <a
-                  href="mailto:nekobee@example.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all text-[#7a5c48] underline decoration-[#d8c1b1] underline-offset-4"
-                >
-                  nekobee@example.com
-                </a>
-              </div>
-
-            </div>
-
-            <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
-              <p>制定日：2026年4月19日</p>
-              <p className="mt-2">運営：NEKOBEE</p>
-            </div>
+                {(privacyContent.footerLines?.length ?? 0) > 0 ? (
+                  <div className="mt-6 rounded-2xl bg-[#fff7f1] px-4 py-4 text-sm leading-7 text-[#7a5c48] ring-1 ring-[#f1e4da]">
+                    {privacyContent.footerLines?.map((line, index) => (
+                      <p key={line} className={index > 0 ? "mt-2" : undefined}>
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </div>
       </div>
