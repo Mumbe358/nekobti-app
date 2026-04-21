@@ -254,7 +254,7 @@ const Paw = ({ active }: { active: boolean }) => (
 
 
 function getResultImagePath(mbti: string, gender: GenderOption, coat: CoatOption) {
-  if (!gender || !coat) return "/images/silhouette.png";
+  if (!gender || !coat) return "";
   return `/images/cats/${mbti}_${gender}_${coat}.png`;
 }
 
@@ -293,7 +293,8 @@ export default function DiagnosisClient() {
   const [cardCopy, setCardCopy] = useState("");
   const [selectedGender, setSelectedGender] = useState<GenderOption>("");
   const [selectedCoat, setSelectedCoat] = useState<CoatOption>("");
-  const [resultImageSrc, setResultImageSrc] = useState("/images/silhouette.png");
+  const [resultImageSrc, setResultImageSrc] = useState("");
+  const [isResultImageReady, setIsResultImageReady] = useState(false);
   const [typeListItems, setTypeListItems] = useState<TypeListItem[]>([]);
   const [isLoadingTypeList, setIsLoadingTypeList] = useState(false);
   const [typeListError, setTypeListError] = useState<string | null>(null);
@@ -398,9 +399,33 @@ export default function DiagnosisClient() {
   const currentQuestion = !isAppearanceStep ? currentQuestions[step] ?? null : null;
 
   useEffect(() => {
-    if (!result) return;
+    if (!result || !selectedGender || !selectedCoat) {
+      setResultImageSrc("");
+      setIsResultImageReady(false);
+      return;
+    }
 
-    setResultImageSrc(getResultImagePath(result.mbti, selectedGender, selectedCoat));
+    const nextSrc = getResultImagePath(result.mbti, selectedGender, selectedCoat);
+    if (!nextSrc) {
+      setResultImageSrc("");
+      setIsResultImageReady(false);
+      return;
+    }
+
+    setIsResultImageReady(false);
+
+    const img = new Image();
+    img.src = nextSrc;
+
+    img.onload = () => {
+      setResultImageSrc(nextSrc);
+      setIsResultImageReady(true);
+    };
+
+    img.onerror = () => {
+      setResultImageSrc("");
+      setIsResultImageReady(false);
+    };
   }, [result, selectedGender, selectedCoat]);
 
 
@@ -453,7 +478,8 @@ export default function DiagnosisClient() {
     setCardCopy("");
     setSelectedGender("");
     setSelectedCoat("");
-    setResultImageSrc("/images/silhouette.png");
+    setResultImageSrc("");
+    setIsResultImageReady(false);
     setQuestionLoadError(null);
   };
 
@@ -885,7 +911,7 @@ ${getShareUrl()}`;
   };
 
   const openSharePreview = async () => {
-    if (!isMobileClient || isPreparingShareImage || isNativeSharing || isOpeningSharePreview || !result) return;
+    if (!isMobileClient || isPreparingShareImage || isNativeSharing || isOpeningSharePreview || !result || !isResultImageReady || !resultImageSrc) return;
 
     setIsOpeningSharePreview(true);
     setShareImageError(null);
@@ -1348,14 +1374,21 @@ ${shareUrl}`);
                 <div className="mb-3 rounded-[28px] bg-gradient-to-br from-[#fff4ec] to-[#fffdfb] px-3 py-3 ring-1 ring-[#f3e3d8]">
                   <p className="mb-2 text-center text-sm text-[#7a5c48]">うちの子は…</p>
                   <div className="mb-3 overflow-hidden rounded-[24px] bg-white p-2 ring-1 ring-[#f1e4da]">
-                    <img
-                      src={resultImageSrc}
-                      alt={result.mainType}
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/silhouette.png";
-                      }}
-                      className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
-                    />
+                    {isResultImageReady && resultImageSrc ? (
+                      <img
+                        src={resultImageSrc}
+                        alt={result.mainType}
+                        onError={() => {
+                          setResultImageSrc("");
+                          setIsResultImageReady(false);
+                        }}
+                        className="mx-auto aspect-square w-full max-w-[320px] rounded-[18px] object-cover"
+                      />
+                    ) : (
+                      <div className="mx-auto flex aspect-square w-full max-w-[320px] items-center justify-center rounded-[18px] bg-[#f6efe9] px-6 text-center text-sm leading-relaxed text-[#9f8f86]">
+                        {selectedGender && selectedCoat ? "イラストを読み込み中…" : "性別と毛色を選択するとイラストが表示されます"}
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-3 flex min-h-[52px] items-center justify-center overflow-hidden">
@@ -1414,14 +1447,14 @@ ${shareUrl}`);
                     onClick={() => {
                       void openSharePreview();
                     }}
-                    disabled={!isMobileClient || isOpeningSharePreview || isPreparingShareImage}
+                    disabled={!isMobileClient || isOpeningSharePreview || isPreparingShareImage || !isResultImageReady || !resultImageSrc}
                     className={`rounded-full px-5 py-3 text-base font-semibold transition ${
                       isMobileClient
                         ? "bg-[#f1e3d6] text-[#7a5c48] hover:opacity-90"
                         : "cursor-not-allowed border border-[#e7d8cc] bg-[#f7f1ec] text-[#b59a88]"
                     }`}
                   >
-                    {!isMobileClient ? "シェア（スマホ専用）" : isOpeningSharePreview ? "共有画像を準備中…" : "シェア"}
+                    {!isMobileClient ? "シェア（スマホ専用）" : isOpeningSharePreview ? "共有画像を準備中…" : !isResultImageReady ? "画像を読み込み中…" : "シェア"}
                   </button>
                 </div>
               </div>
