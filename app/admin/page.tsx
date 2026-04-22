@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Noto_Sans_JP } from "next/font/google";
 import { getSupabaseAdmin } from "@/app/lib/server/supabase-admin";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type EventRow = {
   id: number;
