@@ -44,7 +44,7 @@ const publicContentMap: Record<PublicContentKey, PublicContentData> = {
       {
         label: "お問い合わせ",
         type: "email",
-        value: "nekobee@example.com",
+        value: "nekobee.app@gmail.com",
       },
       {
         label: "プライバシーポリシー",
@@ -74,7 +74,7 @@ const publicContentMap: Record<PublicContentKey, PublicContentData> = {
       {
         label: "お問い合わせ",
         type: "email",
-        value: "nekobee@example.com",
+        value: "nekobee.app@gmail.com",
       },
     ],
     footerLines: [
