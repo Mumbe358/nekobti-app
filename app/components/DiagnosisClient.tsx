@@ -1059,7 +1059,7 @@ ${shareUrl}`);
               </button>
             </div>
 
-            <p className="mt-5 text-sm font-semibold tracking-[0.18em] text-[#b07d62]">
+            <p className="mt-5 text-center text-sm font-semibold tracking-[0.18em] text-[#b07d62]">
               BETA Version
             </p>
 
@@ -1094,7 +1094,7 @@ ${shareUrl}`);
                       👑
                     </div>
 
-                    <p className="text-sm leading-7 text-[#6c625b]">
+                    <p className="text-sm leading-6 text-[#6c625b]">
                       堂々としていて、決断も早い。
                       空気を読むより、空間そのものを掌握するタイプ。
                     </p>
