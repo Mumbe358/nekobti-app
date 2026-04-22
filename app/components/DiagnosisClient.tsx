@@ -1059,20 +1059,9 @@ ${shareUrl}`);
               </button>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]">
-                <p className="mb-2 text-sm text-[#9a7d69]">TYPE</p>
-                <p className="text-lg font-bold">戦略きれものねこ</p>
-              </div>
-              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]">
-                <p className="mb-2 text-sm text-[#9a7d69]">TYPE</p>
-                <p className="text-lg font-bold">しずか哲学ねこ</p>
-              </div>
-              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#f1e4da]">
-                <p className="mb-2 text-sm text-[#9a7d69]">TYPE</p>
-                <p className="text-lg font-bold">覇王ボスねこ</p>
-              </div>
-            </div>
+            <p className="mt-5 text-sm font-semibold tracking-[0.18em] text-[#b07d62]">
+              BETA Version
+            </p>
 
           </div>
 
@@ -1118,8 +1107,8 @@ ${shareUrl}`);
                     <p className="font-semibold">支配力 / 決断 / 王者感</p>
                   </div>
                   <div className="rounded-2xl bg-white p-4 shadow-sm">
-                    <p className="mb-1 text-sm text-[#9a7d69]">相性</p>
-                    <p className="font-semibold">戦略きれものねこ / しきり屋リーダーねこ</p>
+                    <p className="mb-1 text-sm text-[#9a7d69]">飼いぬしとの相性</p>
+                    <p className="font-semibold">INTJ（建築家） / ESTJ（幹部）</p>
                   </div>
                 </div>
               </div>
