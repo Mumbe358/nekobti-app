@@ -762,7 +762,6 @@ export default function DiagnosisClient() {
 const getShareText = () =>
   result
     ? `うちの猫のタイプは「${result.mainType}」でした🐱
-${cardCopy.replace(/\n/g, " ")}
 診断してみてね
 ${getShareUrl()}`
     : `うちの猫のタイプ診断をやってみた🐱
@@ -856,21 +855,10 @@ ${getShareUrl()}`;
       ctx.font = "700 48px 'Noto Sans JP', sans-serif";
       ctx.fillText("うちの子は…", width / 2, 54);
 
-      // copy
-      ctx.fillStyle = "#2b2b2b";
-      ctx.font = "200 88px 'Kiwami'";
-      const copyLines = wrapCanvasText(ctx, cardCopy, 960).slice(0, 3);
-      let copyY = 140;
-      copyLines.forEach((line) => {
-        ctx.font = "200 88px 'Kiwami'";
-        ctx.fillText(line, width / 2, copyY);
-        copyY += 102;
-      });
-
       // image
       const img = await loadImageForCanvas(resultImageSrc);
       const imgBox = Math.round(width * 0.72);
-      const imgY = copyY + 8;
+      const imgY = 150;
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
         const scale = Math.min(imgBox / img.naturalWidth, imgBox / img.naturalHeight);
         const drawW = img.naturalWidth * scale;
