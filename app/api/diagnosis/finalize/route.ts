@@ -65,53 +65,56 @@ export async function POST(request: NextRequest) {
     const presentation = getResultPresentation(result.mainType);
 
     const supabase = getSupabaseAdmin();
+    const isProduction = process.env.VERCEL_ENV === "production";
 
-    const { error: resultError } = await supabase.from("diagnosis_results").insert({
-      result_type: result.mainType,
-      mbti: result.mbti,
-      gender: body.gender,
-      coat: body.coat,
-      session_id: body.session_id ?? "",
-      visitor_id: body.visitor_id ?? "",
-      page_path: body.page_path ?? "",
-      referrer: body.referrer ?? null,
-      utm_source: body.utm_source ?? null,
-      utm_medium: body.utm_medium ?? null,
-      utm_campaign: body.utm_campaign ?? null,
-      user_agent: body.user_agent ?? request.headers.get("user-agent") ?? "",
-      timezone: body.timezone ?? "",
-    });
+    if (isProduction) {
+      const { error: resultError } = await supabase.from("diagnosis_results").insert({
+        result_type: result.mainType,
+        mbti: result.mbti,
+        gender: body.gender,
+        coat: body.coat,
+        session_id: body.session_id ?? "",
+        visitor_id: body.visitor_id ?? "",
+        page_path: body.page_path ?? "",
+        referrer: body.referrer ?? null,
+        utm_source: body.utm_source ?? null,
+        utm_medium: body.utm_medium ?? null,
+        utm_campaign: body.utm_campaign ?? null,
+        user_agent: body.user_agent ?? request.headers.get("user-agent") ?? "",
+        timezone: body.timezone ?? "",
+      });
 
-    if (resultError) {
-      return NextResponse.json(
-        { ok: false, error: resultError.message },
-        { status: 500 },
-      );
-    }
+      if (resultError) {
+        return NextResponse.json(
+          { ok: false, error: resultError.message },
+          { status: 500 },
+        );
+      }
 
-    const { error: eventError } = await supabase.from("events").insert({
-      event_name: "diagnosis_completed",
-      session_id: body.session_id ?? "",
-      visitor_id: body.visitor_id ?? "",
-      page_path: body.page_path ?? "",
-      page_url: body.page_url ?? "",
-      referrer: body.referrer ?? null,
-      utm_source: body.utm_source ?? null,
-      utm_medium: body.utm_medium ?? null,
-      utm_campaign: body.utm_campaign ?? null,
-      user_agent: body.user_agent ?? request.headers.get("user-agent") ?? "",
-      timezone: body.timezone ?? "",
-      result_type: result.mainType,
-      mbti: result.mbti,
-      gender: body.gender,
-      coat: body.coat,
-    });
+      const { error: eventError } = await supabase.from("events").insert({
+        event_name: "diagnosis_completed",
+        session_id: body.session_id ?? "",
+        visitor_id: body.visitor_id ?? "",
+        page_path: body.page_path ?? "",
+        page_url: body.page_url ?? "",
+        referrer: body.referrer ?? null,
+        utm_source: body.utm_source ?? null,
+        utm_medium: body.utm_medium ?? null,
+        utm_campaign: body.utm_campaign ?? null,
+        user_agent: body.user_agent ?? request.headers.get("user-agent") ?? "",
+        timezone: body.timezone ?? "",
+        result_type: result.mainType,
+        mbti: result.mbti,
+        gender: body.gender,
+        coat: body.coat,
+      });
 
-    if (eventError) {
-      return NextResponse.json(
-        { ok: false, error: eventError.message },
-        { status: 500 },
-      );
+      if (eventError) {
+        return NextResponse.json(
+          { ok: false, error: eventError.message },
+          { status: 500 },
+        );
+      }
     }
 
     const { data: shares, error: shareError } = await supabase
@@ -133,6 +136,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      skippedAnalytics: !isProduction,
+      env: process.env.VERCEL_ENV ?? "unknown",
       typeShares,
       result: {
         ...result,

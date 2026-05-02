@@ -30,6 +30,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (process.env.VERCEL_ENV !== "production") {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: "non-production environment",
+        env: process.env.VERCEL_ENV ?? "unknown",
+      });
+    }
+
     const supabase = getSupabaseAdmin();
 
     const { error } = await supabase.from("events").insert({
